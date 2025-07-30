@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+  publish-crate:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-release-
+          ${{ runner.os }}-cargo-
+    
+    - name: Extract tag version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Verify version consistency
+      run: |
+        TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
+        MAIN_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+        DERIVE_VERSION=$(grep '^version = ' nessus-derive/Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+        
+        echo "Tag version: $TAG_VERSION"
+        echo "Main crate version: $MAIN_VERSION"
+        echo "Derive crate version: $DERIVE_VERSION"
+        
+        if [ "$TAG_VERSION" != "$MAIN_VERSION" ]; then
+          echo "Error: Tag version ($TAG_VERSION) does not match main crate version ($MAIN_VERSION)"
+          exit 1
+        fi
+        
+        if [ "$TAG_VERSION" != "$DERIVE_VERSION" ]; then
+          echo "Error: Tag version ($TAG_VERSION) does not match derive crate version ($DERIVE_VERSION)"
+          exit 1
+        fi
+        
+        echo "✅ All versions are consistent"
+    
+    - name: Run tests before publishing
+      run: cargo test --all-features --workspace
+    
+    - name: Login to crates.io
+      run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+    
+    - name: Publish nessus-derive
+      run: |
+        echo "Publishing nessus-derive v${{ steps.get_version.outputs.VERSION }}"
+        cargo publish -p nessus-derive --dry-run
+        cargo publish -p nessus-derive
+    
+    - name: Wait for nessus-derive to be available
+      run: |
+        echo "Waiting for nessus-derive to be available on crates.io..."
+        sleep 60
+        
+        # Verify the package is available
+        for i in {1..10}; do
+          if cargo search nessus-derive | grep -q "nessus-derive.*${{ steps.get_version.outputs.VERSION }}"; then
+            echo "✅ nessus-derive v${{ steps.get_version.outputs.VERSION }} is now available"
+            break
+          fi
+          echo "Attempt $i: Package not yet available, waiting..."
+          sleep 30
+        done
+    
+    - name: Publish nessus
+      run: |
+        echo "Publishing nessus v${{ steps.get_version.outputs.VERSION }}"
+        cargo publish -p nessus --dry-run
+        cargo publish -p nessus

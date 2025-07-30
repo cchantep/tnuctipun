@@ -1,0 +1,11 @@
+error[E0277]: the trait bound `String: NonEmptyStruct` is not satisfied
+ --> tests/compile_fail/non_empty_struct_primitive_type.rs:8:43
+  |
+8 |     _assert_implements_non_empty_struct::<String>();
+  |                                           ^^^^^^ the trait `NonEmptyStruct` is not implemented for `String`
+  |
+note: required by a bound in `_assert_implements_non_empty_struct`
+ --> tests/compile_fail/non_empty_struct_primitive_type.rs:7:47
+  |
+7 |     fn _assert_implements_non_empty_struct<T: NonEmptyStruct>() {}
+  |                                               ^^^^^^^^^^^^^^ required by this bound in `_assert_implements_non_empty_struct`

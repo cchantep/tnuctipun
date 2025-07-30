@@ -1,0 +1,31 @@
+# GitHub Labels Configuration
+# You can import these labels using: gh label create --repo OWNER/REPO
+
+# Priority Labels
+priority/low: "d4c5f9"
+priority/medium: "fbca04" 
+priority/high: "d93f0b"
+priority/critical: "b60205"
+
+# Type Labels  
+type/bug: "d73a4a"
+type/feature: "0075ca"
+type/documentation: "0052cc"
+type/maintenance: "e4e669"
+type/performance: "c2e0c6"
+
+# Status Labels
+status/needs-review: "fbca04"
+status/in-progress: "0052cc"
+status/blocked: "d93f0b"
+status/wontfix: "ffffff"
+
+# Area Labels
+area/derive-macros: "f9d0c4"
+area/filters: "c5def5"
+area/mongodb: "bfdadc"
+area/field-witnesses: "fef2c0"
+
+# Good First Issue
+good-first-issue: "7057ff"
+help-wanted: "008672"
