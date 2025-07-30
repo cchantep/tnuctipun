@@ -1,0 +1,12 @@
+# Global ownership
+* @cchantep
+
+# Derive macros
+/nessus-derive/ @cchantep
+
+# CI/CD
+/.github/ @cchantep
+
+# Documentation
+/README.md @cchantep
+/docs/ @cchantep

@@ -1,0 +1,35 @@
+[workspace]
+members = [".", "nessus-derive"]
+exclude = []
+
+[package]
+name = "nessus"
+version = "0.1.0"
+edition = "2024"
+description = "The Puppeteer from Ringworld — wise, cautious, clever — or a type-safe MongoDB builder library"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/cchantep/nessus"
+documentation = "https://docs.rs/nessus"
+keywords = ["mongodb", "database", "query", "type-safe", "derive"]
+categories = ["database"]
+authors = ["Cédric Chantepie <cchantep@users.noreply.github.com>"]
+readme = "README.md"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "nessus"
+path = "src/main.rs"
+
+[dependencies]
+chrono = "0.4"
+frunk = "0.4.4"
+futures = "0.3.31"
+mongodb = "3.2.4"
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.47.0", features = ["full"] }
+nessus-derive = { version = "0.1.0", path = "./nessus-derive" }
+
+[dev-dependencies]
+trybuild = "1.0.108"

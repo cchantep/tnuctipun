@@ -1,0 +1,9 @@
+error[E0277]: the trait bound `Product: HasField<Weight>` is not satisfied
+  --> tests/compile_fail/mongo_nonexistent_field.rs:30:10
+   |
+30 |         <Product as nessus::field_witnesses::HasField<Weight>>::Value,
+   |          ^^^^^^^ the trait `HasField<Weight>` is not implemented for `Product`
+   |
+   = help: the following other types implement trait `HasField<F>`:
+             `Product` implements `HasField<Name>`
+             `Product` implements `HasField<Price>`

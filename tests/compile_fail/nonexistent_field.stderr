@@ -1,0 +1,17 @@
+error[E0277]: the trait bound `Product: HasField<Weight>` is not satisfied
+  --> tests/compile_fail/nonexistent_field.rs:32:52
+   |
+32 |     let weight_filter = test_nonexistent::<Weight, Product, _>(10.5);
+   |                                                    ^^^^^^^ the trait `HasField<Weight>` is not implemented for `Product`
+   |
+   = help: the following other types implement trait `HasField<F>`:
+             `Product` implements `HasField<Name>`
+             `Product` implements `HasField<Price>`
+note: required by a bound in `test_nonexistent`
+  --> tests/compile_fail/nonexistent_field.rs:24:8
+   |
+21 | pub fn test_nonexistent<F, T, V>(value: V) -> (&'static str, String)
+   |        ---------------- required by a bound in this function
+...
+24 |     T: HasField<F, Value = V>,
+   |        ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `test_nonexistent`
