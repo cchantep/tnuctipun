@@ -26,14 +26,14 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct User { Name: String }
     ///
-    /// let builder = FilterBuilder::<User>::new();
+    /// let builder = empty::<User>();
     /// ```
     pub fn new() -> Self {
         Self {
@@ -64,14 +64,15 @@ impl<T> FilterBuilder<T> {
     ///
     /// ```rust
     /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct User { Name: String, Age: i32 }
     ///
     /// // Using builder pattern with efficient chaining:
-    /// let mut builder = FilterBuilder::<User>::new();
+    /// let mut builder = empty::<User>();
+    ///
     /// builder.eq::<user_fields::Name, _>("John".to_string());
     /// ```
     pub fn eq<F, V>(&mut self, value: V) -> &mut Self
@@ -103,7 +104,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -111,7 +112,8 @@ impl<T> FilterBuilder<T> {
     /// struct Product { Price: f64 }
     ///
     /// // Filter for products with price > 500
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.gt::<product_fields::Price, _>(500.0);
     /// // Resulting BSON: { "Price": { "$gt": 500.0 } }
     /// ```
@@ -140,7 +142,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -148,7 +150,8 @@ impl<T> FilterBuilder<T> {
     /// struct Product { Stock: i32 }
     ///
     /// // Filter for products with stock < 10
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.lt::<product_fields::Stock, _>(10);
     /// // Resulting BSON: { "Stock": { "$lt": 10 } }
     /// ```
@@ -177,7 +180,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -185,7 +188,8 @@ impl<T> FilterBuilder<T> {
     /// struct User { Age: i32 }
     ///
     /// // Filter for users with age in [20, 30, 40]
-    /// let mut builder = FilterBuilder::<User>::new();
+    /// let mut builder = empty::<User>();
+    ///
     /// builder.r#in::<user_fields::Age, _>(vec![20, 30, 40]);
     /// // Resulting BSON: { "Age": { "$in": [20, 30, 40] } }
     /// ```
@@ -215,7 +219,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -223,7 +227,8 @@ impl<T> FilterBuilder<T> {
     /// struct Order { Status: String }
     ///
     /// // Filter for orders with status not equal to "Delivered"
-    /// let mut builder = FilterBuilder::<Order>::new();
+    /// let mut builder = empty::<Order>();
+    ///
     /// builder.ne::<order_fields::Status, _>("Delivered".to_string());
     /// // Resulting BSON: { "Status": { "$ne": "Delivered" } }
     /// ```
@@ -252,7 +257,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -260,7 +265,8 @@ impl<T> FilterBuilder<T> {
     /// struct Product { Rating: f64 }
     ///
     /// // Filter for products with rating >= 4.5
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.gte::<product_fields::Rating, _>(4.5);
     /// // Resulting BSON: { "Rating": { "$gte": 4.5 } }
     /// ```
@@ -289,7 +295,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -297,7 +303,8 @@ impl<T> FilterBuilder<T> {
     /// struct Product { Price: f64 }
     ///
     /// // Filter for products with price <= 100.0
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.lte::<product_fields::Price, _>(100.0);
     /// // Resulting BSON: { "Price": { "$lte": 100.0 } }
     /// ```
@@ -326,7 +333,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
@@ -337,13 +344,15 @@ impl<T> FilterBuilder<T> {
     /// }
     ///
     /// // Filter for users that have a phone number
-    /// let mut builder = FilterBuilder::<User>::new();
-    /// builder.exists::<user_fields::PhoneNumber>(true);
+    /// let mut builder1 = empty::<User>();
+    ///
+    /// builder1.exists::<user_fields::PhoneNumber>(true);
     /// // Resulting BSON: { "PhoneNumber": { "$exists": true } }
     ///
     /// // Filter for users without a phone number
-    /// let mut builder = FilterBuilder::<User>::new();
-    /// builder.exists::<user_fields::PhoneNumber>(false);
+    /// let mut builder2 = empty::<User>();
+    ///
+    /// builder2.exists::<user_fields::PhoneNumber>(false);
     /// // Resulting BSON: { "PhoneNumber": { "$exists": false } }
     /// ```
     pub fn exists<F>(&mut self, exists: bool) -> &mut Self
@@ -370,7 +379,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -378,7 +387,8 @@ impl<T> FilterBuilder<T> {
     /// struct Product { Category: String }
     ///
     /// // Filter for products NOT in the categories "Clothing", "Shoes", or "Accessories"
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.nin::<product_fields::Category, _>(vec![
     ///     "Clothing".to_string(),
     ///     "Shoes".to_string(),
@@ -415,7 +425,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -433,7 +443,8 @@ impl<T> FilterBuilder<T> {
     /// }
     ///
     /// // Filter for users with home address in "New York" city
-    /// let mut builder = FilterBuilder::<User>::new();
+    /// let mut builder = empty::<User>();
+    ///
     /// builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
     ///     nested.eq::<address_fields::City, _>("New York".to_string())
     /// });
@@ -490,7 +501,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -502,7 +513,7 @@ impl<T> FilterBuilder<T> {
     /// }
     ///
     /// // Filter for products that match any of the given names
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
     /// let names = vec!["Laptop", "Smartphone", "Tablet"];
     ///
     /// builder.or::<product_fields::Name, _, _>(names, |filter, name| {
@@ -520,7 +531,7 @@ impl<T> FilterBuilder<T> {
     /// # Complex Example with Multiple Conditions
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -532,7 +543,7 @@ impl<T> FilterBuilder<T> {
     /// }
     ///
     /// // Filter for products in specific price ranges
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
     /// let price_ranges = vec![(0.0, 100.0), (500.0, 1000.0), (2000.0, 5000.0)];
     ///
     /// builder.or::<product_fields::Price, _, _>(price_ranges, |filter, (min, max)| {
@@ -591,7 +602,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -603,14 +614,16 @@ impl<T> FilterBuilder<T> {
     /// }
     ///
     /// // Filter for products where the name is NOT "Smartphone"
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.not::<product_fields::Name, _>(|op| {
     ///     op.eq("Smartphone".to_string())
     /// });
     /// // Resulting BSON: { "name": { "$not": { "name": "Smartphone" } } }
     ///
     /// // Filter for products where the price is NOT equal to 500.0
-    /// let mut builder = FilterBuilder::<Product>::new();
+    /// let mut builder = empty::<Product>();
+    ///
     /// builder.not::<product_fields::Price, _>(|op| {
     ///     op.eq(500.0)
     /// });
@@ -655,7 +668,7 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
+    /// use nessus::filters::empty;
     /// use nessus::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
@@ -671,7 +684,8 @@ impl<T> FilterBuilder<T> {
     /// // Use the generated field witnesses from the user_fields module
     /// use user_fields::{Name, Age, Email};
     ///
-    /// let mut builder = FilterBuilder::<User>::new();
+    /// let mut builder = empty::<User>();
+    ///
     /// builder.eq::<Name, _>("John Doe".to_string())
     ///        .gt::<Age, _>(18)
     ///        .exists::<Email>(true);
