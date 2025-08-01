@@ -3,6 +3,8 @@
 [![CI](https://github.com/cchantep/nessus/workflows/CI/badge.svg)](https://github.com/cchantep/nessus/actions)
 [![Crates.io](https://img.shields.io/crates/v/nessus.svg)](https://crates.io/crates/nessus)
 [![Documentation](https://docs.rs/nessus/badge.svg)](https://docs.rs/nessus)
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://cchantep.github.io/nessus/nessus/)
+[![codecov](https://codecov.io/gh/cchantep/nessus/branch/master/graph/badge.svg)](https://codecov.io/gh/cchantep/nessus)
 
 The Puppeteer from Ringworld — wise, cautious, clever — or a type-safe MongoDB builder library.
 
@@ -44,6 +46,11 @@ let mut builder = empty::<User>()
 let filter_doc = builder.and();
 // Results in: { "$and": [{ "name": "John" }, { "age": { "$gt": 18 } }] }
 ```
+
+## Documentation
+
+- **[API Documentation (GitHub Pages)](https://cchantep.github.io/nessus/nessus/)** - Latest development docs
+- **[Crates.io Documentation](https://docs.rs/nessus)** - Released version docs
 
 ## Development
 
