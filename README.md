@@ -25,6 +25,13 @@ Add this to your `Cargo.toml`:
 nessus = "0.1.0"
 ```
 
+The core library only requires the `bson` crate for MongoDB document types. If you need to connect to MongoDB (for example, in applications using the binary), enable the `mongodb-client` feature:
+
+```toml
+[dependencies]
+nessus = { version = "0.1.0", features = ["mongodb-client"] }
+```
+
 ## Example
 
 ```rust

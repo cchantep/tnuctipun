@@ -1,4 +1,4 @@
-use mongodb::bson;
+use bson;
 
 use crate::field_witnesses::{FieldName, HasField};
 use crate::mongo_comparable::MongoComparable;
@@ -764,7 +764,7 @@ impl<T> Default for FilterBuilder<T> {
 /// use nessus::filters::empty;
 /// use nessus::{FieldWitnesses, MongoComparable};
 /// use serde::{Serialize, Deserialize};
-/// use mongodb::bson;
+/// use bson;
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 /// struct User {

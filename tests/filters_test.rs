@@ -1,6 +1,6 @@
 use nessus_derive::MongoComparable;
 
-use mongodb::bson;
+use bson;
 use nessus::FieldWitnesses;
 use nessus::filters::empty;
 use serde::{Deserialize, Serialize};

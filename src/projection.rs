@@ -1,4 +1,4 @@
-use mongodb::bson;
+use bson;
 
 use crate::field_witnesses::{FieldName, HasField};
 use crate::path::Path;
@@ -18,7 +18,7 @@ use crate::path::Path;
 /// ```rust
 /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
 /// use serde::{Serialize, Deserialize};
-/// use mongodb::bson;
+/// use bson;
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
 /// struct User {
@@ -223,7 +223,7 @@ impl<T> ProjectionBuilder<T> {
     ///
     /// ```rust
     /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
-    /// use mongodb::bson;
+    /// use bson;
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -366,7 +366,7 @@ impl<T> ProjectionBuilder<T> {
     ///
     /// ```rust
     /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
-    /// use mongodb::bson;
+    /// use bson;
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {

@@ -1,4 +1,4 @@
-use mongodb::bson;
+use bson;
 use nessus::FieldWitnesses;
 use nessus::projection::ProjectionBuilder;
 use serde::{Deserialize, Serialize};
