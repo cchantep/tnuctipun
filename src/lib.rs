@@ -3,6 +3,7 @@ pub mod field_witnesses;
 pub mod filters;
 pub mod mongo_comparable;
 pub mod path;
+pub mod projection;
 
 // Re-export the procedural macros
 pub use nessus_derive::FieldWitnesses;

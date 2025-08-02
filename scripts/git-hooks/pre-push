@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Git pre-push hook to check cargo fmt
-# This hook will prevent pushing code that is not properly formatted
+# Git pre-push hook to check cargo fmt and clippy
+# This hook will prevent pushing code that is not properly formatted or has clippy warnings
 
-echo "Running cargo fmt check before push..."
+echo "Running code quality checks before push..."
 
 # Check if cargo fmt would make any changes
+echo "🔍 Checking code formatting..."
 if ! cargo fmt --check --quiet; then
     echo "❌ Code formatting check failed!"
     echo ""
@@ -15,6 +16,20 @@ if ! cargo fmt --check --quiet; then
     echo "Push aborted."
     exit 1
 fi
-
 echo "✅ Code formatting check passed!"
+
+# Check clippy warnings
+echo "🔍 Checking clippy warnings..."
+if ! cargo clippy --all-targets --all-features -- -D warnings; then
+    echo "❌ Clippy check failed!"
+    echo ""
+    echo "Please fix all clippy warnings before pushing."
+    echo "You can run 'cargo clippy --all-targets --all-features -- -D warnings' to see the issues."
+    echo ""
+    echo "Push aborted."
+    exit 1
+fi
+echo "✅ Clippy check passed!"
+
+echo "🎉 All code quality checks passed! Ready to push."
 exit 0

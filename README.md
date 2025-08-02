@@ -12,6 +12,7 @@ The Puppeteer from Ringworld — wise, cautious, clever — or a type-safe Mongo
 
 - **Type-safe field access**: Use compile-time validated field names
 - **MongoDB query building**: Build complex queries with type safety
+- **MongoDB projection building**: Create projections with fluent method chaining
 - **Derive macros**: Automatically generate field witnesses and comparable traits
 - **Compile-time validation**: Catch field name typos and type mismatches at compile time
 
@@ -27,7 +28,7 @@ nessus = "0.1.0"
 ## Example
 
 ```rust
-use nessus::{FieldWitnesses, MongoComparable, filters::empty};
+use nessus::{FieldWitnesses, MongoComparable, filters::empty, projection::ProjectionBuilder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -45,6 +46,14 @@ let mut builder = empty::<User>()
 // Convert to MongoDB document  
 let filter_doc = builder.and();
 // Results in: { "$and": [{ "name": "John" }, { "age": { "$gt": 18 } }] }
+
+// Type-safe projection building with method chaining
+let projection_doc = ProjectionBuilder::<User>::new()
+    .includes::<user_fields::Name>()
+    .includes::<user_fields::Age>()
+    .excludes::<user_fields::Email>()  // Hide sensitive data
+    .build();
+// Results in: { "name": 1, "age": 1, "email": 0 }
 ```
 
 ## Documentation
