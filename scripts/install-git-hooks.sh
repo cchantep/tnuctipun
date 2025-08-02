@@ -19,7 +19,7 @@ fi
 if [ -f "$HOOKS_DIR/pre-push" ]; then
     cp "$HOOKS_DIR/pre-push" "$GIT_HOOKS_DIR/pre-push"
     chmod +x "$GIT_HOOKS_DIR/pre-push"
-    echo "✅ Installed pre-push hook (cargo fmt check)"
+    echo "✅ Installed pre-push hook (cargo fmt + clippy checks)"
 else
     echo "❌ pre-push hook template not found"
 fi
@@ -27,6 +27,6 @@ fi
 echo "✅ Git hooks installation complete!"
 echo ""
 echo "Installed hooks:"
-echo "  - pre-push: Checks code formatting with 'cargo fmt' before push"
+echo "  - pre-push: Checks code formatting with 'cargo fmt' and clippy warnings before push"
 echo ""
 echo "To uninstall, simply delete the files in .git/hooks/"
