@@ -88,12 +88,12 @@ error[E0277]: the trait bound `CustomCollection: Deserialize<'_>` is not satisfi
    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `CustomCollection` type
    = note: for types from other crates check whether the crate offers a `serde` feature flag
    = help: the following other types implement trait `Deserialize<'de>`:
-             &'a Path
              &'a [u8]
              &'a bson::raw::array::RawArray
              &'a bson::raw::document::RawDocument
              &'a serde_bytes::bytearray::ByteArray<N>
              &'a serde_bytes::bytes::Bytes
+             &'a std::path::Path
              &'a str
              ()
            and $N others
@@ -115,12 +115,12 @@ error[E0277]: the trait bound `CustomCollection: Deserialize<'_>` is not satisfi
    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `CustomCollection` type
    = note: for types from other crates check whether the crate offers a `serde` feature flag
    = help: the following other types implement trait `Deserialize<'de>`:
-             &'a Path
              &'a [u8]
              &'a bson::raw::array::RawArray
              &'a bson::raw::document::RawDocument
              &'a serde_bytes::bytearray::ByteArray<N>
              &'a serde_bytes::bytes::Bytes
+             &'a std::path::Path
              &'a str
              ()
            and $N others
@@ -142,12 +142,12 @@ error[E0277]: the trait bound `CustomCollection: Deserialize<'_>` is not satisfi
    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `CustomCollection` type
    = note: for types from other crates check whether the crate offers a `serde` feature flag
    = help: the following other types implement trait `Deserialize<'de>`:
-             &'a Path
              &'a [u8]
              &'a bson::raw::array::RawArray
              &'a bson::raw::document::RawDocument
              &'a serde_bytes::bytearray::ByteArray<N>
              &'a serde_bytes::bytes::Bytes
+             &'a std::path::Path
              &'a str
              ()
            and $N others

@@ -1,7 +1,8 @@
 use mongodb::bson;
 
-use crate::field_witnesses::{FieldName, HasField, NonEmptyStruct};
+use crate::field_witnesses::{FieldName, HasField};
 use crate::mongo_comparable::MongoComparable;
+use crate::path::Path;
 
 /// A builder for constructing MongoDB filters with type safety.
 ///
@@ -23,7 +24,7 @@ pub struct FilterBuilder<T> {
 impl<T> FilterBuilder<T> {
     /// Creates a new empty FilterBuilder instance.
     ///
-    /// Notes: Prefer using the `new` method directly instead of the `empty` function.
+    /// Notes: Prefer using the `the `empty` function.
     ///
     /// # Example
     ///
@@ -339,7 +340,7 @@ impl<T> FilterBuilder<T> {
         self
     }
 
-    /// Create a type-safe version of MongoDB's "not in" (`$nin`) operator filter,
+    /// Creates a type-safe version of MongoDB's "not in" (`$nin`) operator filter,
     /// that matches values NOT in the provided array.
     ///
     /// # Type parameters:
@@ -379,14 +380,24 @@ impl<T> FilterBuilder<T> {
         self
     }
 
-    /// Creates filters for nested fields within documents by allowing you to build
-    /// filters on a nested structure. This method handles the proper field path
-    /// construction for nested MongoDB queries.
+    /// Creates filters for nested fields within documents using a path-based lookup approach.
+    /// This method provides explicit control over field path construction,
+    /// allowing you to specify exactly which nested field to target through a lookup function.
     ///
     /// # Type parameters:
-    /// * `F` - The field name marker type for the nested field (e.g., `user_fields::Address`)
-    /// * `V` - The type of the nested field value (must be a struct type)
+    /// * `F` - The field name marker type for the base field (e.g., `user_fields::HomeAddress`)
+    /// * `L` - The lookup function type that resolves the field path
+    /// * `G` - The field name marker type for the target nested field (e.g., `address_fields::City`)
+    /// * `U` - The type of the nested structure containing the target field
     /// * `N` - The closure that builds filters on the nested FilterBuilder
+    ///
+    /// # Arguments
+    /// * `lookup` - A function that takes a `Path<F, T>` and returns a `Path<G, U>` to specify the target field
+    /// * `f` - A closure that builds filter conditions on the resolved nested field
+    ///
+    /// # Note
+    /// For simpler cases where you want to filter on the field itself (identity lookup),
+    /// consider using the `with_field` method instead, which is more concise.
     ///
     /// # Example
     ///
@@ -408,37 +419,44 @@ impl<T> FilterBuilder<T> {
     ///     HomeAddress: Address,
     /// }
     ///
-    /// // Filter for users with home address in "New York" city
+    /// // Using field navigation for accessing nested fields (G≠F, U≠T)
     /// let mut builder = empty::<User>();
-    ///
-    /// builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-    ///     nested.eq::<address_fields::City, _>("New York".to_string())
-    /// });
+    /// builder.with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+    ///     |path| path.field::<address_fields::City>(),
+    ///     |nested| {
+    ///         nested.eq::<address_fields::City, _>("New York".to_string())
+    ///     }
+    /// );
     /// // Resulting BSON: { "HomeAddress.City": "New York" }
     ///
-    /// // Chaining multiple nested filters
-    /// builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-    ///     nested.eq::<address_fields::City, _>("San Francisco".to_string())
-    ///           .eq::<address_fields::ZipCode, _>("94102".to_string())
-    /// });
-    /// // Adds: { "HomeAddress.City": "San Francisco" }, { "HomeAddress.ZipCode": "94102" }
+    /// // For identity cases (filtering on the field itself), prefer with_field():
+    /// // builder.with_field::<user_fields::HomeAddress, _>(|nested| {
+    /// //     nested.exists::<user_fields::HomeAddress>(true)
+    /// // });
+    /// // Resulting BSON: { "HomeAddress": { "$exists": true } }
     /// ```
-    pub fn with_nested<F, V, N>(&mut self, f: N) -> &mut Self
+    pub fn with_lookup<F: FieldName, L, G: FieldName, U: HasField<G>, N>(
+        &mut self,
+        lookup: L,
+        f: N,
+    ) -> &mut Self
     where
-        F: FieldName,
-        T: HasField<F, Value = V>,
-        V: NonEmptyStruct,
-        N: FnOnce(&mut FilterBuilder<V>) -> &mut FilterBuilder<V>,
+        T: HasField<F>,
+        L: FnOnce(&Path<F, T>) -> Path<G, U>,
+        N: FnOnce(&mut FilterBuilder<U>) -> &mut FilterBuilder<U>,
     {
-        // Prepare prefix for the nested builder,
-        // by copying the current prefix and appending the field name
-        let mut nested_prefix = self.prefix.clone();
+        // Create a base field path for the lookup
+        let base_field: Path<F, T> = Path {
+            prefix: self.prefix.clone(),
+            _marker: std::marker::PhantomData,
+        };
 
-        nested_prefix.push(F::field_name().to_string());
+        // Resolve the field path using the provided lookup function
+        let resolved_field = lookup(&base_field);
 
         // Create a new FilterBuilder for the nested field
-        let mut nested_builder = FilterBuilder::<V> {
-            prefix: nested_prefix,
+        let mut nested_builder = FilterBuilder::<U> {
+            prefix: resolved_field.prefix.clone(),
             clauses: vec![],
             _marker: std::marker::PhantomData,
         };
@@ -449,6 +467,54 @@ impl<T> FilterBuilder<T> {
         self.clauses.extend(nested_builder.clauses);
 
         self
+    }
+
+    /// Convenience method for filtering on a field directly (using identity lookup).
+    ///
+    /// Notes: This is a specialized version of `with_lookup` that uses `std::convert::identity`
+    /// as the lookup function, making it easier to apply filters directly to a field
+    /// without needing to specify the identity function explicitly.
+    ///
+    /// # Type parameters:
+    /// * `F` - The field name marker type (e.g., `user_fields::HomeAddress`)
+    /// * `N` - The closure that builds filters on the field
+    ///
+    /// # Arguments
+    /// * `f` - A closure that builds filter conditions on the field
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use nessus::filters::empty;
+    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    /// struct User {
+    ///     Name: String,
+    ///     HomeAddress: String,
+    /// }
+    ///
+    /// let mut builder = empty::<User>();
+    ///
+    /// // This is equivalent to using with_lookup with std::convert::identity
+    /// builder.with_field::<user_fields::HomeAddress, _>(|nested| {
+    ///     nested.exists::<user_fields::HomeAddress>(true)
+    /// });
+    /// // Resulting BSON: { "HomeAddress": { "$exists": true } }
+    /// ```
+    pub fn with_field<F: FieldName, N>(&mut self, f: N) -> &mut Self
+    where
+        T: HasField<F>,
+        N: FnOnce(&mut FilterBuilder<T>) -> &mut FilterBuilder<T>,
+    {
+        self.with_lookup::<F, _, F, T, _>(
+            |path| Path {
+                prefix: path.prefix.clone(),
+                _marker: std::marker::PhantomData,
+            },
+            f,
+        )
     }
 
     /// Create a type-safe version of MongoDB's "$or" operator,

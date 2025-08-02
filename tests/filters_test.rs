@@ -15,7 +15,7 @@ struct Product {
     categories: Vec<String>,
 }
 
-// Define nested structs for testing with_nested function
+// Define nested structs for testing with_lookup function
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Address {
     street: String,
@@ -282,15 +282,16 @@ fn test_and_function_three_clauses() {
     assert_eq!(result, expected);
 }
 
-// Tests for with_nested function
+// Tests for with_lookup function
 #[test]
-fn test_with_nested_single_field() {
+fn test_with_lookup_single_field() {
     // Test filtering on a single nested field
     let mut builder = empty::<User>();
 
-    builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-        nested.eq::<address_fields::City, _>("New York".to_string())
-    });
+    builder.with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+        |path| path.field::<address_fields::City>(),
+        |nested| nested.eq::<address_fields::City, _>("New York".to_string()),
+    );
 
     let expected = bson::doc! { "home_address.city": "New York" };
 
@@ -298,15 +299,19 @@ fn test_with_nested_single_field() {
 }
 
 #[test]
-fn test_with_nested_multiple_fields() {
+fn test_with_lookup_multiple_fields() {
     // Test filtering on multiple nested fields within the same nested object
     let mut builder = empty::<User>();
 
-    builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-        nested
-            .eq::<address_fields::City, _>("San Francisco".to_string())
-            .eq::<address_fields::ZipCode, _>("94102".to_string())
-    });
+    builder
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| nested.eq::<address_fields::City, _>("San Francisco".to_string()),
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::ZipCode, Address, _>(
+            |path| path.field::<address_fields::ZipCode>(),
+            |nested| nested.eq::<address_fields::ZipCode, _>("94102".to_string()),
+        );
 
     let expected_city = bson::doc! { "home_address.city": "San Francisco" };
     let expected_zip = bson::doc! { "home_address.zip_code": "94102" };
@@ -315,16 +320,23 @@ fn test_with_nested_multiple_fields() {
 }
 
 #[test]
-fn test_with_nested_different_operators() {
+fn test_with_lookup_different_operators() {
     // Test using different MongoDB operators within nested fields
     let mut builder = empty::<User>();
 
-    builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-        nested
-            .eq::<address_fields::Country, _>("USA".to_string())
-            .ne::<address_fields::City, _>("Los Angeles".to_string())
-            .exists::<address_fields::ZipCode>(true)
-    });
+    builder
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::Country, Address, _>(
+            |path| path.field::<address_fields::Country>(),
+            |nested| nested.eq::<address_fields::Country, _>("USA".to_string()),
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| nested.ne::<address_fields::City, _>("Los Angeles".to_string()),
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::ZipCode, Address, _>(
+            |path| path.field::<address_fields::ZipCode>(),
+            |nested| nested.exists::<address_fields::ZipCode>(true),
+        );
 
     let expected_country = bson::doc! { "home_address.country": "USA" };
     let expected_city = bson::doc! { "home_address.city": { "$ne": "Los Angeles" } };
@@ -337,17 +349,19 @@ fn test_with_nested_different_operators() {
 }
 
 #[test]
-fn test_with_nested_multiple_nested_objects() {
+fn test_with_lookup_multiple_nested_objects() {
     // Test filtering on different nested objects within the same parent
     let mut builder = empty::<User>();
 
     builder
-        .with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-            nested.eq::<address_fields::City, _>("Boston".to_string())
-        })
-        .with_nested::<user_fields::WorkAddress, Address, _>(|nested| {
-            nested.eq::<address_fields::City, _>("Cambridge".to_string())
-        });
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| nested.eq::<address_fields::City, _>("Boston".to_string()),
+        )
+        .with_lookup::<user_fields::WorkAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| nested.eq::<address_fields::City, _>("Cambridge".to_string()),
+        );
 
     let expected_home = bson::doc! { "home_address.city": "Boston" };
     let expected_work = bson::doc! { "work_address.city": "Cambridge" };
@@ -356,15 +370,16 @@ fn test_with_nested_multiple_nested_objects() {
 }
 
 #[test]
-fn test_with_nested_mixed_with_regular_filters() {
+fn test_with_lookup_mixed_with_regular_filters() {
     // Test combining nested filters with regular field filters
     let mut builder = empty::<User>();
 
     builder
         .eq::<user_fields::Name, _>("John Doe".to_string())
-        .with_nested::<user_fields::Contact, ContactInfo, _>(|nested| {
-            nested.eq::<contactinfo_fields::Email, _>("john@example.com".to_string())
-        })
+        .with_lookup::<user_fields::Contact, _, contactinfo_fields::Email, ContactInfo, _>(
+            |path| path.field::<contactinfo_fields::Email>(),
+            |nested| nested.eq::<contactinfo_fields::Email, _>("john@example.com".to_string()),
+        )
         .gt::<user_fields::Age, _>(25);
 
     let expected_name = bson::doc! { "name": "John Doe" };
@@ -378,19 +393,33 @@ fn test_with_nested_mixed_with_regular_filters() {
 }
 
 #[test]
-fn test_with_nested_deep_nesting() {
+fn test_with_lookup_deep_nesting() {
     // Test deeply nested structures (Company -> Address)
     let mut builder = empty::<Employee>();
 
-    builder.with_nested::<employee_fields::Company, Company, _>(|nested| {
-        nested
-            .eq::<company_fields::Name, _>("Tech Corp".to_string())
-            .with_nested::<company_fields::Address, Address, _>(|deeply_nested| {
-                deeply_nested
-                    .eq::<address_fields::City, _>("Seattle".to_string())
-                    .eq::<address_fields::Country, _>("USA".to_string())
-            })
-    });
+    builder
+        .with_lookup::<employee_fields::Company, _, company_fields::Name, Company, _>(
+            |path| path.field::<company_fields::Name>(),
+            |nested| nested.eq::<company_fields::Name, _>("Tech Corp".to_string()),
+        )
+        .with_lookup::<employee_fields::Company, _, company_fields::Address, Company, _>(
+            |path| path.field::<company_fields::Address>(),
+            |nested| {
+                nested
+                    .with_lookup::<company_fields::Address, _, address_fields::City, Address, _>(
+                        |path| path.field::<address_fields::City>(),
+                        |deeply_nested| {
+                            deeply_nested.eq::<address_fields::City, _>("Seattle".to_string())
+                        },
+                    )
+                    .with_lookup::<company_fields::Address, _, address_fields::Country, Address, _>(
+                        |path| path.field::<address_fields::Country>(),
+                        |deeply_nested| {
+                            deeply_nested.eq::<address_fields::Country, _>("USA".to_string())
+                        },
+                    )
+            },
+        );
 
     let expected_company_name = bson::doc! { "company.name": "Tech Corp" };
     let expected_company_city = bson::doc! { "company.address.city": "Seattle" };
@@ -407,17 +436,20 @@ fn test_with_nested_deep_nesting() {
 }
 
 #[test]
-fn test_with_nested_and_function() {
+fn test_with_lookup_and_function() {
     // Test that nested fields work correctly with the and() function
     let mut builder = empty::<User>();
 
     builder
         .eq::<user_fields::Name, _>("Alice Smith".to_string())
-        .with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-            nested
-                .eq::<address_fields::City, _>("Portland".to_string())
-                .eq::<address_fields::ZipCode, _>("97201".to_string())
-        });
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| nested.eq::<address_fields::City, _>("Portland".to_string()),
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::ZipCode, Address, _>(
+            |path| path.field::<address_fields::ZipCode>(),
+            |nested| nested.eq::<address_fields::ZipCode, _>("97201".to_string()),
+        );
 
     let result = builder.and();
     let expected = bson::doc! {
@@ -432,13 +464,14 @@ fn test_with_nested_and_function() {
 }
 
 #[test]
-fn test_with_nested_single_clause_and_function() {
+fn test_with_lookup_single_clause_and_function() {
     // Test that a single nested clause works correctly with and() function
     let mut builder = empty::<User>();
 
-    builder.with_nested::<user_fields::Contact, ContactInfo, _>(|nested| {
-        nested.eq::<contactinfo_fields::Phone, _>("+1-555-0123".to_string())
-    });
+    builder.with_lookup::<user_fields::Contact, _, contactinfo_fields::Phone, ContactInfo, _>(
+        |path| path.field::<contactinfo_fields::Phone>(),
+        |nested| nested.eq::<contactinfo_fields::Phone, _>("+1-555-0123".to_string()),
+    );
 
     let result = builder.and();
     let expected = bson::doc! { "contact.phone": "+1-555-0123" };
@@ -447,21 +480,38 @@ fn test_with_nested_single_clause_and_function() {
 }
 
 #[test]
-fn test_with_nested_complex_operators() {
+fn test_with_lookup_complex_operators() {
     // Test nested fields with complex MongoDB operators like $in and $nin
     let mut builder = empty::<User>();
 
-    builder.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-        nested
-            .r#in::<address_fields::City, _>(vec![
-                "New York".to_string(),
-                "Boston".to_string(),
-                "Chicago".to_string(),
-            ])
-            .nin::<address_fields::Country, _>(vec!["Canada".to_string(), "Mexico".to_string()])
-            .gte::<address_fields::ZipCode, _>("10000".to_string())
-            .lte::<address_fields::ZipCode, _>("99999".to_string())
-    });
+    builder
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| {
+                nested.r#in::<address_fields::City, _>(vec![
+                    "New York".to_string(),
+                    "Boston".to_string(),
+                    "Chicago".to_string(),
+                ])
+            },
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::Country, Address, _>(
+            |path| path.field::<address_fields::Country>(),
+            |nested| {
+                nested.nin::<address_fields::Country, _>(vec![
+                    "Canada".to_string(),
+                    "Mexico".to_string(),
+                ])
+            },
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::ZipCode, Address, _>(
+            |path| path.field::<address_fields::ZipCode>(),
+            |nested| nested.gte::<address_fields::ZipCode, _>("10000".to_string()),
+        )
+        .with_lookup::<user_fields::HomeAddress, _, address_fields::ZipCode, Address, _>(
+            |path| path.field::<address_fields::ZipCode>(),
+            |nested| nested.lte::<address_fields::ZipCode, _>("99999".to_string()),
+        );
 
     let expected_city_in =
         bson::doc! { "home_address.city": { "$in": ["New York", "Boston", "Chicago"] } };
@@ -623,15 +673,16 @@ fn test_or_function_chained_with_other_conditions() {
 }
 
 #[test]
-fn test_or_function_with_nested_fields() {
+fn test_or_function_with_lookup_fields() {
     // Test OR with nested field access
     let mut builder = empty::<User>();
     let cities = vec!["New York", "Boston", "Chicago"];
 
     builder.or::<user_fields::HomeAddress, _, _>(cities, |filter, city| {
-        filter.with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-            nested.eq::<address_fields::City, _>(city.to_string())
-        })
+        filter.with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+            |path| path.field::<address_fields::City>(),
+            |nested| nested.eq::<address_fields::City, _>(city.to_string()),
+        )
     });
 
     let expected = bson::doc! {
@@ -655,9 +706,10 @@ fn test_or_function_complex_nested_conditions() {
         filter
             .gte::<user_fields::Age, _>(min_age)
             .lte::<user_fields::Age, _>(max_age)
-            .with_nested::<user_fields::Contact, ContactInfo, _>(|nested| {
-                nested.exists::<contactinfo_fields::Email>(true)
-            })
+            .with_lookup::<user_fields::Contact, _, contactinfo_fields::Email, ContactInfo, _>(
+                |path| path.field::<contactinfo_fields::Email>(),
+                |nested| nested.exists::<contactinfo_fields::Email>(true),
+            )
     });
 
     // The implementation flattens multiple clauses from each iteration into the $or array
@@ -1120,129 +1172,250 @@ fn test_operation_builder_complex_chain() {
     assert_eq!(builder.clauses(), &vec![expected_not, expected_eq]);
 }
 
-// Tests for Into<bson::Document> implementation
-
+// Tests for with_field function (convenience method using identity)
 #[test]
-fn test_into_bson_document_empty_builder() {
-    let builder = empty::<Product>();
-    let doc: bson::Document = builder.into();
-
-    assert_eq!(doc, bson::doc! {});
-}
-
-#[test]
-fn test_into_bson_document_single_clause() {
-    let mut builder = empty::<Product>();
-    builder.eq::<product_fields::Name, _>("Laptop".to_string());
-
-    let doc: bson::Document = builder.into();
-    let expected = bson::doc! { "name": "Laptop" };
-
-    assert_eq!(doc, expected);
-}
-
-#[test]
-fn test_into_bson_document_multiple_clauses() {
-    let mut builder = empty::<Product>();
-    builder
-        .eq::<product_fields::Name, _>("Laptop".to_string())
-        .gt::<product_fields::Price, _>(500.0)
-        .lt::<product_fields::Stock, _>(100);
-
-    let doc: bson::Document = builder.into();
-    let expected = bson::doc! {
-        "$and": [
-            { "name": "Laptop" },
-            { "price": { "$gt": 500.0 } },
-            { "stock": { "$lt": 100 } }
-        ]
-    };
-
-    assert_eq!(doc, expected);
-}
-
-#[test]
-fn test_into_bson_document_complex_filters() {
+fn test_with_field_simple_exists() {
+    // Test with_field for simple field existence check
     let mut builder = empty::<User>();
-    builder
-        .eq::<user_fields::Name, _>("John Doe".to_string())
-        .gte::<user_fields::Age, _>(18)
-        .exists::<user_fields::Id>(true);
 
-    let doc: bson::Document = builder.into();
-    let expected = bson::doc! {
-        "$and": [
-            { "name": "John Doe" },
-            { "age": { "$gte": 18 } },
-            { "id": { "$exists": true } }
-        ]
-    };
+    builder.with_field::<user_fields::HomeAddress, _>(|nested| {
+        nested.exists::<user_fields::HomeAddress>(true)
+    });
 
-    assert_eq!(doc, expected);
+    let expected = bson::doc! { "home_address": { "$exists": true } };
+
+    assert_eq!(builder.clauses(), &vec![expected]);
 }
 
 #[test]
-fn test_into_bson_document_with_function_parameter() {
-    // Test that FilterBuilder can be passed to functions expecting Into<bson::Document>
-    fn process_filter(filter: impl Into<bson::Document>) -> bson::Document {
-        filter.into()
+fn test_with_field_combined_operations() {
+    // Test with_field with multiple operations on the same field context
+    let mut builder = empty::<User>();
+
+    builder.with_field::<user_fields::Age, _>(|nested| {
+        nested
+            .gte::<user_fields::Age, _>(21)
+            .lte::<user_fields::Age, _>(65)
+    });
+
+    let expected_gte = bson::doc! { "age": { "$gte": 21 } };
+    let expected_lte = bson::doc! { "age": { "$lte": 65 } };
+
+    assert_eq!(builder.clauses(), &vec![expected_gte, expected_lte]);
+}
+
+#[test]
+fn test_with_field_vs_direct_comparison() {
+    // Test that with_field produces the same result as direct field operations
+    let mut builder1 = empty::<Product>();
+    let mut builder2 = empty::<Product>();
+
+    // Using with_field
+    builder1.with_field::<product_fields::Name, _>(|nested| {
+        nested.eq::<product_fields::Name, _>("Laptop".to_string())
+    });
+
+    // Using direct field operation
+    builder2.eq::<product_fields::Name, _>("Laptop".to_string());
+
+    assert_eq!(builder1.clauses(), builder2.clauses());
+}
+
+// Tests for deeper nested paths using with_lookup
+#[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct Location {
+    latitude: f64,
+    longitude: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct DetailedAddress {
+    street: String,
+    city: String,
+    state: String,
+    zip_code: String,
+    country: String,
+    location: Location,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct PersonalInfo {
+    first_name: String,
+    last_name: String,
+    date_of_birth: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct DetailedUser {
+    id: String,
+    personal_info: PersonalInfo,
+    home_address: DetailedAddress,
+    work_address: DetailedAddress,
+}
+
+#[test]
+fn test_with_lookup_three_level_nesting() {
+    // Test navigating through three levels: User -> Address -> Location
+    let mut builder = empty::<DetailedUser>();
+
+    builder.with_lookup::<detaileduser_fields::HomeAddress, _, detailedaddress_fields::Location, DetailedAddress, _>(
+        |path| path.field::<detailedaddress_fields::Location>(),
+        |nested| {
+            nested.with_lookup::<detailedaddress_fields::Location, _, location_fields::Latitude, Location, _>(
+                |path| path.field::<location_fields::Latitude>(),
+                |deeply_nested| {
+                    deeply_nested.gte::<location_fields::Latitude, _>(40.0)
+                }
+            ).with_lookup::<detailedaddress_fields::Location, _, location_fields::Longitude, Location, _>(
+                |path| path.field::<location_fields::Longitude>(),
+                |deeply_nested| {
+                    deeply_nested.lte::<location_fields::Longitude, _>(-70.0)
+                }
+            )
+        }
+    );
+
+    let expected_lat = bson::doc! { "home_address.location.latitude": { "$gte": 40.0 } };
+    let expected_lng = bson::doc! { "home_address.location.longitude": { "$lte": -70.0 } };
+
+    assert_eq!(builder.clauses(), &vec![expected_lat, expected_lng]);
+}
+
+#[test]
+fn test_with_lookup_complex_deep_structure() {
+    // Test complex filtering on deeply nested structures
+    let mut builder = empty::<DetailedUser>();
+
+    builder
+        .with_lookup::<detaileduser_fields::PersonalInfo, _, personalinfo_fields::FirstName, PersonalInfo, _>(
+            |path| path.field::<personalinfo_fields::FirstName>(),
+            |nested| {
+                nested.eq::<personalinfo_fields::FirstName, _>("John".to_string())
+            }
+        )
+        .with_lookup::<detaileduser_fields::HomeAddress, _, detailedaddress_fields::City, DetailedAddress, _>(
+            |path| path.field::<detailedaddress_fields::City>(),
+            |nested| {
+                nested.eq::<detailedaddress_fields::City, _>("New York".to_string())
+            }
+        )
+        .with_lookup::<detaileduser_fields::WorkAddress, _, detailedaddress_fields::Location, DetailedAddress, _>(
+            |path| path.field::<detailedaddress_fields::Location>(),
+            |nested| {
+                nested.with_lookup::<detailedaddress_fields::Location, _, location_fields::Latitude, Location, _>(
+                    |path| path.field::<location_fields::Latitude>(),
+                    |deeply_nested| {
+                        deeply_nested.gt::<location_fields::Latitude, _>(41.0)
+                    }
+                )
+            }
+        );
+
+    let expected_name = bson::doc! { "personal_info.first_name": "John" };
+    let expected_home_city = bson::doc! { "home_address.city": "New York" };
+    let expected_work_lat = bson::doc! { "work_address.location.latitude": { "$gt": 41.0 } };
+
+    assert_eq!(
+        builder.clauses(),
+        &vec![expected_name, expected_home_city, expected_work_lat]
+    );
+}
+
+#[test]
+fn test_with_lookup_four_level_deep_path() {
+    // Test the deepest possible nesting we can reasonably create
+    #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    struct Metadata {
+        created_by: String,
+        accuracy: f64,
     }
 
-    let mut builder = empty::<Product>();
-    builder
-        .eq::<product_fields::Name, _>("Smartphone".to_string())
-        .lte::<product_fields::Price, _>(800.0);
+    #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    struct EnhancedLocation {
+        latitude: f64,
+        longitude: f64,
+        metadata: Metadata,
+    }
 
-    let result = process_filter(builder);
-    let expected = bson::doc! {
-        "$and": [
-            { "name": "Smartphone" },
-            { "price": { "$lte": 800.0 } }
-        ]
-    };
+    #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    struct SuperDetailedAddress {
+        street: String,
+        city: String,
+        enhanced_location: EnhancedLocation,
+    }
 
-    assert_eq!(result, expected);
+    #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    struct UltraDetailedUser {
+        id: String,
+        name: String,
+        address: SuperDetailedAddress,
+    }
+
+    let mut builder = empty::<UltraDetailedUser>();
+
+    // Navigate through four levels: User -> Address -> Location -> Metadata
+    builder.with_lookup::<ultradetaileduser_fields::Address, _, superdetailedaddress_fields::EnhancedLocation, SuperDetailedAddress, _>(
+        |path| path.field::<superdetailedaddress_fields::EnhancedLocation>(),
+        |nested| {
+            nested.with_lookup::<superdetailedaddress_fields::EnhancedLocation, _, enhancedlocation_fields::Metadata, EnhancedLocation, _>(
+                |path| path.field::<enhancedlocation_fields::Metadata>(),
+                |deeply_nested| {
+                    deeply_nested.with_lookup::<enhancedlocation_fields::Metadata, _, metadata_fields::CreatedBy, Metadata, _>(
+                        |path| path.field::<metadata_fields::CreatedBy>(),
+                        |ultra_nested| {
+                            ultra_nested.eq::<metadata_fields::CreatedBy, _>("GPS_SYSTEM".to_string())
+                        }
+                    ).with_lookup::<enhancedlocation_fields::Metadata, _, metadata_fields::Accuracy, Metadata, _>(
+                        |path| path.field::<metadata_fields::Accuracy>(),
+                        |ultra_nested| {
+                            ultra_nested.gte::<metadata_fields::Accuracy, _>(0.95)
+                        }
+                    )
+                }
+            )
+        }
+    );
+
+    let expected_created_by =
+        bson::doc! { "address.enhanced_location.metadata.created_by": "GPS_SYSTEM" };
+    let expected_accuracy =
+        bson::doc! { "address.enhanced_location.metadata.accuracy": { "$gte": 0.95 } };
+
+    assert_eq!(
+        builder.clauses(),
+        &vec![expected_created_by, expected_accuracy]
+    );
 }
 
 #[test]
-fn test_into_bson_document_consistency_with_and() {
-    // Test that Into<bson::Document> produces the same result as and()
-    let mut builder1 = empty::<Product>();
-    builder1
-        .eq::<product_fields::Name, _>("Tablet".to_string())
-        .gt::<product_fields::Price, _>(200.0)
-        .exists::<product_fields::Id>(true);
+fn test_mixed_with_field_and_with_lookup() {
+    // Test combining with_field and with_lookup in the same query
+    let mut builder = empty::<DetailedUser>();
 
-    let and_result = builder1.and();
-
-    // Create a second identical builder for the into() test
-    let mut builder2 = empty::<Product>();
-    builder2
-        .eq::<product_fields::Name, _>("Tablet".to_string())
-        .gt::<product_fields::Price, _>(200.0)
-        .exists::<product_fields::Id>(true);
-
-    let into_result: bson::Document = builder2.into();
-
-    assert_eq!(and_result, into_result);
-}
-
-#[test]
-fn test_into_bson_document_with_nested_filters() {
-    let mut builder = empty::<User>();
     builder
-        .eq::<user_fields::Name, _>("Alice".to_string())
-        .with_nested::<user_fields::HomeAddress, Address, _>(|nested| {
-            nested.eq::<address_fields::City, _>("New York".to_string())
+        .with_field::<detaileduser_fields::Id, _>(|nested| {
+            nested.exists::<detaileduser_fields::Id>(true)
+        })
+        .with_lookup::<detaileduser_fields::PersonalInfo, _, personalinfo_fields::LastName, PersonalInfo, _>(
+            |path| path.field::<personalinfo_fields::LastName>(),
+            |nested| {
+                nested.ne::<personalinfo_fields::LastName, _>("Unknown".to_string())
+            }
+        )
+        .with_field::<detaileduser_fields::HomeAddress, _>(|nested| {
+            nested.exists::<detaileduser_fields::HomeAddress>(true)
         });
 
-    let doc: bson::Document = builder.into();
-    let expected = bson::doc! {
-        "$and": [
-            { "name": "Alice" },
-            { "home_address.city": "New York" }
-        ]
-    };
+    let expected_id_exists = bson::doc! { "id": { "$exists": true } };
+    let expected_last_name = bson::doc! { "personal_info.last_name": { "$ne": "Unknown" } };
+    let expected_address_exists = bson::doc! { "home_address": { "$exists": true } };
 
-    assert_eq!(doc, expected);
+    assert_eq!(
+        builder.clauses(),
+        &vec![
+            expected_id_exists,
+            expected_last_name,
+            expected_address_exists
+        ]
+    );
 }
