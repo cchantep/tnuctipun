@@ -25,6 +25,9 @@ mod mongo_comparable;
 ///
 /// - `#[nessus(field_naming = "strategy")]` - Apply a naming strategy to MongoDB field names only
 ///   - Built-in strategies: "PascalCase", "camelCase"
+/// - `#[nessus(include_private = true)]` - Include private fields in witness generation
+///   - If not specified or set to false, private fields are skipped
+///   - When true, both public and private fields generate witnesses
 ///
 /// ## Field-level attributes
 ///
@@ -34,6 +37,7 @@ mod mongo_comparable;
 /// # Examples
 ///
 /// ## Basic usage (default behavior):
+///
 /// ```ignore
 /// use nessus_derive::FieldWitnesses;
 ///
@@ -53,6 +57,7 @@ mod mongo_comparable;
 /// ```
 ///
 /// ## With field naming strategy:
+///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
 /// #[nessus(field_naming = "camelCase")]
@@ -81,6 +86,23 @@ mod mongo_comparable;
 ///     email_address: String,          // -> "email" (override)
 ///     #[nessus(skip)]
 ///     internal_id: String,            // Skipped entirely
+/// }
+/// ```
+///
+/// With private field inclusion:
+///
+/// ```ignore
+/// #[derive(FieldWitnesses)]
+/// #[nessus(include_private = true)]
+/// struct User {
+///     pub user_name: String,          // Public field - included
+///     email_address: String,          // Private field - included due to include_private = true
+/// }
+///
+/// #[derive(FieldWitnesses)]
+/// struct UserWithoutPrivate {
+///     pub user_name: String,          // Public field - included
+///     email_address: String,          // Private field - skipped (include_private defaults to false)
 /// }
 /// ```
 ///
@@ -113,7 +135,17 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 /// Note: This macro requires FieldWitnesses to also be derived on the same struct
 /// to generate the necessary field markers and trait implementations.
 ///
+/// ## Attributes
+///
+/// The MongoComparable derive macro supports the same container-level attributes as FieldWitnesses:
+///
+/// - `#[nessus(include_private = true)]`
+/// - Include private fields in trait implementations
+/// - If not specified or set to false, private fields are skipped
+/// - When true, both public and private fields generate MongoComparable implementations
+///
 /// Example:
+///
 /// ```ignore
 /// use nessus_derive::{FieldWitnesses, MongoComparable};
 ///
@@ -129,6 +161,17 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 /// // impl MongoComparable<i32, i32> for User {}  
 /// // impl MongoComparable<Vec<String>, String> for User {}
 /// // And many other compatible type combinations...
+/// ```
+///
+/// With private field inclusion:
+///
+/// ```ignore
+/// #[derive(FieldWitnesses, MongoComparable)]
+/// #[nessus(include_private = true)]
+/// struct User {
+///     pub name: String,    // Public field - included
+///     private_id: u64,     // Private field - included due to include_private = true
+/// }
 /// ```
 ///
 /// The macro generates trait implementations that enable type-safe MongoDB operations

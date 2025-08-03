@@ -6,17 +6,17 @@ use nessus::{FieldName, FieldWitnesses, HasField};
 #[derive(FieldWitnesses)]
 struct Product {
     #[allow(dead_code)]
-    name: String,
+    pub name: String,
     #[allow(dead_code)]
-    id: String,
+    pub id: String,
 }
 
 #[derive(FieldWitnesses)]
 struct User {
     #[allow(dead_code)]
-    name: String,
+    pub name: String,
     #[allow(dead_code)]
-    id: String,
+    pub id: String,
 }
 
 #[test]

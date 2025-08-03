@@ -1,5 +1,6 @@
 use bson;
 
+use crate::field_filters::FieldFilterBuilder;
 use crate::field_witnesses::{FieldName, HasField};
 use crate::mongo_comparable::MongoComparable;
 use crate::path::Path;
@@ -34,7 +35,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
-    /// struct User { Name: String }
+    /// struct User { pub Name: String }
     ///
     /// let builder = FilterBuilder::<User>::new();
     /// ```
@@ -70,7 +71,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct User { Name: String, Age: i32 }
+    /// struct User { pub Name: String, pub Age: i32 }
     ///
     /// // Using builder pattern with efficient chaining:
     /// empty::<User>().eq::<user_fields::Name, _>("John".to_string());
@@ -107,7 +108,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { Price: f64 }
+    /// struct Product { pub Price: f64 }
     ///
     /// // Filter for products with price > 500
     /// empty::<Product>().gt::<product_fields::Price, _>(500.0);
@@ -141,7 +142,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { Stock: i32 }
+    /// struct Product { pub Stock: i32 }
     ///
     /// // Filter for products with stock < 10
     /// empty::<Product>().lt::<product_fields::Stock, _>(10);
@@ -177,7 +178,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct User { Age: i32 }
+    /// struct User { pub Age: i32 }
     ///
     /// // Filter for users with age in [20, 30, 40]
     /// empty::<User>().r#in::<user_fields::Age, _>(vec![20, 30, 40]);
@@ -212,7 +213,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Order { Status: String }
+    /// struct Order { pub Status: String }
     ///
     /// // Filter for orders with status not equal to "Delivered"
     /// empty::<Order>().ne::<order_fields::Status, _>("Delivered".to_string());
@@ -246,7 +247,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { Rating: f64 }
+    /// struct Product { pub Rating: f64 }
     ///
     /// // Filter for products with rating >= 4.5
     /// empty::<Product>().gte::<product_fields::Rating, _>(4.5);
@@ -280,7 +281,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { Price: f64 }
+    /// struct Product { pub Price: f64 }
     ///
     /// // Filter for products with price <= 100.0
     /// empty::<Product>().lte::<product_fields::Price, _>(100.0);
@@ -315,8 +316,8 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct User {
-    ///     Name: String,
-    ///     PhoneNumber: Option<String>
+    ///     pub Name: String,
+    ///     pub PhoneNumber: Option<String>
     /// }
     ///
     /// // Filter for users that have a phone number
@@ -355,7 +356,7 @@ impl<T> FilterBuilder<T> {
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { Category: String }
+    /// struct Product { pub Category: String }
     ///
     /// // Filter for products NOT in the categories "Clothing", "Shoes", or "Accessories"
     /// empty::<Product>().nin::<product_fields::Category, _>(vec![
@@ -408,15 +409,15 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct Address {
-    ///     Street: String,
-    ///     City: String,
-    ///     ZipCode: String,
+    ///     pub Street: String,
+    ///     pub City: String,
+    ///     pub ZipCode: String,
     /// }
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct User {
-    ///     Name: String,
-    ///     HomeAddress: Address,
+    ///     pub Name: String,
+    ///     pub HomeAddress: Address,
     /// }
     ///
     /// // Using field navigation for accessing nested fields (G≠F, U≠T)
@@ -490,8 +491,8 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct User {
-    ///     Name: String,
-    ///     HomeAddress: String,
+    ///     pub Name: String,
+    ///     pub HomeAddress: String,
     /// }
     ///
     /// let mut builder = empty::<User>().with_field::<user_fields::HomeAddress, _>(|nested| {
@@ -535,16 +536,15 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct Product {
-    ///     name: String,
-    ///     category: String,
-    ///     price: f64,
+    ///     pub name: String,
+    ///     pub category: String,
+    ///     pub price: f64,
     /// }
     ///
     /// // Filter for products that match any of the given names
-    /// let mut builder = empty::<Product>();
     /// let names = vec!["Laptop", "Smartphone", "Tablet"];
     ///
-    /// builder.or::<product_fields::Name, _, _>(names, |filter, name| {
+    /// empty::<Product>().or::<product_fields::Name, _, _>(names, |filter, name| {
     ///     filter.eq::<product_fields::Name, _>(name.to_string())
     /// });
     ///
@@ -565,16 +565,15 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct Product {
-    ///     name: String,
-    ///     category: String,
-    ///     price: f64,
+    ///     pub name: String,
+    ///     pub category: String,
+    ///     pub price: f64,
     /// }
     ///
     /// // Filter for products in specific price ranges
-    /// let mut builder = empty::<Product>();
     /// let price_ranges = vec![(0.0, 100.0), (500.0, 1000.0), (2000.0, 5000.0)];
     ///
-    /// builder.or::<product_fields::Price, _, _>(price_ranges, |filter, (min, max)| {
+    /// empty::<Product>().or::<product_fields::Price, _, _>(price_ranges, |filter, (min, max)| {
     ///     filter.gte::<product_fields::Price, _>(min)
     ///           .lte::<product_fields::Price, _>(max)
     /// });
@@ -618,14 +617,14 @@ impl<T> FilterBuilder<T> {
     /// Create a type-safe version of MongoDB's "$not" operator.
     ///
     /// Such MongoDB filter negates operations on a specific field.
-    /// This method uses an `OperationBuilder` to construct the operations to be negated.
+    /// This method uses a `FieldFilterBuilder` to construct the operations to be negated.
     ///
     /// # Type parameters:
     /// * `F` - The field name marker type (e.g., `product_fields::Price`)
-    /// * `B` - A closure that takes an `OperationBuilder` and returns it with configured operations
+    /// * `B` - A closure that takes a `FieldFilterBuilder` and returns it with configured operations
     ///
     /// # Arguments
-    /// * `f` - A closure that builds the operations to be negated using the `OperationBuilder`
+    /// * `f` - A closure that builds the operations to be negated using the `FieldFilterBuilder`
     ///
     /// # Example
     ///
@@ -636,23 +635,19 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct Product {
-    ///     name: String,
-    ///     price: f64,
-    ///     category: String,
+    ///     pub name: String,
+    ///     pub price: f64,
+    ///     pub category: String,
     /// }
     ///
     /// // Filter for products where the name is NOT "Smartphone"
-    /// let mut builder = empty::<Product>();
-    ///
-    /// builder.not::<product_fields::Name, _>(|op| {
+    /// empty::<Product>().not::<product_fields::Name, _>(|op| {
     ///     op.eq("Smartphone".to_string())
     /// });
     /// // Resulting BSON: { "name": { "$not": { "name": "Smartphone" } } }
     ///
     /// // Filter for products where the price is NOT equal to 500.0
-    /// let mut builder = empty::<Product>();
-    ///
-    /// builder.not::<product_fields::Price, _>(|op| {
+    /// empty::<Product>().not::<product_fields::Price, _>(|op| {
     ///     op.eq(500.0)
     /// });
     /// // Resulting BSON: { "price": { "$not": { "price": 500.0 } } }
@@ -674,9 +669,9 @@ impl<T> FilterBuilder<T> {
     where
         F: FieldName,
         T: HasField<F>,
-        B: FnOnce(OperationBuilder<F, T>) -> OperationBuilder<F, T>,
+        B: FnOnce(FieldFilterBuilder<F, T>) -> FieldFilterBuilder<F, T>,
     {
-        let op_builder = OperationBuilder::new();
+        let op_builder = FieldFilterBuilder::new();
         let prepared_ops = f(op_builder).build();
         let bson_path = self.field_path::<F>();
 
@@ -704,21 +699,16 @@ impl<T> FilterBuilder<T> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
-    ///     email: String,
-    ///     is_active: bool,
-    ///     score: f64,
+    ///     pub name: String,
+    ///     pub age: i32,
+    ///     pub email: String,
     /// }
     ///
-    /// // Use the generated field witnesses from the user_fields module
-    /// use user_fields::{Name, Age, Email};
-    ///
-    /// let mut builder = empty::<User>();
-    /// builder.eq::<Name, _>("John Doe".to_string())
-    ///        .gt::<Age, _>(18)
-    ///        .exists::<Email>(true);
-    /// let filter = builder.and();
+    /// let filter = empty::<User>()
+    ///     .eq::<user_fields::Name, _>("John Doe".to_string())
+    ///     .gt::<user_fields::Age, _>(18)
+    ///     .exists::<user_fields::Email>(true)
+    ///     .and();
     /// // builder can still be used here
     /// ```
     ///
@@ -758,24 +748,36 @@ impl<T> Default for FilterBuilder<T> {
 ///
 /// ```rust
 /// use nessus::filters::empty;
-/// use nessus::{FieldWitnesses, MongoComparable};
 /// use serde::{Serialize, Deserialize};
 /// use bson;
 ///
-/// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-/// struct User {
-///     name: String,
-///     age: i32,
-/// }
-///
-/// use user_fields::{Name, Age};
+/// // Self-contained example with manual trait implementations
+/// # use nessus::field_witnesses::{FieldName, HasField};
+/// # use nessus::mongo_comparable::MongoComparable;
+/// # struct Name;
+/// # impl FieldName for Name {
+/// #     fn field_name() -> &'static str { "name" }
+/// # }
+/// # struct Age;
+/// # impl FieldName for Age {
+/// #     fn field_name() -> &'static str { "age" }
+/// # }
+/// # struct User { name: String, age: i32 }
+/// # impl HasField<Name> for User {
+/// #     type Value = String;
+/// #     fn get_field(&self) -> &Self::Value { &self.name }
+/// # }
+/// # impl HasField<Age> for User {
+/// #     type Value = i32;
+/// #     fn get_field(&self) -> &Self::Value { &self.age }
+/// # }
+/// # impl MongoComparable<String, String> for User {}
+/// # impl MongoComparable<i32, i32> for User {}
 ///
 /// // The builder can be automatically converted to bson::Document
 /// let mut builder = empty::<User>();
 /// builder.eq::<Name, _>("John".to_string())
 ///        .gt::<Age, _>(18);
-///
-/// // Automatic conversion when expected type is bson::Document
 /// let filter: bson::Document = builder.into();
 ///
 /// // Or use directly in function calls expecting Into<bson::Document>
@@ -786,7 +788,7 @@ impl<T> Default for FilterBuilder<T> {
 ///
 /// let mut builder2 = empty::<User>();
 /// builder2.eq::<Name, _>("Alice".to_string());
-/// process_filter(builder2); // Automatic conversion
+/// process_filter(builder2);
 /// ```
 impl<T> From<FilterBuilder<T>> for bson::Document {
     fn from(val: FilterBuilder<T>) -> Self {
@@ -807,405 +809,13 @@ impl<T> From<FilterBuilder<T>> for bson::Document {
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-/// struct User { Name: String }
+/// struct User { pub Name: String }
 ///
 /// // Create and use a filter builder in one chain
 /// empty::<User>().eq::<user_fields::Name, _>("John".to_string());
 /// ```
 pub fn empty<T>() -> FilterBuilder<T> {
     FilterBuilder::new()
-}
-
-// ---
-
-/// A builder for operation-specific filters.
-///
-/// # Type Parameters
-///
-/// * `F` - The field name marker type that this operation builder targets
-/// * `T` - The struct type that contains the field `F`
-pub struct OperationBuilder<F: FieldName, T: HasField<F>> {
-    ops: Vec<(&'static str, bson::Bson)>,
-    _marker: std::marker::PhantomData<(F, T)>,
-}
-
-impl<F, T> Default for OperationBuilder<F, T>
-where
-    F: FieldName,
-    T: HasField<F>,
-{
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<F, T> OperationBuilder<F, T>
-where
-    F: FieldName,
-    T: HasField<F>,
-{
-    /// Creates a new OperationBuilder instance.
-    ///
-    /// # Arguments
-    ///
-    /// * `build` - A closure that takes a BSON document and returns a FilterBuilder for the target struct
-    pub fn new() -> Self {
-        Self {
-            ops: Vec::new(),
-            _marker: std::marker::PhantomData,
-        }
-    }
-
-    // ---
-
-    /// Type-safe equality operation for the OperationBuilder.
-    ///
-    /// Adds an equality operation to the current operation builder, which can later
-    /// be built into a FilterBuilder with the configured operations.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `value` - The value to compare the field against for equality
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::{OperationBuilder, empty};
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct User { name: String }
-    ///
-    /// // Create an operation builder and add an equality operation
-    /// let op_builder = OperationBuilder::<user_fields::Name, User>::new();
-    /// let final_builder = op_builder.eq("John Doe".to_string());
-    /// let filter_doc = final_builder.build();
-    /// ```
-    pub fn eq<V>(mut self, value: V) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        // For equality, we store it with the $eq operator
-        self.ops.push(("$eq", value.into()));
-
-        self
-    }
-
-    /// Type-safe greater than operation for the OperationBuilder.
-    ///
-    /// Adds a greater than operation to the current operation builder, which can later
-    /// be built into a MongoDB filter with the configured operations.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `value` - The value to compare the field against for greater than comparison
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { price: f64 }
-    ///
-    /// // Create an operation builder and add a greater than operation
-    /// let op_builder = OperationBuilder::<product_fields::Price, Product>::new();
-    /// let final_builder = op_builder.gt(100.0);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "price": { "$gt": 100.0 } }
-    /// ```
-    pub fn gt<V>(mut self, value: V) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        self.ops.push(("$gt", value.into()));
-
-        self
-    }
-
-    /// Type-safe greater than or equal operation for the OperationBuilder.
-    ///
-    /// Adds a greater than or equal operation to the current operation builder, which can later
-    /// be built into a MongoDB filter with the configured operations.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `value` - The value to compare the field against for greater than or equal comparison
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { rating: f64 }
-    ///
-    /// // Create an operation builder and add a greater than or equal operation
-    /// let op_builder = OperationBuilder::<product_fields::Rating, Product>::new();
-    /// let final_builder = op_builder.gte(4.5);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "rating": { "$gte": 4.5 } }
-    /// ```
-    pub fn gte<V>(mut self, value: V) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        self.ops.push(("$gte", value.into()));
-
-        self
-    }
-
-    /// Type-safe less than operation for the OperationBuilder.
-    ///
-    /// Adds a less than operation to the current operation builder, which can later
-    /// be built into a MongoDB filter with the configured operations.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `value` - The value to compare the field against for less than comparison
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { stock: i32 }
-    ///
-    /// // Create an operation builder and add a less than operation
-    /// let op_builder = OperationBuilder::<product_fields::Stock, Product>::new();
-    /// let final_builder = op_builder.lt(10);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "stock": { "$lt": 10 } }
-    /// ```
-    pub fn lt<V>(mut self, value: V) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        self.ops.push(("$lt", value.into()));
-
-        self
-    }
-
-    /// Type-safe less than or equal operation for the OperationBuilder.
-    ///
-    /// Adds a less than or equal operation to the current operation builder, which can later
-    /// be built into a MongoDB filter with the configured operations.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `value` - The value to compare the field against for less than or equal comparison
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { price: f64 }
-    ///
-    /// // Create an operation builder and add a less than or equal operation
-    /// let op_builder = OperationBuilder::<product_fields::Price, Product>::new();
-    /// let final_builder = op_builder.lte(99.99);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "price": { "$lte": 99.99 } }
-    /// ```
-    pub fn lte<V>(mut self, value: V) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        self.ops.push(("$lte", value.into()));
-
-        self
-    }
-
-    /// Type-safe "in" operation for the OperationBuilder.
-    ///
-    /// Adds an "in" operation to the current operation builder, which matches any of the
-    /// values in the provided array and can later be built into a MongoDB filter.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `values` - A vector of values to match against the field
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct User { age: i32 }
-    ///
-    /// // Create an operation builder and add an "in" operation
-    /// let op_builder = OperationBuilder::<user_fields::Age, User>::new();
-    /// let final_builder = op_builder.r#in(vec![20, 30, 40]);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "age": { "$in": [20, 30, 40] } }
-    /// ```
-    pub fn r#in<V>(mut self, values: Vec<V>) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        let bson_values: Vec<bson::Bson> = values.into_iter().map(|v| v.into()).collect();
-
-        self.ops.push(("$in", bson_values.into()));
-
-        self
-    }
-
-    /// Type-safe "not in" operation for the OperationBuilder.
-    ///
-    /// Adds a "not in" operation to the current operation builder, which matches values
-    /// NOT in the provided array and can later be built into a MongoDB filter.
-    ///
-    /// # Type parameters:
-    /// * `V` - The type of the field value or a compatible type
-    ///
-    /// # Arguments
-    /// * `values` - A vector of values that the field should NOT match
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    /// struct Product { category: String }
-    ///
-    /// // Create an operation builder and add a "not in" operation
-    /// let op_builder = OperationBuilder::<product_fields::Category, Product>::new();
-    /// let final_builder = op_builder.nin(vec![
-    ///     "Clothing".to_string(),
-    ///     "Shoes".to_string()
-    /// ]);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "category": { "$nin": ["Clothing", "Shoes"] } }
-    /// ```
-    pub fn nin<V>(mut self, values: Vec<V>) -> Self
-    where
-        T: MongoComparable<T::Value, V>,
-        V: Into<bson::Bson> + Clone,
-    {
-        let bson_values: Vec<bson::Bson> = values.into_iter().map(|v| v.into()).collect();
-
-        self.ops.push(("$nin", bson_values.into()));
-
-        self
-    }
-
-    /// Type-safe "exists" operation for the OperationBuilder.
-    ///
-    /// Adds an "exists" operation to the current operation builder, which checks if a field
-    /// exists in the document and can later be built into a MongoDB filter.
-    ///
-    /// # Arguments
-    /// * `exists` - Whether the field should exist (true) or not exist (false)
-    ///
-    /// # Returns
-    /// Returns self for method chaining by value.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use nessus::filters::OperationBuilder;
-    /// use nessus::FieldWitnesses;
-    /// use serde::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
-    /// struct User { phone_number: Option<String> }
-    ///
-    /// // Create an operation builder and add an "exists" operation
-    /// let op_builder = OperationBuilder::<user_fields::PhoneNumber, User>::new();
-    /// let final_builder = op_builder.exists(true);
-    /// let filter_doc = final_builder.build();
-    /// // Resulting BSON: { "phone_number": { "$exists": true } }
-    /// ```
-    pub fn exists(mut self, exists: bool) -> Self {
-        self.ops.push(("$exists", exists.into()));
-
-        self
-    }
-
-    /// Builds the configured operations into a FilterBuilder.
-    ///
-    /// This method consumes the OperationBuilder and transforms all accumulated
-    /// operations into a FilterBuilder by creating a BSON document from the operations
-    /// and passing it to the build closure provided during construction.
-    ///
-    /// # Returns
-    ///
-    /// Returns a `FilterBuilder<T>` that contains the configured operations,
-    /// ready to be used for further filter building or converted to a final BSON document.
-    pub fn build(self) -> bson::Document {
-        let field_name = F::field_name().to_string();
-
-        if self.ops.is_empty() {
-            return bson::doc! {};
-        }
-
-        // Special handling for equality: MongoDB allows both { field: value } and { field: { $eq: value } }
-        // For simplicity with other operations, we'll use the explicit $eq form
-        let mut operations = bson::Document::new();
-
-        for (op_name, value) in self.ops {
-            operations.insert(op_name, value);
-        }
-
-        // Return document with operations
-        bson::doc! { field_name: operations }
-    }
 }
 
 // Testing internal/private functions

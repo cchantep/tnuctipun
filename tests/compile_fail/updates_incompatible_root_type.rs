@@ -6,20 +6,20 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Address {
-    street: String,
-    city: String,
+    pub street: String,
+    pub city: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct User {
-    name: String,
-    home_address: Address,
+    pub name: String,
+    pub home_address: Address,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Company {
-    name: String,
-    headquarters: Address,
+    pub name: String,
+    pub headquarters: Address,
 }
 
 fn main() {

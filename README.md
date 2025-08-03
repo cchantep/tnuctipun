@@ -41,9 +41,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct User {
-    name: String,
-    age: i32,
-    email: String,
+    pub name: String,
+    pub age: i32,
+    pub email: String,
 }
 
 // Type-safe filter building with compile-time field validation

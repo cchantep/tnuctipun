@@ -35,6 +35,11 @@ The macro supports two built-in strategies with **generic string transformations
 - `#[nessus(rename = "custom_name")]` - Override specific field names
 - `#[nessus(skip)]` - Skip field witness generation for specific fields
 
+### 4. **Private Field Control**
+
+- `#[nessus(include_private = true)]` - Include private fields in witness generation
+- `#[nessus(include_private = false)]` - Skip private fields (default behavior)
+
 ## Usage Examples
 
 ### Basic Usage (Current - Working)
@@ -68,6 +73,22 @@ struct User {
     #[nessus(skip)]
     internal_id: String,            // Skipped entirely
 }
+
+// Private field control
+#[derive(FieldWitnesses)]
+#[nessus(include_private = true)]
+struct UserWithPrivate {
+    pub user_name: String,          // Public field - included
+    email_address: String,          // Private field - included
+}
+
+// Combined attributes
+#[derive(FieldWitnesses)]
+#[nessus(field_naming = "camelCase", include_private = true)]
+struct UserCombined {
+    pub user_name: String,          // → "userName" (public)
+    email_address: String,          // → "emailAddress" (private, included)
+}
 ```
 
 ## Implementation Status
@@ -77,6 +98,7 @@ struct User {
 - Enhanced derive macro with attribute parsing infrastructure
 - Built-in transformation functions (PascalCase, camelCase)
 - Field-level attribute support (rename, skip)
+- Private field inclusion control (include_private)
 - Comprehensive error handling
 - Updated documentation and examples
 - Complete functionality tests
@@ -89,7 +111,8 @@ The field naming implementation is fully functional:
 1. **Basic usage** works without any attributes
 2. **Built-in strategies** (`PascalCase`, `camelCase`) work correctly
 3. **Field-level overrides** (`rename`, `skip`) work correctly
-4. **All tests pass** (51+ tests covering various scenarios)
+4. **Private field control** (`include_private`) works correctly
+5. **All tests pass** (51+ tests covering various scenarios)
 
 ## Benefits of Current Approach
 

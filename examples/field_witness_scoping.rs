@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 // Two structs with the same field names - this should not conflict
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Product {
-    name: String,
-    id: String,
+    pub name: String,
+    pub id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct User {
-    name: String,
-    id: String,
+    pub name: String,
+    pub id: String,
 }
 
 fn main() {

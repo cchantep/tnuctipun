@@ -22,8 +22,8 @@ error[E0277]: `CustomCollection` doesn't implement `Debug`
 25 |     #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
    |              ----- in this derive macro expansion
 ...
-28 |         BadCollection: CustomCollection,
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `CustomCollection` cannot be formatted using `{:?}`
+28 |         pub BadCollection: CustomCollection,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `CustomCollection` cannot be formatted using `{:?}`
    |
    = help: the trait `Debug` is not implemented for `CustomCollection`
    = note: add `#[derive(Debug)]` to `CustomCollection` or manually `impl Debug for CustomCollection`
@@ -39,8 +39,8 @@ error[E0277]: the trait bound `CustomCollection: Clone` is not satisfied
 25 |     #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
    |                     ----- in this derive macro expansion
 ...
-28 |         BadCollection: CustomCollection,
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `CustomCollection`
+28 |         pub BadCollection: CustomCollection,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `CustomCollection`
    |
 help: consider annotating `CustomCollection` with `#[derive(Clone)]`
    |
@@ -54,8 +54,8 @@ error[E0277]: the trait bound `CustomCollection: Serialize` is not satisfied
 25 |     #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
    |                            ^^^^^^^^^ the trait `Serialize` is not implemented for `CustomCollection`
 ...
-28 |         BadCollection: CustomCollection,
-   |         ------------- required by a bound introduced by this call
+28 |         pub BadCollection: CustomCollection,
+   |         --- required by a bound introduced by this call
    |
    = note: for local types consider adding `#[derive(serde::Serialize)]` to your `CustomCollection` type
    = note: for types from other crates check whether the crate offers a `serde` feature flag
@@ -80,10 +80,10 @@ note: required by a bound in `_::_serde::ser::SerializeStruct::serialize_field`
    = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `CustomCollection: Deserialize<'_>` is not satisfied
-  --> tests/compile_fail/mongo_collection_type.rs:28:24
+  --> tests/compile_fail/mongo_collection_type.rs:28:28
    |
-28 |         BadCollection: CustomCollection,
-   |                        ^^^^^^^^^^^^^^^^ the trait `Deserialize<'_>` is not implemented for `CustomCollection`
+28 |         pub BadCollection: CustomCollection,
+   |                            ^^^^^^^^^^^^^^^^ the trait `Deserialize<'_>` is not implemented for `CustomCollection`
    |
    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `CustomCollection` type
    = note: for types from other crates check whether the crate offers a `serde` feature flag
@@ -107,10 +107,10 @@ note: required by a bound in `next_element`
    |            ^^^^^^^^^^^^^^^^ required by this bound in `SeqAccess::next_element`
 
 error[E0277]: the trait bound `CustomCollection: Deserialize<'_>` is not satisfied
-  --> tests/compile_fail/mongo_collection_type.rs:28:24
+  --> tests/compile_fail/mongo_collection_type.rs:28:28
    |
-28 |         BadCollection: CustomCollection,
-   |                        ^^^^^^^^^^^^^^^^ the trait `Deserialize<'_>` is not implemented for `CustomCollection`
+28 |         pub BadCollection: CustomCollection,
+   |                            ^^^^^^^^^^^^^^^^ the trait `Deserialize<'_>` is not implemented for `CustomCollection`
    |
    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `CustomCollection` type
    = note: for types from other crates check whether the crate offers a `serde` feature flag

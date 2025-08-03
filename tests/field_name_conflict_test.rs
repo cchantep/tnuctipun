@@ -12,23 +12,23 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Product {
-    name: String,
-    id: String,
-    price: f64,
+    pub name: String,
+    pub id: String,
+    pub price: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct User {
-    name: String, // Same field name as Product::name
-    id: String,   // Same field name as Product::id
-    age: i32,
+    pub name: String, // Same field name as Product::name
+    pub id: String,   // Same field name as Product::id
+    pub age: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Company {
-    name: String, // Same field name as Product::Name and User::Name
-    id: String,   // Same field name as Product::Id and User::Id
-    revenue: f64,
+    pub name: String, // Same field name as Product::Name and User::Name
+    pub id: String,   // Same field name as Product::Id and User::Id
+    pub revenue: f64,
 }
 
 #[test]

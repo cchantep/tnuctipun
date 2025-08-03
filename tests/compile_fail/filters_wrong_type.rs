@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
-    Price: f64,
+    pub Price: f64,
 }
 
 fn main() {

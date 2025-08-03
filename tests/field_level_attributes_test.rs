@@ -14,8 +14,8 @@ fn test_field_witness_generation_works() {
     #[derive(FieldWitnesses)]
     #[allow(dead_code)]
     struct TestStruct {
-        normal_field: String,
-        another_field: i32,
+        pub normal_field: String,
+        pub another_field: i32,
     }
 
     assert_eq!(teststruct_fields::NormalField::field_name(), "normal_field");
@@ -169,9 +169,9 @@ fn test_field_level_attributes_implementation_exists() {
     #[derive(FieldWitnesses)]
     #[allow(dead_code)]
     struct TestImplementation {
-        field_one: String,
-        field_two: i32,
-        field_three: bool,
+        pub field_one: String,
+        pub field_two: i32,
+        pub field_three: bool,
     }
 
     // Verify all fields are processed (the foundation for attribute handling)

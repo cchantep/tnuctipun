@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Attribute, Data, DeriveInput, Fields, Lit, parse_macro_input};
+use syn::{Attribute, Data, DeriveInput, Fields, Lit, Visibility, parse_macro_input};
 
 /// Built-in field naming strategies
 struct FieldNaming;
@@ -19,6 +19,7 @@ impl FieldNaming {
 #[derive(Debug, Default)]
 struct ContainerAttributes {
     field_naming_strategy: Option<String>, // Built-in strategy name only
+    include_private: bool,                 // Whether to include private fields (default: false)
 }
 
 #[derive(Debug, Default)]
@@ -41,6 +42,7 @@ struct FieldAttributes {
 /// # Naming Behavior
 ///
 /// **Important**: The field naming strategy affects two different things:
+///
 /// 1. **Struct marker names**: Always converted to PascalCase regardless of strategy (e.g., `user_name` → `UserName`)
 /// 2. **MongoDB field names**: Controlled by the field naming strategy (returned by `FieldName::field_name()`)
 ///
@@ -55,6 +57,9 @@ struct FieldAttributes {
 ///   - Built-in strategies: "PascalCase", "camelCase"
 ///   - If not specified, MongoDB field names are kept as-is (no transformation)
 ///   - **Note**: This only affects `FieldName::field_name()` output, not struct marker names
+/// - `#[nessus(include_private = true)]` - Include private fields in witness generation
+///   - If not specified or set to false, private fields are skipped
+///   - When true, both public and private fields generate witnesses
 ///
 /// ## Field-level attributes
 ///
@@ -64,6 +69,7 @@ struct FieldAttributes {
 /// # Examples
 ///
 /// ## Basic usage (default behavior):
+///
 /// ```ignore
 /// use nessus_derive::FieldWitnesses;
 ///
@@ -83,6 +89,7 @@ struct FieldAttributes {
 /// ```
 ///
 /// ## With field naming strategy:
+///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
 /// #[nessus(field_naming = "camelCase")]
@@ -101,6 +108,7 @@ struct FieldAttributes {
 /// ```
 ///
 /// ## Comparison of different strategies:
+///
 /// ```ignore
 /// // For field: user_name
 ///
@@ -118,6 +126,7 @@ struct FieldAttributes {
 /// ```
 ///
 /// With field-level overrides:
+///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
 /// #[nessus(field_naming = "camelCase")]
@@ -127,6 +136,23 @@ struct FieldAttributes {
 ///     email_address: String,          // -> "email" (override)
 ///     #[nessus(skip)]
 ///     internal_id: String,            // Skipped entirely
+/// }
+/// ```
+///
+/// With private field inclusion:
+///
+/// ```ignore
+/// #[derive(FieldWitnesses)]
+/// #[nessus(include_private = true)]
+/// struct User {
+///     pub user_name: String,          // Public field - included
+///     email_address: String,          // Private field - included due to include_private = true
+/// }
+///
+/// #[derive(FieldWitnesses)]
+/// struct UserWithoutPrivate {
+///     pub user_name: String,          // Public field - included
+///     email_address: String,          // Private field - skipped (include_private defaults to false)
 /// }
 /// ```
 pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
@@ -176,6 +202,11 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
                 return None;
             }
 
+            // Skip private fields if include_private is false
+            if is_field_private(&field.vis) && !container_attrs.include_private {
+                return None;
+            }
+
             // Generate PascalCase struct name for the field witness (always follows Rust naming conventions)
             // This is independent of any field naming strategy - struct markers are ALWAYS PascalCase
             let struct_marker_name = syn::Ident::new(
@@ -220,6 +251,11 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 
         // Skip fields marked with #[nessus(skip)]
         if field_attrs.skip {
+            return None;
+        }
+
+        // Skip private fields if include_private is false
+        if is_field_private(&field.vis) && !container_attrs.include_private {
             return None;
         }
 
@@ -288,6 +324,16 @@ fn parse_container_attributes(attrs: &[Attribute]) -> ContainerAttributes {
                             }
                         }
                     }
+                } else if meta.path.is_ident("include_private") {
+                    let value: Lit = meta.value()?.parse()?;
+
+                    if let Lit::Bool(lit_bool) = value {
+                        container_attrs.include_private = lit_bool.value;
+                    } else {
+                        return Err(meta.error(
+                            "include_private attribute must be a boolean value (true or false)",
+                        ));
+                    }
                 }
                 Ok(())
             });
@@ -295,6 +341,11 @@ fn parse_container_attributes(attrs: &[Attribute]) -> ContainerAttributes {
     }
 
     container_attrs
+}
+
+/// Check if a field is private (not public)
+fn is_field_private(visibility: &Visibility) -> bool {
+    matches!(visibility, Visibility::Inherited)
 }
 
 fn parse_field_attributes(attrs: &[Attribute]) -> FieldAttributes {
@@ -534,5 +585,63 @@ mod tests {
                 field_name
             );
         }
+    }
+
+    #[test]
+    fn test_is_field_private_inherited_visibility() {
+        // Test that inherited visibility (no explicit visibility modifier) is considered private
+        let visibility = Visibility::Inherited;
+
+        assert!(is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_public_visibility() {
+        use syn::parse_quote;
+
+        // Test that public visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub);
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_crate_visibility() {
+        use syn::parse_quote;
+
+        // Test that pub(crate) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(crate));
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_super_visibility() {
+        use syn::parse_quote;
+
+        // Test that pub(super) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(super));
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_self_visibility() {
+        use syn::parse_quote;
+
+        // Test that pub(self) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(self));
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_in_path_visibility() {
+        use syn::parse_quote;
+
+        // Test that pub(in path) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(in crate::module));
+
+        assert!(!is_field_private(&visibility));
     }
 }

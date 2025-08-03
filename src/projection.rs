@@ -26,10 +26,10 @@ use crate::path::Path;
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
 /// struct User {
-///     id: String,
-///     name: String,
-///     email: String,
-///     age: i32,
+///     pub id: String,
+///     pub name: String,
+///     pub email: String,
+///     pub age: i32,
 /// }
 ///
 /// let projection_doc = empty::<User>()
@@ -74,8 +74,8 @@ impl<T> BasicProjectionBuilder<T> {
     /// use nessus::projection::BasicProjectionBuilder;
     ///
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
+    ///     pub name: String,
+    ///     pub age: i32,
     /// }
     ///
     /// let builder = BasicProjectionBuilder::<User>::new();
@@ -168,8 +168,8 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     email: String,
+    ///     pub name: String,
+    ///     pub email: String,
     /// }
     ///
     /// let doc = empty::<User>()
@@ -210,9 +210,9 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     email: String,
-    ///     password: String,
+    ///     pub name: String,
+    ///     pub email: String,
+    ///     pub password: String,
     /// }
     ///
     /// let doc = empty::<User>()
@@ -264,14 +264,14 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct Address {
-    ///     street: String,
-    ///     city: String,
+    ///     pub street: String,
+    ///     pub city: String,
     /// }
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     address: Address,
+    ///     pub name: String,
+    ///     pub address: Address,
     /// }
     ///
     /// let doc = empty::<User>()
@@ -345,9 +345,9 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     id: String,
-    ///     name: String,
-    ///     email: String,
+    ///     pub id: String,
+    ///     pub name: String,
+    ///     pub email: String,
     /// }
     ///
     /// // Apply multiple projections in the same field context
@@ -370,7 +370,7 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     name: String,
+    ///     pub name: String,
     /// }
     ///
     /// // Using with_field
@@ -424,9 +424,9 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     email: String,
-    ///     age: i32,
+    ///     pub name: String,
+    ///     pub email: String,
+    ///     pub age: i32,
     /// }
     ///
     /// let projection_doc = empty::<User>()
@@ -448,8 +448,8 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     email: String,
+    ///     pub name: String,
+    ///     pub email: String,
     /// }
     ///
     /// let projection_doc = empty::<User>()
@@ -490,19 +490,13 @@ impl<T> BasicProjectionBuilder<T> {
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
 /// struct User {
-///     id: String,
-///     name: String,
-///     email: String,
-///     age: i32,
+///     pub id: String,
+///     pub name: String,
+///     pub email: String,
+///     pub age: i32,
 /// }
 ///
-/// // Use mutable builder pattern
-/// let mut builder = empty::<User>();
-/// builder.includes::<user_fields::Name>();
-/// builder.excludes::<user_fields::Email>();
-/// let projection_doc = builder.build();
-///
-/// // Or use method chaining
+/// // Use method chaining (recommended)
 /// let projection_doc = empty::<User>()
 ///     .includes::<user_fields::Name>()
 ///     .excludes::<user_fields::Email>()

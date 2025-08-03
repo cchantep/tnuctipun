@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Product {
-    Price: f64,
+    pub Price: f64,
 }
 
 pub fn test_wrong_type<F, T, V>(value: V) -> (&'static str, String) 

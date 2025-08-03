@@ -35,8 +35,8 @@ impl<T> UpdateBuilder<T> {
     /// use nessus::updates::UpdateBuilder;
     ///
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
+    ///     pub name: String,
+    ///     pub age: i32,
     /// }
     ///
     /// let builder = UpdateBuilder::<User>::new();
@@ -119,8 +119,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
+    ///     pub name: String,
+    ///     pub age: i32,
     /// }
     ///
     /// let update_doc = empty::<User>()
@@ -162,8 +162,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct TempData {
-    ///     temp_data: String,
-    ///     obsolete_field: i32,
+    ///     pub temp_data: String,
+    ///     pub obsolete_field: i32,
     /// }
     ///
     /// let update_doc = empty::<TempData>()
@@ -210,8 +210,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Stats {
-    ///     count: i32,
-    ///     score: i32,
+    ///     pub count: i32,
+    ///     pub score: i32,
     /// }
     ///
     /// let update_doc = empty::<Stats>()
@@ -258,16 +258,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Product {
-    ///     price: f64,
-    ///     quantity: i32,
+    ///     pub price: f64,
+    ///     pub quantity: i32,
     /// }
     ///
-    /// let mut builder = empty::<Product>();
-    ///
-    /// builder.mul::<product_fields::Price, _>(1.1);      // Increase price by 10%
-    /// builder.mul::<product_fields::Quantity, _>(2);     // Double the quantity
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Product>()
+    ///     .mul::<product_fields::Price, _>(1.1)      // Increase price by 10%
+    ///     .mul::<product_fields::Quantity, _>(2)     // Double the quantity
+    ///     .build();
     /// // Results in: { "$mul": { "price": 1.1, "quantity": 2 } }
     /// ```
     pub fn mul<F: FieldName, N: Num + Into<bson::Bson>>(&mut self, value: N) -> &mut Self
@@ -308,16 +306,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Document {
-    ///     old_name: String,
-    ///     legacy_field: String,
+    ///     pub old_name: String,
+    ///     pub legacy_field: String,
     /// }
     ///
-    /// let mut builder = empty::<Document>();
-    ///
-    /// builder.rename::<document_fields::OldName>("new_name");
-    /// builder.rename::<document_fields::LegacyField>("modern_field");
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Document>()
+    ///     .rename::<document_fields::OldName>("new_name")
+    ///     .rename::<document_fields::LegacyField>("modern_field")
+    ///     .build();
     /// // Results in: { "$rename": { "old_name": "new_name", "legacy_field": "modern_field" } }
     /// ```
     pub fn rename<F: FieldName>(&mut self, new_name: &str) -> &mut Self
@@ -361,16 +357,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Timestamps {
-    ///     last_modified: String, // In practice, this would be a proper date type
-    ///     updated_at: String,    // In practice, this would be a proper date type
+    ///     pub last_modified: String, // In practice, this would be a proper date type
+    ///     pub updated_at: String,    // In practice, this would be a proper date type
     /// }
     ///
-    /// let mut builder = empty::<Timestamps>();
-    ///
-    /// builder.current_date::<timestamps_fields::LastModified>(CurrentDateType::Date);
-    /// builder.current_date::<timestamps_fields::UpdatedAt>(CurrentDateType::Timestamp);
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Timestamps>()
+    ///     .current_date::<timestamps_fields::LastModified>(CurrentDateType::Date)
+    ///     .current_date::<timestamps_fields::UpdatedAt>(CurrentDateType::Timestamp)
+    ///     .build();
     /// // Results in: { "$currentDate": { "last_modified": "date", "updated_at": "timestamp" } }
     /// ```
     pub fn current_date<F: FieldName>(&mut self, date_type: CurrentDateType) -> &mut Self
@@ -417,16 +411,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Article {
-    ///     tags: Vec<String>,
-    ///     categories: Vec<String>,
+    ///     pub tags: Vec<String>,
+    ///     pub categories: Vec<String>,
     /// }
     ///
-    /// let mut builder = empty::<Article>();
-    ///
-    /// builder.add_to_set::<article_fields::Tags, _>("rust".to_string());
-    /// builder.add_to_set::<article_fields::Categories, _>("programming".to_string());
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Article>()
+    ///     .add_to_set::<article_fields::Tags, _>("rust".to_string())
+    ///     .add_to_set::<article_fields::Categories, _>("programming".to_string())
+    ///     .build();
     /// // Results in: { "$addToSet": { "tags": "rust", "categories": "programming" } }
     /// ```
     pub fn add_to_set<F: FieldName, V: Into<bson::Bson>>(&mut self, value: V) -> &mut Self
@@ -467,16 +459,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Collections {
-    ///     queue: Vec<String>,
-    ///     stack: Vec<String>,
+    ///     pub queue: Vec<String>,
+    ///     pub stack: Vec<String>,
     /// }
     ///
-    /// let mut builder = empty::<Collections>();
-    ///
-    /// builder.pop::<collections_fields::Queue>(PopStrategy::First);    // Remove first element (FIFO)
-    /// builder.pop::<collections_fields::Stack>(PopStrategy::Last);     // Remove last element (LIFO)
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Collections>()
+    ///     .pop::<collections_fields::Queue>(PopStrategy::First)    // Remove first element (FIFO)
+    ///     .pop::<collections_fields::Stack>(PopStrategy::Last)     // Remove last element (LIFO)
+    ///     .build();
     /// // Results in: { "$pop": { "queue": -1, "stack": 1 } }
     /// ```
     pub fn pop<F: FieldName>(&mut self, strategy: PopStrategy) -> &mut Self
@@ -519,16 +509,15 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Inventory {
-    ///     items: Vec<bson::Document>,
+    ///     pub items: Vec<bson::Document>,
     /// }
     ///
     /// // Remove all items where quantity is less than 5
     /// let condition = doc! { "quantity": { "$lt": 5 } };
-    /// let mut builder = empty::<Inventory>();
     ///
-    /// builder.pull_expr::<inventory_fields::Items>(Bson::Document(condition));
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Inventory>()
+    ///     .pull_expr::<inventory_fields::Items>(Bson::Document(condition))
+    ///     .build();
     /// // Results in: { "$pull": { "items": { "quantity": { "$lt": 5 } } } }
     /// ```
     pub fn pull_expr<F: FieldName>(&mut self, cond: bson::Bson) -> &mut Self
@@ -572,16 +561,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Content {
-    ///     tags: Vec<String>,
-    ///     scores: Vec<i32>,
+    ///     pub tags: Vec<String>,
+    ///     pub scores: Vec<i32>,
     /// }
     ///
-    /// let mut builder = empty::<Content>();
-    ///
-    /// builder.pull::<content_fields::Tags, _>("deprecated".to_string());
-    /// builder.pull::<content_fields::Scores, _>(0);
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Content>()
+    ///     .pull::<content_fields::Tags, _>("deprecated".to_string())
+    ///     .pull::<content_fields::Scores, _>(0)
+    ///     .build();
     /// // Results in: { "$pull": { "tags": "deprecated", "scores": 0 } }
     /// ```
     pub fn pull<F: FieldName, V: Into<bson::Bson>>(&mut self, value: V) -> &mut Self
@@ -625,19 +612,17 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Lists {
-    ///     tags: Vec<String>,
-    ///     numbers: Vec<i32>,
+    ///     pub tags: Vec<String>,
+    ///     pub numbers: Vec<i32>,
     /// }
     ///
     /// let tags_to_remove = vec!["old".to_string(), "deprecated".to_string(), "unused".to_string()];
     /// let numbers_to_remove = vec![1i32, 3i32, 5i32, 7i32];
     ///
-    /// let mut builder = empty::<Lists>();
-    ///
-    /// builder.pull_all::<lists_fields::Tags, _>(tags_to_remove);
-    /// builder.pull_all::<lists_fields::Numbers, _>(numbers_to_remove);
-    ///
-    /// let update_doc = builder.build();
+    /// empty::<Lists>()
+    ///     .pull_all::<lists_fields::Tags, _>(tags_to_remove)
+    ///     .pull_all::<lists_fields::Numbers, _>(numbers_to_remove)
+    ///     .build();
     /// // Results in: { "$pullAll": { "tags": ["old", "deprecated", "unused"], "numbers": [1, 3, 5, 7] } }
     /// ```
     pub fn pull_all<F: FieldName, I>(&mut self, values: I) -> &mut Self
@@ -681,16 +666,14 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Logging {
-    ///     logs: Vec<String>,
-    ///     history: Vec<String>,
+    ///     pub logs: Vec<String>,
+    ///     pub history: Vec<String>,
     /// }
     ///
-    /// let mut builder = empty::<Logging>();
-    ///
-    /// builder.push::<logging_fields::Logs, _>("User logged in".to_string());
-    /// builder.push::<logging_fields::History, _>("Action performed".to_string());
-    ///
-    /// let update_doc = builder.build();
+    /// let update_doc = empty::<Logging>()
+    ///     .push::<logging_fields::Logs, _>("User logged in".to_string())
+    ///     .push::<logging_fields::History, _>("Action performed".to_string())
+    ///     .build();
     /// // Results in: { "$push": { "logs": "User logged in", "history": "Action performed" } }
     /// ```
     pub fn push<F: FieldName, V: Into<bson::Bson>>(&mut self, value: V) -> &mut Self
@@ -736,16 +719,16 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Address {
-    ///     street: String,
-    ///     city: String,
-    ///     zip_code: String,
+    ///     pub street: String,
+    ///     pub city: String,
+    ///     pub zip_code: String,
     /// }
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct User {
-    ///     name: String,
-    ///     home_address: Address,
-    ///     work_address: Address,
+    ///     pub name: String,
+    ///     pub home_address: Address,
+    ///     pub work_address: Address,
     /// }
     ///
     /// // Update nested field in home address
@@ -862,9 +845,9 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
-    ///     active: bool,
+    ///     pub name: String,
+    ///     pub age: i32,
+    ///     pub active: bool,
     /// }
     ///
     /// // Apply multiple operations in the same context
@@ -895,8 +878,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Product {
-    ///     name: String,
-    ///     price: f64,
+    ///     pub name: String,
+    ///     pub price: f64,
     /// }
     ///
     /// // Using with_field
@@ -942,8 +925,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
+    ///     pub name: String,
+    ///     pub age: i32,
     /// }
     ///
     /// let update_doc = empty::<User>()
@@ -966,8 +949,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
     /// struct Stats {
-    ///     views: i32,
-    ///     likes: i32,
+    ///     pub views: i32,
+    ///     pub likes: i32,
     /// }
     ///
     /// let update_doc = empty::<Stats>()
@@ -1294,20 +1277,18 @@ impl From<PopStrategy> for bson::Bson {
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
 /// struct User {
-///     id: String,
-///     name: String,
-///     email: String,
-///     age: i32,
+///     pub id: String,
+///     pub name: String,
+///     pub email: String,
+///     pub age: i32,
 /// }
 ///
-/// // Use mutable builder pattern
-/// let mut builder = empty::<User>();
-///
-/// builder.set::<user_fields::Name, _>("John Doe".to_string());
-/// builder.inc::<user_fields::Age, _>(1);
-/// builder.unset::<user_fields::Email>();
-///
-/// let update_doc = builder.build();
+/// // Use method chaining (recommended)
+/// let update_doc = empty::<User>()
+///     .set::<user_fields::Name, _>("John Doe".to_string())
+///     .inc::<user_fields::Age, _>(1)
+///     .unset::<user_fields::Email>()
+///     .build();
 /// // Results in: {
 /// //   "$set": { "name": "John Doe" },
 /// //   "$inc": { "age": 1 },
