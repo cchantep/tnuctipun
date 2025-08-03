@@ -24,8 +24,8 @@ fn main() {
     // Define a struct with a custom collection field
     #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
     struct CustomProduct {
-        Id: String,
-        BadCollection: CustomCollection,
+        pub Id: String,
+        pub BadCollection: CustomCollection,
     }
     
     // Attempt to compare with the custom collection

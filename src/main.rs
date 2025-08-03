@@ -11,18 +11,18 @@ use nessus::{FieldWitnesses, MongoComparable};
 // Example struct that we might want to query for
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct User {
-    name: String,
-    age: i32,
-    email: String,
+    pub name: String,
+    pub age: i32,
+    pub email: String,
 }
 
 // Another example struct
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
-    id: String,
-    title: String,
-    price: f64,
-    stock: i32,
+    pub id: String,
+    pub title: String,
+    pub price: f64,
+    pub stock: i32,
 }
 
 #[tokio::main]

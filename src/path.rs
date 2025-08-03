@@ -28,14 +28,14 @@ use crate::field_witnesses::{FieldName, HasField};
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 /// struct Address {
-///     street: String,
-///     city: String,
+///     pub street: String,
+///     pub city: String,
 /// }
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 /// struct User {
-///     name: String,
-///     address: Address,
+///     pub name: String,
+///     pub address: Address,
 /// }
 ///
 /// // Path is typically used internally by the filter system
@@ -70,8 +70,8 @@ impl<F: FieldName, T: HasField<F>, Root> Path<F, T, Root> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     age: i32,
+    ///     pub name: String,
+    ///     pub age: i32,
     /// }
     ///
     /// // Create a new path for the User struct's name field
@@ -118,15 +118,15 @@ impl<F: FieldName, T: HasField<F>, Root> Path<F, T, Root> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct Address {
-    ///     street: String,
-    ///     city: String,
-    ///     zip_code: String,
+    ///     pub street: String,
+    ///     pub city: String,
+    ///     pub zip_code: String,
     /// }
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct User {
-    ///     name: String,
-    ///     home_address: Address,
+    ///     pub name: String,
+    ///     pub home_address: Address,
     /// }
     ///
     /// // Create a path starting from User's home_address field
@@ -175,7 +175,7 @@ impl<F: FieldName, T: HasField<F>, Root> Default for Path<F, T, Root> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct User {
-    ///     name: String,
+    ///     pub name: String,
     /// }
     ///
     /// let path: Path<user_fields::Name, User, User> = Default::default();
@@ -200,13 +200,13 @@ impl<F: FieldName, T: HasField<F>, Root> Clone for Path<F, T, Root> {
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct Address {
-    ///     street: String,
-    ///     city: String,
+    ///     pub street: String,
+    ///     pub city: String,
     /// }
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
     /// struct User {
-    ///     home_address: Address,
+    ///     pub home_address: Address,
     /// }
     ///
     /// let base_path = Path::<user_fields::HomeAddress, User, User>::new();

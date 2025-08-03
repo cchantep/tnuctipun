@@ -6,8 +6,8 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
-    Name: String,
-    Price: f64,
+    pub Name: String,
+    pub Price: f64,
 }
 
 // Custom type that doesn't implement Into<mongodb::bson::Bson>

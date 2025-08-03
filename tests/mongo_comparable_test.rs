@@ -22,10 +22,10 @@ macro_rules! static_assert_implements_mongo_comparable {
 // Test struct with different collection types
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 pub struct CollectionProduct {
-    id: String,
-    vec_tags: Vec<String>,
-    hash_set_categories: HashSet<String>,
-    btree_set_labels: BTreeSet<i32>,
+    pub id: String,
+    pub vec_tags: Vec<String>,
+    pub hash_set_categories: HashSet<String>,
+    pub btree_set_labels: BTreeSet<i32>,
 }
 
 #[test]
@@ -64,6 +64,7 @@ fn test_collection_types() {
 
 // Test struct with various primitive types
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+#[nessus(include_private = true)]
 pub struct PrimitiveTypes {
     string_field: String,
     bool_field: bool,

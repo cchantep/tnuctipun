@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 // Test struct with the derive macro
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 pub struct DeriveUser {
-    name: String,
-    age: i32,
-    email: String,
-    is_active: bool,
-    score: f64,
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+    pub score: f64,
 }
 
 #[test]

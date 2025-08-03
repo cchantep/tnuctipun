@@ -4,15 +4,15 @@ use nessus::{FieldName, FieldWitnesses};
 #[derive(FieldWitnesses)]
 #[allow(dead_code)] // This struct is used only for field witness generation in this example
 struct Product {
-    name: String,
-    id: String,
+    pub name: String,
+    pub id: String,
 }
 
 #[derive(FieldWitnesses)]
 #[allow(dead_code)] // This struct is used only for field witness generation in this example
 struct User {
-    name: String, // Same field name as Product - this would cause conflicts before our fix
-    id: String,   // Same field name as Product - this would cause conflicts before our fix
+    pub name: String, // Same field name as Product - this would cause conflicts before our fix
+    pub id: String,   // Same field name as Product - this would cause conflicts before our fix
 }
 
 fn main() {

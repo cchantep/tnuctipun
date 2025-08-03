@@ -1,7 +1,42 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use std::collections::HashSet;
-use syn::{Data, DeriveInput, Fields, Type, parse_macro_input};
+use syn::{Attribute, Data, DeriveInput, Fields, Lit, Type, Visibility, parse_macro_input};
+
+#[derive(Debug, Default)]
+struct ContainerAttributes {
+    include_private: bool, // Whether to include private fields (default: false)
+}
+
+/// Check if a field is private (not public)
+fn is_field_private(visibility: &Visibility) -> bool {
+    matches!(visibility, Visibility::Inherited)
+}
+
+fn parse_container_attributes(attrs: &[Attribute]) -> ContainerAttributes {
+    let mut container_attrs = ContainerAttributes::default();
+
+    for attr in attrs {
+        if attr.path().is_ident("nessus") {
+            let _ = attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("include_private") {
+                    let value: Lit = meta.value()?.parse()?;
+
+                    if let Lit::Bool(lit_bool) = value {
+                        container_attrs.include_private = lit_bool.value;
+                    } else {
+                        return Err(meta.error(
+                            "include_private attribute must be a boolean value (true or false)",
+                        ));
+                    }
+                }
+                Ok(())
+            });
+        }
+    }
+
+    container_attrs
+}
 
 // This function implements the MongoComparable derive macro
 // It automatically implements the MongoComparable trait for a struct
@@ -11,6 +46,9 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
+
+    // Parse container-level attributes
+    let container_attrs = parse_container_attributes(&input.attrs);
 
     // Get fields from the struct
     let fields = match &input.data {
@@ -27,6 +65,11 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
 
     // Process each field and generate appropriate implementations
     for field in fields {
+        // Skip private fields if include_private is false
+        if is_field_private(&field.vis) && !container_attrs.include_private {
+            continue;
+        }
+
         let field_type = &field.ty;
         let field_tname = type_to_string(field_type);
 
@@ -558,5 +601,52 @@ mod tests {
         assert_eq!(get_compatible_types_for("I32"), Vec::<String>::new());
         assert_eq!(get_compatible_types_for("datetime"), Vec::<String>::new());
         assert_eq!(get_compatible_types_for("CHAR"), Vec::<String>::new());
+    }
+
+    #[test]
+    fn test_is_field_private_inherited_visibility() {
+        // Test that inherited visibility (no explicit visibility modifier) is considered private
+        let visibility = Visibility::Inherited;
+        assert!(is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_public_visibility() {
+        // Test that public visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub);
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_crate_visibility() {
+        // Test that pub(crate) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(crate));
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_super_visibility() {
+        // Test that pub(super) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(super));
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_self_visibility() {
+        // Test that pub(self) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(self));
+
+        assert!(!is_field_private(&visibility));
+    }
+
+    #[test]
+    fn test_is_field_private_pub_in_path_visibility() {
+        // Test that pub(in path) visibility is not considered private
+        let visibility: Visibility = parse_quote!(pub(in crate::module));
+
+        assert!(!is_field_private(&visibility));
     }
 }
