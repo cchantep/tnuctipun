@@ -1,6 +1,5 @@
 use nessus_derive::MongoComparable;
 
-use bson;
 use nessus::FieldWitnesses;
 use nessus::filters::empty;
 use serde::{Deserialize, Serialize};
@@ -56,17 +55,13 @@ struct Employee {
 #[test]
 fn test_equality_filter() {
     let mut builder = empty::<Product>();
-
     builder.eq::<product_fields::Name, _>("Smartphone".to_string());
 
     let expected_name = bson::doc! { "name": "Smartphone" };
-
     assert_eq!(builder.clauses(), &vec![expected_name.clone()]);
 
     builder.eq::<product_fields::Categories, _>("Electronics".to_string());
-
     let expected_categories = bson::doc! { "categories": "Electronics" };
-
     assert_eq!(builder.clauses(), &vec![expected_name, expected_categories]);
 }
 
@@ -211,26 +206,22 @@ fn test_and_function_empty_builder() {
 #[test]
 fn test_and_function_single_clause() {
     // Test with single clause - should return the clause directly (no $and wrapper)
-    let mut builder = empty::<Product>();
-
-    builder.eq::<product_fields::Name, _>("Smartphone".to_string());
-
-    let result = builder.and();
+    let result = empty::<Product>()
+        .eq::<product_fields::Name, _>("Smartphone".to_string())
+        .and();
+    
     let expected = bson::doc! { "name": "Smartphone" };
-
     assert_eq!(result, expected);
 }
 
 #[test]
 fn test_and_function_multiple_clauses() {
     // Test with multiple clauses - should wrap in $and
-    let mut builder = empty::<Product>();
-
-    builder
+    let result = empty::<Product>()
         .eq::<product_fields::Name, _>("Smartphone".to_string())
-        .eq::<product_fields::Price, _>(599.99);
-
-    let result = builder.and();
+        .eq::<product_fields::Price, _>(599.99)
+        .and();
+        
     let expected = bson::doc! {
         "$and": [
             { "name": "Smartphone" },
@@ -244,13 +235,11 @@ fn test_and_function_multiple_clauses() {
 #[test]
 fn test_and_function_complex_builder_chain() {
     // Test with a complex chain of different filter types
-    let mut builder = empty::<Product>();
-
-    builder
+    let result = empty::<Product>()
         .eq::<product_fields::Name, _>("Gaming Laptop".to_string())
-        .eq::<product_fields::Stock, _>(10);
+        .eq::<product_fields::Stock, _>(10)
+        .and();
 
-    let result = builder.and();
     let expected = bson::doc! {
         "$and": [
             { "name": "Gaming Laptop" },
@@ -264,13 +253,12 @@ fn test_and_function_complex_builder_chain() {
 #[test]
 fn test_and_function_three_clauses() {
     // Test with three clauses to ensure proper array construction
-    let mut builder = empty::<Product>();
-    builder
+    let result = empty::<Product>()
         .eq::<product_fields::Name, _>("Tablet".to_string())
         .eq::<product_fields::Price, _>(299.99)
-        .eq::<product_fields::Stock, _>(5);
+        .eq::<product_fields::Stock, _>(5)
+        .and();
 
-    let result = builder.and();
     let expected = bson::doc! {
         "$and": [
             { "name": "Tablet" },
@@ -438,9 +426,7 @@ fn test_with_lookup_deep_nesting() {
 #[test]
 fn test_with_lookup_and_function() {
     // Test that nested fields work correctly with the and() function
-    let mut builder = empty::<User>();
-
-    builder
+    let result = empty::<User>()
         .eq::<user_fields::Name, _>("Alice Smith".to_string())
         .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
             |path| path.field::<address_fields::City>(),
@@ -449,9 +435,9 @@ fn test_with_lookup_and_function() {
         .with_lookup::<user_fields::HomeAddress, _, address_fields::ZipCode, Address, _>(
             |path| path.field::<address_fields::ZipCode>(),
             |nested| nested.eq::<address_fields::ZipCode, _>("97201".to_string()),
-        );
+        )
+        .and();
 
-    let result = builder.and();
     let expected = bson::doc! {
         "$and": [
             { "name": "Alice Smith" },
@@ -466,16 +452,14 @@ fn test_with_lookup_and_function() {
 #[test]
 fn test_with_lookup_single_clause_and_function() {
     // Test that a single nested clause works correctly with and() function
-    let mut builder = empty::<User>();
-
-    builder.with_lookup::<user_fields::Contact, _, contactinfo_fields::Phone, ContactInfo, _>(
-        |path| path.field::<contactinfo_fields::Phone>(),
-        |nested| nested.eq::<contactinfo_fields::Phone, _>("+1-555-0123".to_string()),
-    );
-
-    let result = builder.and();
+    let result = empty::<User>()
+        .with_lookup::<user_fields::Contact, _, contactinfo_fields::Phone, ContactInfo, _>(
+            |path| path.field::<contactinfo_fields::Phone>(),
+            |nested| nested.eq::<contactinfo_fields::Phone, _>("+1-555-0123".to_string()),
+        )
+        .and();
+        
     let expected = bson::doc! { "contact.phone": "+1-555-0123" };
-
     assert_eq!(result, expected);
 }
 
@@ -733,16 +717,15 @@ fn test_or_function_complex_nested_conditions() {
 #[test]
 fn test_or_function_and_final_result() {
     // Test OR with and() function to get final MongoDB query
-    let mut builder = empty::<Product>();
     let names = vec!["Laptop", "Smartphone"];
 
-    builder
+    let result = empty::<Product>()
         .gt::<product_fields::Price, _>(100.0)
         .or::<product_fields::Name, _, _>(names, |filter, name| {
             filter.eq::<product_fields::Name, _>(name.to_string())
-        });
-
-    let result = builder.and();
+        })
+        .and();
+        
     let expected = bson::doc! {
         "$and": [
             { "price": { "$gt": 100.0 } },
@@ -909,13 +892,10 @@ fn test_not_filter_multiple_not_operations() {
 
 #[test]
 fn test_not_filter_with_and_combination() {
-    let mut builder = empty::<Product>();
-
-    builder
+    let filter = empty::<Product>()
         .not::<product_fields::Name, _>(|op| op.eq("Smartphone".to_string()))
-        .eq::<product_fields::Categories, _>("Electronics".to_string());
-
-    let filter = builder.and();
+        .eq::<product_fields::Categories, _>("Electronics".to_string())
+        .and();
 
     let expected = bson::doc! {
         "$and": [
@@ -1418,4 +1398,118 @@ fn test_mixed_with_field_and_with_lookup() {
             expected_address_exists
         ]
     );
+}
+
+// Tests for trait implementations and default constructors
+#[test]
+fn test_filter_builder_from_trait() {
+    // Test From<FilterBuilder<T>> for bson::Document trait implementation
+    let mut builder = empty::<Product>();
+
+    builder
+        .eq::<product_fields::Name, _>("Test Product".to_string())
+        .gt::<product_fields::Price, _>(100.0);
+
+    // Use Into to convert FilterBuilder to bson::Document
+    let doc: bson::Document = builder.into();
+
+    let expected = bson::doc! {
+        "$and": [
+            { "name": "Test Product" },
+            { "price": { "$gt": 100.0 } }
+        ]
+    };
+
+    assert_eq!(doc, expected);
+}
+
+#[test]
+fn test_filter_builder_from_trait_single_clause() {
+    // Test From trait with single clause (no $and wrapper)
+    let mut builder = empty::<Product>();
+
+    builder.eq::<product_fields::Name, _>("Single Item".to_string());
+
+    let doc: bson::Document = builder.into();
+    let expected = bson::doc! { "name": "Single Item" };
+
+    assert_eq!(doc, expected);
+}
+
+#[test]
+fn test_filter_builder_from_trait_empty() {
+    // Test From trait with empty builder
+    let builder = empty::<Product>();
+
+    let doc: bson::Document = builder.into();
+    let expected = bson::doc! {};
+
+    assert_eq!(doc, expected);
+}
+
+#[test]
+fn test_filter_builder_default() {
+    // Test Default trait implementation for FilterBuilder<T>
+    use nessus::filters::FilterBuilder;
+
+    let builder: FilterBuilder<Product> = Default::default();
+
+    // Default builder should have empty clauses
+    assert_eq!(builder.clauses(), &Vec::<bson::Document>::new());
+
+    // Converting to document should give empty doc
+    let doc: bson::Document = builder.into();
+    assert_eq!(doc, bson::doc! {});
+}
+
+#[test]
+fn test_filter_builder_default_usage() {
+    // Test using Default in practical scenarios
+    use nessus::filters::FilterBuilder;
+
+    let mut builder: FilterBuilder<User> = Default::default();
+
+    builder.eq::<user_fields::Name, _>("Default User".to_string());
+
+    let expected = bson::doc! { "name": "Default User" };
+    assert_eq!(builder.clauses(), &vec![expected.clone()]);
+
+    let doc: bson::Document = builder.into();
+    assert_eq!(doc, expected);
+}
+
+#[test]
+fn test_operation_builder_default() {
+    // Test Default trait implementation for OperationBuilder<F, T>
+    use nessus::filters::OperationBuilder;
+
+    let op_builder: OperationBuilder<product_fields::Name, Product> = Default::default();
+
+    // Default OperationBuilder should build to empty operations on the field
+    let doc = op_builder.build();
+
+    // Since no operations were added, it should be empty - but the field name should still be present
+    // Based on the implementation, an empty OperationBuilder should return an empty document
+    let expected = bson::doc! {};
+    assert_eq!(doc, expected);
+}
+
+#[test]
+fn test_operation_builder_default_with_operations() {
+    // Test Default OperationBuilder with added operations
+    use nessus::filters::OperationBuilder;
+
+    let op_builder: OperationBuilder<product_fields::Price, Product> = Default::default();
+
+    let final_builder = op_builder.gt(100.0).lte(500.0);
+    let doc = final_builder.build();
+
+    let expected = bson::doc! {
+        "price": {
+            "$gt": 100.0,
+            "$lte": 500.0
+        }
+    };
+
+    assert_eq!(doc, expected);
 }

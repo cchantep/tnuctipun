@@ -11,6 +11,7 @@ use crate::field_witnesses::{FieldName, HasField};
 ///
 /// * `F` - The field name marker type (e.g., `user_fields::Address`)
 /// * `T` - The struct type that contains the field `F`
+/// * `Root` - The root document type, preserved through field navigation for type safety
 ///
 /// # Usage
 ///
@@ -38,18 +39,19 @@ use crate::field_witnesses::{FieldName, HasField};
 /// }
 ///
 /// // Path is typically used internally by the filter system
-/// let path = Path::<user_fields::Address, User>::new();
+/// let path = Path::<user_fields::Address, User, User>::new();
 /// let city_path = path.field::<address_fields::City>();
 /// // This creates a path that represents "address.city"
 /// ```
-pub struct Path<F: FieldName, T: HasField<F>> {
+pub struct Path<F: FieldName, T: HasField<F>, Root> {
     /// The accumulated field path segments (e.g., ["user", "profile"])
     pub(crate) prefix: Vec<String>,
+
     /// Phantom data to maintain type information at compile time
-    pub(crate) _marker: std::marker::PhantomData<(F, T)>,
+    pub(crate) _marker: std::marker::PhantomData<(F, T, Root)>,
 }
 
-impl<F: FieldName, T: HasField<F>> Path<F, T> {
+impl<F: FieldName, T: HasField<F>, Root> Path<F, T, Root> {
     /// Creates a new path for the given field name and struct type.
     ///
     /// This creates an empty path with no prefix segments. The path can then
@@ -73,7 +75,7 @@ impl<F: FieldName, T: HasField<F>> Path<F, T> {
     /// }
     ///
     /// // Create a new path for the User struct's name field
-    /// let path = Path::<user_fields::Name, User>::new();
+    /// let path = Path::<user_fields::Name, User, User>::new();
     /// ```
     pub fn new() -> Self {
         Self {
@@ -128,13 +130,14 @@ impl<F: FieldName, T: HasField<F>> Path<F, T> {
     /// }
     ///
     /// // Create a path starting from User's home_address field
-    /// let address_path = Path::<user_fields::HomeAddress, User>::new();
+    /// let address_path = Path::<user_fields::HomeAddress, User, User>::new();
     ///
     /// // Navigate to the city field within the address
     /// let city_path = address_path.field::<address_fields::City>();
     ///
     /// // This creates a path representing "home_address.city"
     /// // The prefix will contain ["home_address"] and target the City field
+    /// // The Root type (User) is preserved for type safety with builders
     /// ```
     ///
     /// # Compile-Time Safety
@@ -143,11 +146,12 @@ impl<F: FieldName, T: HasField<F>> Path<F, T> {
     /// // This would fail to compile because NonExistentField doesn't exist in Address
     /// let invalid_path = address_path.field::<address_fields::NonExistentField>();
     /// ```
-    pub fn field<G: FieldName>(&self) -> Path<G, T::Value>
+    pub fn field<G: FieldName>(&self) -> Path<G, T::Value, Root>
     where
         T::Value: HasField<G>,
     {
         let mut prefix = self.prefix.clone();
+
         prefix.push(F::field_name().to_string());
 
         Path {
@@ -157,7 +161,7 @@ impl<F: FieldName, T: HasField<F>> Path<F, T> {
     }
 }
 
-impl<F: FieldName, T: HasField<F>> Default for Path<F, T> {
+impl<F: FieldName, T: HasField<F>, Root> Default for Path<F, T, Root> {
     /// Creates a default `Path` instance with an empty prefix.
     ///
     /// This is equivalent to calling `Path::new()`.
@@ -174,14 +178,14 @@ impl<F: FieldName, T: HasField<F>> Default for Path<F, T> {
     ///     name: String,
     /// }
     ///
-    /// let path: Path<user_fields::Name, User> = Default::default();
+    /// let path: Path<user_fields::Name, User, User> = Default::default();
     /// ```
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<F: FieldName, T: HasField<F>> Clone for Path<F, T> {
+impl<F: FieldName, T: HasField<F>, Root> Clone for Path<F, T, Root> {
     /// Creates a clone of the path with the same prefix and type information.
     ///
     /// This is useful when you need to create multiple navigation paths
@@ -205,7 +209,7 @@ impl<F: FieldName, T: HasField<F>> Clone for Path<F, T> {
     ///     home_address: Address,
     /// }
     ///
-    /// let base_path = Path::<user_fields::HomeAddress, User>::new();
+    /// let base_path = Path::<user_fields::HomeAddress, User, User>::new();
     /// let street_path = base_path.clone().field::<address_fields::Street>();
     /// let city_path = base_path.field::<address_fields::City>();
     /// ```
@@ -257,19 +261,19 @@ mod tests {
 
     #[test]
     fn test_path_new() {
-        let path = Path::<TestField, TestStruct>::new();
+        let path = Path::<TestField, TestStruct, TestStruct>::new();
         assert!(path.prefix.is_empty());
     }
 
     #[test]
     fn test_path_default() {
-        let path: Path<TestField, TestStruct> = Default::default();
+        let path: Path<TestField, TestStruct, TestStruct> = Default::default();
         assert!(path.prefix.is_empty());
     }
 
     #[test]
     fn test_path_clone() {
-        let mut path = Path::<TestField, TestStruct>::new();
+        let mut path = Path::<TestField, TestStruct, TestStruct>::new();
         path.prefix.push("existing".to_string());
 
         let cloned = path.clone();
@@ -278,7 +282,7 @@ mod tests {
 
     #[test]
     fn test_path_field_navigation() {
-        let path = Path::<TestField, TestStruct>::new();
+        let path = Path::<TestField, TestStruct, TestStruct>::new();
         let nested_path = path.field::<NestedField>();
 
         assert_eq!(nested_path.prefix, vec!["test_field"]);
@@ -286,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_path_deep_navigation() {
-        let mut path = Path::<TestField, TestStruct>::new();
+        let mut path = Path::<TestField, TestStruct, TestStruct>::new();
         path.prefix.push("root".to_string());
 
         let nested_path = path.field::<NestedField>();

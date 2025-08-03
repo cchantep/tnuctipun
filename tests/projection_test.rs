@@ -1,6 +1,5 @@
-use bson;
 use nessus::FieldWitnesses;
-use nessus::projection::{empty, ProjectionBuilder};
+use nessus::projection::{ProjectionBuilder, empty};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, FieldWitnesses)]
@@ -36,11 +35,12 @@ mod projection_builder_integration_tests {
             .includes::<user_fields::Age>()
             .build();
 
-        assert!(doc.contains_key("name"));
-        assert!(doc.contains_key("age"));
-        
-        assert_eq!(doc.get("name").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(doc.get("age").unwrap(), &bson::Bson::Int32(1));
+        let expected = bson::doc! {
+            "name": 1,
+            "age": 1
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -51,11 +51,12 @@ mod projection_builder_integration_tests {
             .excludes::<user_fields::Id>()
             .build();
 
-        assert!(doc.contains_key("email"));
-        assert!(doc.contains_key("id"));
-        
-        assert_eq!(doc.get("email").unwrap(), &bson::Bson::Int32(0));
-        assert_eq!(doc.get("id").unwrap(), &bson::Bson::Int32(0));
+        let expected = bson::doc! {
+            "email": 0,
+            "id": 0
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -67,13 +68,16 @@ mod projection_builder_integration_tests {
             .project("name".to_string(), custom_expr.clone().into())
             .build();
 
-        assert!(doc.contains_key("name"));
-        assert_eq!(doc.get("name").unwrap(), &custom_expr.clone().into());
+        let expected = bson::doc! {
+            "name": custom_expr.clone()
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
     fn projection_builder_mixed_includes_excludes_project() {
-        // Test using includes, excludes, and project together in a chain
+        // Test using includes, excludes, and project together
         let slice_expr = bson::doc! { "$slice": 5 };
 
         let doc = empty::<User>()
@@ -82,13 +86,13 @@ mod projection_builder_integration_tests {
             .project("id".to_string(), slice_expr.clone().into())
             .build();
 
-        assert!(doc.contains_key("name"));
-        assert!(doc.contains_key("email"));
-        assert!(doc.contains_key("id"));
+        let expected = bson::doc! {
+            "name": 1,
+            "email": 0,
+            "id": slice_expr.clone()
+        };
 
-        assert_eq!(doc.get("name").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(doc.get("email").unwrap(), &bson::Bson::Int32(0));
-        assert_eq!(doc.get("id").unwrap(), &slice_expr.clone().into());
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -96,8 +100,9 @@ mod projection_builder_integration_tests {
         // Test building an empty projection
         let doc = empty::<User>().build();
 
-        assert_eq!(doc.len(), 0);
-        assert!(doc.is_empty());
+        let expected = bson::doc! {};
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -108,8 +113,11 @@ mod projection_builder_integration_tests {
             .excludes::<user_fields::Name>()
             .build();
 
-        assert!(doc.contains_key("name"));
-        assert_eq!(doc.get("name").unwrap(), &bson::Bson::Int32(0)); // excludes wins
+        let expected = bson::doc! {
+            "name": 0  // excludes wins
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -131,10 +139,12 @@ mod projection_builder_integration_tests {
             .project("age".to_string(), conditional.clone().into())
             .build();
 
-        assert!(doc.contains_key("name"));
-        assert!(doc.contains_key("age"));
-        assert_eq!(doc.get("name").unwrap(), &elem_match.clone().into());
-        assert_eq!(doc.get("age").unwrap(), &conditional.clone().into());
+        let expected = bson::doc! {
+            "name": elem_match.clone(),
+            "age": conditional.clone()
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -148,16 +158,21 @@ mod projection_builder_integration_tests {
             .includes::<address_fields::Street>()
             .build();
 
-        assert!(user_doc.contains_key("name"));
-        assert!(!user_doc.contains_key("street"));
+        let expected_user = bson::doc! {
+            "name": 1
+        };
 
-        assert!(address_doc.contains_key("street"));
-        assert!(!address_doc.contains_key("name"));
+        let expected_address = bson::doc! {
+            "street": 1
+        };
+
+        assert_eq!(user_doc, expected_user);
+        assert_eq!(address_doc, expected_address);
     }
 
     #[test]
     fn projection_builder_all_supported_operations_chained() {
-        // Test chaining all operations in one expression
+        // Test all operations together
         let slice_expr = bson::doc! { "$slice": 5 };
         let conditional = bson::doc! {
             "$cond": {
@@ -174,11 +189,14 @@ mod projection_builder_integration_tests {
             .project("age".to_string(), conditional.clone().into())
             .build();
 
-        assert_eq!(doc.len(), 4);
-        assert_eq!(doc.get("name").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(doc.get("email").unwrap(), &bson::Bson::Int32(0));
-        assert_eq!(doc.get("id").unwrap(), &slice_expr.clone().into());
-        assert_eq!(doc.get("age").unwrap(), &conditional.clone().into());
+        let expected = bson::doc! {
+            "name": 1,
+            "email": 0,
+            "id": slice_expr.clone(),
+            "age": conditional.clone()
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -191,12 +209,14 @@ mod projection_builder_integration_tests {
             .includes::<user_fields::Id>()
             .build();
 
-        // All fields should be present with include value
-        assert_eq!(doc.len(), 4);
-        assert_eq!(doc.get("name").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(doc.get("age").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(doc.get("email").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(doc.get("id").unwrap(), &bson::Bson::Int32(1));
+        let expected = bson::doc! {
+            "name": 1,
+            "age": 1,
+            "email": 1,
+            "id": 1
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -217,18 +237,24 @@ mod projection_builder_integration_tests {
             .includes::<profile_fields::AvatarUrl>()
             .build();
 
-        // Verify each projection contains only its own fields
-        assert_eq!(user_doc.len(), 2);
-        assert!(user_doc.contains_key("name"));
-        assert!(user_doc.contains_key("age"));
+        let expected_user = bson::doc! {
+            "name": 1,
+            "age": 1
+        };
 
-        assert_eq!(address_doc.len(), 2);
-        assert!(address_doc.contains_key("city"));
-        assert!(address_doc.contains_key("zip"));
+        let expected_address = bson::doc! {
+            "city": 1,
+            "zip": 1
+        };
 
-        assert_eq!(profile_doc.len(), 2);
-        assert!(profile_doc.contains_key("bio"));
-        assert!(profile_doc.contains_key("avatar_url"));
+        let expected_profile = bson::doc! {
+            "bio": 1,
+            "avatar_url": 1
+        };
+
+        assert_eq!(user_doc, expected_user);
+        assert_eq!(address_doc, expected_address);
+        assert_eq!(profile_doc, expected_profile);
     }
 
     #[test]
@@ -268,11 +294,14 @@ mod projection_builder_integration_tests {
             .project("age".to_string(), string_ops.clone().into())
             .build();
 
-        assert_eq!(doc.len(), 4);
-        assert_eq!(doc.get("name").unwrap(), &conditional.clone().into());
-        assert_eq!(doc.get("id").unwrap(), &array_ops.clone().into());
-        assert_eq!(doc.get("email").unwrap(), &date_ops.clone().into());
-        assert_eq!(doc.get("age").unwrap(), &string_ops.clone().into());
+        let expected = bson::doc! {
+            "name": conditional.clone(),
+            "id": array_ops.clone(),
+            "email": date_ops.clone(),
+            "age": string_ops.clone()
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -281,7 +310,12 @@ mod projection_builder_integration_tests {
         let single_doc = empty::<User>()
             .includes::<user_fields::Name>()
             .build();
-        assert_eq!(single_doc.len(), 1);
+
+        let expected_single = bson::doc! {
+            "name": 1
+        };
+
+        assert_eq!(single_doc, expected_single);
 
         // Test performance with many fields - multiple fields
         let many_doc = empty::<User>()
@@ -290,7 +324,15 @@ mod projection_builder_integration_tests {
             .includes::<user_fields::Email>()
             .includes::<user_fields::Id>()
             .build();
-        assert_eq!(many_doc.len(), 4);
+
+        let expected_many = bson::doc! {
+            "name": 1,
+            "age": 1,
+            "email": 1,
+            "id": 1
+        };
+
+        assert_eq!(many_doc, expected_many);
 
         // Test with mixed operations
         let mixed_doc = empty::<User>()
@@ -298,9 +340,12 @@ mod projection_builder_integration_tests {
             .project("age".to_string(), bson::Bson::Int32(42))
             .build();
 
-        assert_eq!(mixed_doc.len(), 2);
-        assert_eq!(mixed_doc.get("name").unwrap(), &bson::Bson::Null);
-        assert_eq!(mixed_doc.get("age").unwrap(), &bson::Bson::Int32(42));
+        let expected_mixed = bson::doc! {
+            "name": bson::Bson::Null,
+            "age": 42
+        };
+
+        assert_eq!(mixed_doc, expected_mixed);
     }
 
     #[test]
@@ -309,14 +354,17 @@ mod projection_builder_integration_tests {
         let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .excludes::<user_fields::Name>()
-            .project("name".to_string(), bson::doc! { "$toUpper": "$name" }.into())
+            .project(
+                "name".to_string(),
+                bson::doc! { "$toUpper": "$name" }.into(),
+            )
             .build();
 
-        // The project call should win (last operation)
-        assert_eq!(doc.len(), 1);
-        assert!(doc.contains_key("name"));
-        let expected = bson::doc! { "$toUpper": "$name" };
-        assert_eq!(doc.get("name").unwrap(), &expected.into());
+        let expected = bson::doc! {
+            "name": { "$toUpper": "$name" }  // project call wins (last operation)
+        };
+
+        assert_eq!(doc, expected);
     }
 
     #[test]
@@ -329,17 +377,31 @@ mod projection_builder_integration_tests {
             .project("id".to_string(), bson::doc! { "$toString": "$_id" }.into()) // Convert ObjectId to string
             .build();
 
-        assert!(user_projection.contains_key("name"));
-        assert!(user_projection.contains_key("age"));
-        assert!(user_projection.contains_key("email"));
-        assert!(user_projection.contains_key("id"));
+        let expected = bson::doc! {
+            "name": 1,
+            "age": 1,
+            "email": 0,
+            "id": { "$toString": "$_id" }
+        };
 
-        assert_eq!(user_projection.get("name").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(user_projection.get("age").unwrap(), &bson::Bson::Int32(1));
-        assert_eq!(user_projection.get("email").unwrap(), &bson::Bson::Int32(0));
+        assert_eq!(user_projection, expected);
+    }
 
-        let expected_id_expr = bson::doc! { "$toString": "$_id" };
-        
-        assert_eq!(user_projection.get("id").unwrap(), &expected_id_expr.into());
+    #[test]
+    fn projection_builder_method_chaining_works() {
+        // Test that full method chaining works, including build() at the end
+        let doc = empty::<User>()
+            .includes::<user_fields::Name>()
+            .includes::<user_fields::Age>()
+            .excludes::<user_fields::Email>()
+            .build();
+
+        let expected = bson::doc! {
+            "name": 1,
+            "age": 1,
+            "email": 0
+        };
+
+        assert_eq!(doc, expected);
     }
 }

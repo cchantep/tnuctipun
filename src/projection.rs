@@ -9,9 +9,9 @@ use crate::path::Path;
 /// while ensuring that only fields that exist on the target struct `T` can be projected.
 /// This eliminates runtime errors caused by typos in field names.
 ///
-/// This builder provides the basic/safe projection features using `includes()` and `excludes()` 
-/// methods. For additional projection capabilities with custom MongoDB expressions, see the 
-/// `ProjectionBuilder` trait which provides the `project()` method (requires manual field path 
+/// This builder provides the basic/safe projection features using `includes()` and `excludes()`
+/// methods. For additional projection capabilities with custom MongoDB expressions, see the
+/// `ProjectionBuilder` trait which provides the `project()` method (requires manual field path
 /// strings and is less type-safe).
 ///
 /// # Type Parameters
@@ -32,7 +32,6 @@ use crate::path::Path;
 ///     age: i32,
 /// }
 ///
-/// // Chain projection methods directly from empty()
 /// let projection_doc = empty::<User>()
 ///     .includes::<user_fields::Name>()
 ///     .includes::<user_fields::Age>()
@@ -90,6 +89,24 @@ impl<T> BasicProjectionBuilder<T> {
     }
 
     /// Returns a fully qualified field path for the given field name marker type.
+    /// Returns a fully qualified field path for the given field name marker type.
+    ///
+    /// This method constructs the complete dot-notation path for a field by combining
+    /// any existing prefix (for nested document projections) with the field name.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    ///
+    /// # Returns
+    ///
+    /// A `String` containing the fully qualified field path.
+    ///
+    /// # Examples
+    ///
+    /// - Without prefix: `"field_name"`
+    /// - With prefix `["parent"]`: `"parent.field_name"`
+    /// - With nested prefix `["root", "child"]`: `"root.child.field_name"`
     fn field_path<F: FieldName>(&self) -> String {
         if self.prefix.is_empty() {
             F::field_name().to_string()
@@ -98,7 +115,23 @@ impl<T> BasicProjectionBuilder<T> {
         }
     }
 
-    fn project_field<F: FieldName>(mut self, includes: bool) -> Self
+    /// Projects a field with the specified inclusion/exclusion flag.
+    ///
+    /// This is a helper method that combines field path generation with clause addition.
+    /// It's used internally by both `includes()` and `excludes()` methods.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    ///
+    /// # Parameters
+    ///
+    /// * `includes` - `true` to include the field (value 1), `false` to exclude (value 0)
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to self for method chaining.
+    fn project_field<F: FieldName>(&mut self, includes: bool) -> &mut Self
     where
         T: HasField<F>,
     {
@@ -139,14 +172,13 @@ impl<T> BasicProjectionBuilder<T> {
     ///     email: String,
     /// }
     ///
-    /// // Chain includes directly from new()
     /// let doc = empty::<User>()
     ///     .includes::<user_fields::Name>()
     ///     .includes::<user_fields::Email>()
     ///     .build();
     /// // Results in: { "name": 1, "email": 1 }
     /// ```
-    pub fn includes<F: FieldName>(self) -> Self
+    pub fn includes<F: FieldName>(&mut self) -> &mut Self
     where
         T: HasField<F>,
     {
@@ -183,13 +215,12 @@ impl<T> BasicProjectionBuilder<T> {
     ///     password: String,
     /// }
     ///
-    /// // Chain excludes directly from new()
     /// let doc = empty::<User>()
     ///     .excludes::<user_fields::Password>()
     ///     .build();
     /// // Results in: { "password": 0 }
     /// ```
-    pub fn excludes<F: FieldName>(self) -> Self
+    pub fn excludes<F: FieldName>(&mut self) -> &mut Self
     where
         T: HasField<F>,
     {
@@ -205,7 +236,7 @@ impl<T> BasicProjectionBuilder<T> {
     ///
     /// # Parameters
     ///
-    /// * `lookup` - A function that takes a `Path<F, T>` and returns a `Path<G, U>`,
+    /// * `lookup` - A function that takes a `Path<F, T, T>` and returns a `Path<G, U, T>`,
     ///   defining how to navigate from the current context to the target nested field
     /// * `f` - A function that configures the projection on the nested structure
     ///
@@ -243,27 +274,26 @@ impl<T> BasicProjectionBuilder<T> {
     ///     address: Address,
     /// }
     ///
-    /// // Project nested field: user.address.city with full chaining
     /// let doc = empty::<User>()
     ///     .with_lookup::<user_fields::Address, _, address_fields::City, Address, _>(
     ///         |path| path.field::<address_fields::City>(),
-    ///         |nested| nested.includes::<address_fields::City>()
+    ///         |mut nested| { nested.includes::<address_fields::City>(); nested }
     ///     )
     ///     .build();
     /// // Results in: { "address.city": 1 }
     /// ```
     pub fn with_lookup<F: FieldName, L, G: FieldName, U: HasField<G>, N>(
-        mut self,
+        &mut self,
         lookup: L,
         f: N,
-    ) -> Self
+    ) -> &mut Self
     where
         T: HasField<F>,
-        L: FnOnce(&Path<F, T>) -> Path<G, U>,
+        L: FnOnce(&Path<F, T, T>) -> Path<G, U, T>,
         N: FnOnce(BasicProjectionBuilder<U>) -> BasicProjectionBuilder<U>,
     {
         // Create a base field path for the lookup
-        let base_field: Path<F, T> = Path {
+        let base_field: Path<F, T, T> = Path {
             prefix: self.prefix.clone(),
             _marker: std::marker::PhantomData,
         };
@@ -313,7 +343,6 @@ impl<T> BasicProjectionBuilder<T> {
     ///     age: i32,
     /// }
     ///
-    /// // Chain projection methods directly from new()
     /// let projection_doc = empty::<User>()
     ///     .includes::<user_fields::Name>()
     ///     .excludes::<user_fields::Email>()
@@ -337,36 +366,158 @@ impl<T> BasicProjectionBuilder<T> {
     ///     email: String,
     /// }
     ///
-    /// // Chain projection methods to show duplicate field behavior
-    /// let doc = empty::<User>()
+    /// let projection_doc = empty::<User>()
     ///     .includes::<user_fields::Name>()  // { "name": 1 }
     ///     .excludes::<user_fields::Name>()  // { "name": 0 } - this wins
     ///     .build();
     /// // Results in: { "name": 0 }
     /// ```
-    pub fn build(self) -> bson::Document {
+    pub fn build(&mut self) -> bson::Document {
         let mut doc = bson::Document::new();
 
-        for (field, value) in self.clauses {
-            doc.insert(field, value);
+        for (field, value) in &self.clauses {
+            doc.insert(field.clone(), value.clone());
         }
 
         doc
     }
 }
 
+/// Creates a new empty `BasicProjectionBuilder` instance.
+///
+/// This function provides a convenient way to start a fluent chain of projection operations
+/// without needing to explicitly call `BasicProjectionBuilder::new()` and assign it to a mutable variable.
+///
+/// # Type Parameters
+///
+/// * `T` - The target struct type that implements the necessary field witness traits
+///
+/// # Returns
+///
+/// A new `BasicProjectionBuilder<T>` instance ready for method chaining.
+///
+/// # Examples
+///
+/// ```rust
+/// use nessus::{FieldWitnesses, projection::empty};
+/// use serde::{Serialize, Deserialize};
+///
+/// #[derive(FieldWitnesses, Serialize, Deserialize)]
+/// struct User {
+///     id: String,
+///     name: String,
+///     email: String,
+///     age: i32,
+/// }
+///
+/// // Use mutable builder pattern
+/// let mut builder = empty::<User>();
+/// builder.includes::<user_fields::Name>();
+/// builder.excludes::<user_fields::Email>();
+/// let projection_doc = builder.build();
+///
+/// // Or use method chaining
+/// let projection_doc = empty::<User>()
+///     .includes::<user_fields::Name>()
+///     .excludes::<user_fields::Email>()
+///     .build();
+/// // Results in: { "name": 1, "email": 0 }
+/// ```
 pub fn empty<T>() -> BasicProjectionBuilder<T> {
     BasicProjectionBuilder::new()
 }
 
-/// Fully functional projection builder, with both the basic (path safe) features 
-/// and projection using MongoDB expressions.
+/// Extension trait that adds advanced projection capabilities to projection builders.
+///
+/// This trait extends the basic projection functionality with the ability to specify
+/// custom MongoDB projection expressions. Unlike the type-safe `includes()` and `excludes()`
+/// methods, the `project()` method requires manual field path strings and allows for
+/// complex MongoDB expressions.
+///
+/// # Type Parameters
+///
+/// * `T` - The target struct type for the projection
+///
+/// # Safety Note
+///
+/// The `project()` method is less type-safe than `includes()`/`excludes()` as it accepts
+/// arbitrary field paths as strings. Typos in field names will not be caught at compile time.
+///
+/// # Examples
+///
+/// ```rust
+/// use nessus::{projection::{empty, ProjectionBuilder}};
+/// use bson::doc;
+///
+/// // Using custom MongoDB expressions
+/// let mut builder = empty::<()>();
+/// builder.project("name".to_string(), doc! { "$toUpper": "$name" }.into());
+/// builder.project("computed".to_string(), doc! { "$add": ["$a", "$b"] }.into());
+/// let projection_doc = builder.build();
+/// ```
 pub trait ProjectionBuilder<T>: Sized {
-    fn project(self, path: String, expr: bson::Bson) -> Self;
+    /// Projects a field using a custom MongoDB expression.
+    ///
+    /// This method allows you to specify complex MongoDB projection expressions
+    /// for a field, such as computed fields, conditional projections, or array
+    /// manipulations. The field path is specified as a string, so be careful
+    /// with spelling and ensure the field exists in your MongoDB documents.
+    ///
+    /// # Parameters
+    ///
+    /// * `path` - The field path as a string (e.g., "name", "address.city")
+    /// * `expr` - A BSON expression defining how to project this field
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to self for method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use nessus::projection::{empty, ProjectionBuilder};
+    /// use bson::{doc, Bson};
+    ///
+    /// let mut builder = empty::<()>();
+    ///
+    /// // Convert field to uppercase
+    /// builder.project("name".to_string(), doc! { "$toUpper": "$name" }.into());
+    ///
+    /// // Slice an array field
+    /// builder.project("items".to_string(), doc! { "$slice": 5 }.into());
+    ///
+    /// // Conditional projection
+    /// builder.project(
+    ///     "display_name".to_string(),
+    ///     doc! {
+    ///         "$cond": {
+    ///             "if": { "$ne": ["$name", null] },
+    ///             "then": "$name",
+    ///             "else": "Anonymous"
+    ///         }
+    ///     }.into()
+    /// );
+    ///
+    /// let projection_doc = builder.build();
+    /// ```
+    fn project(&mut self, path: String, expr: bson::Bson) -> &mut Self;
 }
 
 impl<T> ProjectionBuilder<T> for BasicProjectionBuilder<T> {
-    fn project(mut self, path: String, expr: bson::Bson) -> Self {
+    /// Implementation of custom projection for `BasicProjectionBuilder`.
+    ///
+    /// This adds a custom projection expression to the builder's clause list.
+    /// The expression can be any valid MongoDB projection expression.
+    ///
+    /// # Parameters
+    ///
+    /// * `path` - The field path for the projection
+    /// * `expr` - The BSON projection expression
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to self for method chaining.
+    fn project(&mut self, path: String, expr: bson::Bson) -> &mut Self {
         self.clauses.push((path, expr));
 
         self
