@@ -752,9 +752,8 @@ impl<T> UpdateBuilder<T> {
     /// let update_doc = empty::<User>()
     ///     .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
     ///         |path| path.field::<address_fields::City>(),
-    ///         |mut nested| {
+    ///         |nested| {
     ///             nested.set::<address_fields::City, _>("San Francisco".to_string());
-    ///             nested
     ///         }
     ///     )
     ///     .build();
@@ -802,7 +801,7 @@ impl<T> UpdateBuilder<T> {
     where
         T: HasField<F>,
         L: FnOnce(&Path<F, T, T>) -> Path<G, U, T>,
-        N: FnOnce(UpdateBuilder<U>) -> UpdateBuilder<U>,
+        N: FnOnce(&mut UpdateBuilder<U>),
     {
         // Create a base field path for the lookup
         let base_field: Path<F, T, T> = Path {
@@ -814,16 +813,16 @@ impl<T> UpdateBuilder<T> {
         let resolved_field = lookup(&base_field);
 
         // Create a new UpdateBuilder for the nested field
-        let nested_builder = UpdateBuilder::<U> {
+        let mut nested_builder = UpdateBuilder::<U> {
             prefix: resolved_field.prefix.clone(),
             clauses: HashMap::new(),
             _marker: std::marker::PhantomData,
         };
 
-        let configured_builder = f(nested_builder);
+        f(&mut nested_builder);
 
         // Merge the nested clauses properly into the main builder
-        for (operation, clauses_vec) in configured_builder.clauses {
+        for (operation, clauses_vec) in nested_builder.clauses {
             self.clauses
                 .entry(operation)
                 .or_default()
@@ -870,12 +869,11 @@ impl<T> UpdateBuilder<T> {
     ///
     /// // Apply multiple operations in the same context
     /// let update_doc = empty::<User>()
-    ///     .with_field::<user_fields::Name, _>(|mut nested| {
+    ///     .with_field::<user_fields::Name, _>(|nested| {
     ///         nested
     ///             .set::<user_fields::Name, _>("John Doe".to_string())
     ///             .inc::<user_fields::Age, _>(1)
     ///             .set::<user_fields::Active, _>(true);
-    ///         nested
     ///     })
     ///     .build();
     /// // Results in: {
@@ -903,9 +901,8 @@ impl<T> UpdateBuilder<T> {
     ///
     /// // Using with_field
     /// let update_doc1 = empty::<Product>()
-    ///     .with_field::<product_fields::Name, _>(|mut nested| {
+    ///     .with_field::<product_fields::Name, _>(|nested| {
     ///         nested.set::<product_fields::Name, _>("Widget".to_string());
-    ///         nested
     ///     })
     ///     .build();
     ///
@@ -920,7 +917,7 @@ impl<T> UpdateBuilder<T> {
     pub fn with_field<F: FieldName, N>(&mut self, f: N) -> &mut Self
     where
         T: HasField<F>,
-        N: FnOnce(UpdateBuilder<T>) -> UpdateBuilder<T>,
+        N: FnOnce(&mut UpdateBuilder<T>),
     {
         self.with_lookup::<F, _, F, T, _>(|path| path.clone(), f)
     }
@@ -1194,7 +1191,8 @@ impl std::fmt::Display for CurrentDateType {
             CurrentDateType::Date => "date",
             CurrentDateType::Timestamp => "timestamp",
         };
-        write!(f, "{}", s)
+
+        write!(f, "{s}")
     }
 }
 
@@ -1321,7 +1319,6 @@ pub fn empty<T>() -> UpdateBuilder<T> {
 }
 
 // ---
-// ---
 
 #[cfg(test)]
 mod tests {
@@ -1354,6 +1351,7 @@ mod tests {
     fn test_field_path_empty_prefix() {
         let builder = UpdateBuilder::<()>::new();
         let path = builder.field_path::<TestFieldName>();
+
         assert_eq!(path, "test_field");
     }
 
@@ -1437,7 +1435,7 @@ mod tests {
 
         // Simulate a deeply nested structure
         for i in 0..10 {
-            builder.prefix.push(format!("level{}", i));
+            builder.prefix.push(format!("level{i}"));
         }
 
         let path = builder.field_path::<TestFieldName>();

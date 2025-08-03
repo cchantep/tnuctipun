@@ -34,9 +34,8 @@ fn main() {
     // doesn't match the builder's type parameter (User)
     user_builder.with_lookup(
         |_path| address_city_path, // This path has Root=Company, but builder expects Root=User
-        |mut nested| {
+        |nested| {
             nested.includes::<address_fields::City>();
-            nested
         }
     );
 }

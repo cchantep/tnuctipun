@@ -31,5 +31,46 @@ if ! cargo clippy --all-targets --all-features -- -D warnings; then
 fi
 echo "✅ Clippy check passed!"
 
+# Check documentation snippets only if there are changes to .md files in the pushed commits
+echo "🔍 Checking for Markdown file changes in pushed commits..."
+
+md_files_changed=false
+
+# Read the push information (remote and URL are passed as stdin to pre-push hook)
+while read local_ref local_sha remote_ref remote_sha; do
+    if [ "$local_sha" != "0000000000000000000000000000000000000000" ]; then
+        if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+            # New branch, check all commits
+            range="$local_sha"
+        else
+            # Existing branch, check commits between remote and local
+            range="$remote_sha..$local_sha"
+        fi
+        
+        # Check if any .md files were changed in the commits being pushed
+        if git diff --name-only "$range" | grep -q '\.md$'; then
+            md_files_changed=true
+            echo "📝 Markdown files changed in pushed commits"
+            break
+        fi
+    fi
+done
+
+if [ "$md_files_changed" = true ]; then
+    echo "📝 Markdown changes detected in push, checking documentation snippets..."
+    if ! ./scripts/check-doc-snippets.sh; then
+        echo "❌ Documentation snippets check failed!"
+        echo ""
+        echo "Please fix the failing documentation examples before pushing."
+        echo "You can run './scripts/check-doc-snippets.sh' to see the issues."
+        echo ""
+        echo "Push aborted."
+        exit 1
+    fi
+    echo "✅ Documentation snippets check passed!"
+else
+    echo "📝 No Markdown file changes in pushed commits, skipping documentation snippets check."
+fi
+
 echo "🎉 All code quality checks passed! Ready to push."
 exit 0

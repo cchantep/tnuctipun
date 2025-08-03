@@ -240,10 +240,26 @@ mod tests {
         }
     }
 
+    struct DeepField;
+    impl FieldName for DeepField {
+        fn field_name() -> &'static str {
+            "deep_field"
+        }
+    }
+
     // Test struct types
+    struct DeepValue;
+    impl HasField<DeepField> for DeepValue {
+        type Value = String;
+
+        fn get_field(&self) -> &Self::Value {
+            unimplemented!("Test struct")
+        }
+    }
+
     struct TestValue;
     impl HasField<NestedField> for TestValue {
-        type Value = String;
+        type Value = DeepValue;
 
         fn get_field(&self) -> &Self::Value {
             unimplemented!("Test struct")
@@ -262,21 +278,25 @@ mod tests {
     #[test]
     fn test_path_new() {
         let path = Path::<TestField, TestStruct, TestStruct>::new();
+
         assert!(path.prefix.is_empty());
     }
 
     #[test]
     fn test_path_default() {
         let path: Path<TestField, TestStruct, TestStruct> = Default::default();
+
         assert!(path.prefix.is_empty());
     }
 
     #[test]
     fn test_path_clone() {
         let mut path = Path::<TestField, TestStruct, TestStruct>::new();
+
         path.prefix.push("existing".to_string());
 
         let cloned = path.clone();
+
         assert_eq!(path.prefix, cloned.prefix);
     }
 
@@ -290,11 +310,10 @@ mod tests {
 
     #[test]
     fn test_path_deep_navigation() {
-        let mut path = Path::<TestField, TestStruct, TestStruct>::new();
-        path.prefix.push("root".to_string());
-
+        let path = Path::<TestField, TestStruct, TestStruct>::new();
         let nested_path = path.field::<NestedField>();
+        let deep_path: Path<DeepField, DeepValue, TestStruct> = nested_path.field::<DeepField>();
 
-        assert_eq!(nested_path.prefix, vec!["root", "test_field"]);
+        assert_eq!(deep_path.prefix, vec!["test_field", "nested_field"]);
     }
 }

@@ -277,7 +277,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// let doc = empty::<User>()
     ///     .with_lookup::<user_fields::Address, _, address_fields::City, Address, _>(
     ///         |path| path.field::<address_fields::City>(),
-    ///         |mut nested| { nested.includes::<address_fields::City>(); nested }
+    ///         |nested| { nested.includes::<address_fields::City>(); }
     ///     )
     ///     .build();
     /// // Results in: { "address.city": 1 }
@@ -290,7 +290,7 @@ impl<T> BasicProjectionBuilder<T> {
     where
         T: HasField<F>,
         L: FnOnce(&Path<F, T, T>) -> Path<G, U, T>,
-        N: FnOnce(BasicProjectionBuilder<U>) -> BasicProjectionBuilder<U>,
+        N: FnOnce(&mut BasicProjectionBuilder<U>),
     {
         // Create a base field path for the lookup
         let base_field: Path<F, T, T> = Path {
@@ -302,18 +302,104 @@ impl<T> BasicProjectionBuilder<T> {
         let resolved_field = lookup(&base_field);
 
         // Create a new BasicProjectionBuilder for the nested field
-        let nested_builder = BasicProjectionBuilder::<U> {
+        let mut nested_builder = BasicProjectionBuilder::<U> {
             prefix: resolved_field.prefix.clone(),
             clauses: vec![],
             _marker: std::marker::PhantomData,
         };
 
-        let configured_builder = f(nested_builder);
+        f(&mut nested_builder);
 
         // Add the nested clauses individually to the main builder
-        self.clauses.extend(configured_builder.clauses);
+        self.clauses.extend(nested_builder.clauses);
 
         self
+    }
+
+    /// Performs projection on a field using an identity lookup (convenience method).
+    ///
+    /// This method is a convenience wrapper around `with_lookup` that uses an identity function
+    /// for the lookup, making it easier to apply projections in the context of a specific field
+    /// without needing to specify the lookup logic.
+    ///
+    /// This is particularly useful when you want to group projection operations logically
+    /// by field context, even though the operations might affect multiple fields.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    /// * `N` - The configuration function type that defines projections
+    ///
+    /// # Parameters
+    ///
+    /// * `f` - A function that takes a mutable reference to `BasicProjectionBuilder<T>` and configures projections
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use nessus::{FieldWitnesses, projection::empty};
+    ///
+    /// #[derive(FieldWitnesses)]
+    /// struct User {
+    ///     id: String,
+    ///     name: String,
+    ///     email: String,
+    /// }
+    ///
+    /// // Apply multiple projections in the same field context
+    /// let projection_doc = empty::<User>()
+    ///     .with_field::<user_fields::Name, _>(|nested| {
+    ///         nested
+    ///             .includes::<user_fields::Name>()
+    ///             .excludes::<user_fields::Email>();
+    ///     })
+    ///     .build();
+    /// // Results in: { "name": 1, "email": 0 }
+    /// ```
+    ///
+    /// # Comparison with Direct Method Calls
+    ///
+    /// The following two approaches are equivalent:
+    ///
+    /// ```rust
+    /// use nessus::{FieldWitnesses, projection::empty};
+    ///
+    /// #[derive(FieldWitnesses)]
+    /// struct User {
+    ///     name: String,
+    /// }
+    ///
+    /// // Using with_field
+    /// let projection_doc1 = empty::<User>()
+    ///     .with_field::<user_fields::Name, _>(|nested| {
+    ///         nested.includes::<user_fields::Name>();
+    ///     })
+    ///     .build();
+    ///
+    /// // Using direct method calls
+    /// let projection_doc2 = empty::<User>()
+    ///     .includes::<user_fields::Name>()
+    ///     .build();
+    ///
+    /// // Both produce the same result: { "name": 1 }
+    /// assert_eq!(projection_doc1, projection_doc2);
+    /// ```
+    pub fn with_field<F: FieldName, N>(&mut self, f: N) -> &mut Self
+    where
+        T: HasField<F>,
+        N: FnOnce(&mut BasicProjectionBuilder<T>),
+    {
+        self.with_lookup::<F, _, F, T, _>(
+            |path| Path {
+                prefix: path.prefix.clone(),
+                _marker: std::marker::PhantomData,
+            },
+            f,
+        )
     }
 
     /// Builds the final MongoDB projection document.
@@ -566,15 +652,19 @@ mod tests {
         let builder = empty::<TestStruct>();
 
         let path = builder.field_path::<Name>();
+
         assert_eq!(path, "name");
 
         let path = builder.field_path::<Id>();
+
         assert_eq!(path, "id");
 
         let path = builder.field_path::<Age>();
+
         assert_eq!(path, "age");
 
         let path = builder.field_path::<Email>();
+
         assert_eq!(path, "email");
     }
 
@@ -582,12 +672,15 @@ mod tests {
     fn test_field_path_single_prefix() {
         // Test field_path with a single prefix element
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec!["user".to_string()];
 
         let path = builder.field_path::<Name>();
+
         assert_eq!(path, "user.name");
 
         let path = builder.field_path::<Id>();
+
         assert_eq!(path, "user.id");
     }
 
@@ -598,9 +691,11 @@ mod tests {
         builder.prefix = vec!["profile".to_string(), "address".to_string()];
 
         let path = builder.field_path::<Name>();
+
         assert_eq!(path, "profile.address.name");
 
         let path = builder.field_path::<Age>();
+
         assert_eq!(path, "profile.address.age");
     }
 
@@ -608,6 +703,7 @@ mod tests {
     fn test_field_path_deeply_nested_prefix() {
         // Test field_path with deeply nested prefix
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec![
             "collection".to_string(),
             "documents".to_string(),
@@ -616,6 +712,7 @@ mod tests {
         ];
 
         let path = builder.field_path::<Name>();
+
         assert_eq!(path, "collection.documents.user_data.profile.name");
     }
 
@@ -623,6 +720,7 @@ mod tests {
     fn test_field_path_consistency_across_multiple_calls() {
         // Test that field_path returns consistent results across multiple calls
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec!["test".to_string()];
 
         let path1 = builder.field_path::<Name>();
@@ -638,9 +736,11 @@ mod tests {
     fn test_field_path_special_characters_in_prefix() {
         // Test field_path with prefixes containing special characters
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec!["test-prefix".to_string(), "sub_field".to_string()];
 
         let path = builder.field_path::<Email>();
+
         assert_eq!(path, "test-prefix.sub_field.email");
     }
 
@@ -648,9 +748,11 @@ mod tests {
     fn test_field_path_empty_string_prefix() {
         // Test field_path with empty string as prefix element
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec!["".to_string()];
 
         let path = builder.field_path::<Name>();
+
         assert_eq!(path, ".name");
     }
 
@@ -658,6 +760,7 @@ mod tests {
     fn test_field_path_mixed_prefix_types() {
         // Test field_path with mixed types of prefix strings
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec![
             "root".to_string(),
             "nested_object".to_string(),
@@ -665,9 +768,11 @@ mod tests {
         ];
 
         let path = builder.field_path::<Id>();
+
         assert_eq!(path, "root.nested_object.array_element.id");
 
         let path = builder.field_path::<Email>();
+
         assert_eq!(path, "root.nested_object.array_element.email");
     }
 
@@ -675,9 +780,11 @@ mod tests {
     fn test_field_path_with_numeric_string_prefix() {
         // Test field_path with numeric strings as prefixes (like array indices)
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec!["users".to_string(), "0".to_string()];
 
         let path = builder.field_path::<Name>();
+
         assert_eq!(path, "users.0.name");
     }
 
@@ -685,6 +792,7 @@ mod tests {
     fn test_field_path_different_field_types() {
         // Test field_path with different field marker types to ensure consistency
         let mut builder = empty::<TestStruct>();
+
         builder.prefix = vec!["common".to_string()];
 
         // Test that different field types produce different paths correctly
@@ -701,6 +809,7 @@ mod tests {
         // Ensure they're all unique
         let paths = [name_path, id_path, age_path, email_path];
         let unique_paths: std::collections::HashSet<_> = paths.iter().collect();
+
         assert_eq!(unique_paths.len(), 4);
     }
 }
