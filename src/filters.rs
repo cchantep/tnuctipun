@@ -1,4 +1,4 @@
-use mongodb::bson;
+use bson;
 
 use crate::field_witnesses::{FieldName, HasField};
 use crate::mongo_comparable::MongoComparable;
@@ -392,7 +392,7 @@ impl<T> FilterBuilder<T> {
     /// * `N` - The closure that builds filters on the nested FilterBuilder
     ///
     /// # Arguments
-    /// * `lookup` - A function that takes a `Path<F, T>` and returns a `Path<G, U>` to specify the target field
+    /// * `lookup` - A function that takes a `Path<F, T, T>` and returns a `Path<G, U, T>` to specify the target field
     /// * `f` - A closure that builds filter conditions on the resolved nested field
     ///
     /// # Note
@@ -420,8 +420,7 @@ impl<T> FilterBuilder<T> {
     /// }
     ///
     /// // Using field navigation for accessing nested fields (G≠F, U≠T)
-    /// let mut builder = empty::<User>();
-    /// builder.with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
+    /// let mut builder = empty::<User>().with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
     ///     |path| path.field::<address_fields::City>(),
     ///     |nested| {
     ///         nested.eq::<address_fields::City, _>("New York".to_string())
@@ -442,11 +441,11 @@ impl<T> FilterBuilder<T> {
     ) -> &mut Self
     where
         T: HasField<F>,
-        L: FnOnce(&Path<F, T>) -> Path<G, U>,
+        L: FnOnce(&Path<F, T, T>) -> Path<G, U, T>,
         N: FnOnce(&mut FilterBuilder<U>) -> &mut FilterBuilder<U>,
     {
         // Create a base field path for the lookup
-        let base_field: Path<F, T> = Path {
+        let base_field: Path<F, T, T> = Path {
             prefix: self.prefix.clone(),
             _marker: std::marker::PhantomData,
         };
@@ -495,10 +494,7 @@ impl<T> FilterBuilder<T> {
     ///     HomeAddress: String,
     /// }
     ///
-    /// let mut builder = empty::<User>();
-    ///
-    /// // This is equivalent to using with_lookup with std::convert::identity
-    /// builder.with_field::<user_fields::HomeAddress, _>(|nested| {
+    /// let mut builder = empty::<User>().with_field::<user_fields::HomeAddress, _>(|nested| {
     ///     nested.exists::<user_fields::HomeAddress>(true)
     /// });
     /// // Resulting BSON: { "HomeAddress": { "$exists": true } }
@@ -764,7 +760,7 @@ impl<T> Default for FilterBuilder<T> {
 /// use nessus::filters::empty;
 /// use nessus::{FieldWitnesses, MongoComparable};
 /// use serde::{Serialize, Deserialize};
-/// use mongodb::bson;
+/// use bson;
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 /// struct User {
@@ -829,7 +825,7 @@ pub fn empty<T>() -> FilterBuilder<T> {
 /// * `F` - The field name marker type that this operation builder targets
 /// * `T` - The struct type that contains the field `F`
 pub struct OperationBuilder<F: FieldName, T: HasField<F>> {
-    ops: Vec<(String, bson::Bson)>,
+    ops: Vec<(&'static str, bson::Bson)>,
     _marker: std::marker::PhantomData<(F, T)>,
 }
 
@@ -897,7 +893,7 @@ where
         V: Into<bson::Bson> + Clone,
     {
         // For equality, we store it with the $eq operator
-        self.ops.push(("$eq".to_string(), value.into()));
+        self.ops.push(("$eq", value.into()));
 
         self
     }
@@ -937,7 +933,7 @@ where
         T: MongoComparable<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
-        self.ops.push(("$gt".to_string(), value.into()));
+        self.ops.push(("$gt", value.into()));
 
         self
     }
@@ -977,7 +973,7 @@ where
         T: MongoComparable<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
-        self.ops.push(("$gte".to_string(), value.into()));
+        self.ops.push(("$gte", value.into()));
 
         self
     }
@@ -1017,7 +1013,7 @@ where
         T: MongoComparable<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
-        self.ops.push(("$lt".to_string(), value.into()));
+        self.ops.push(("$lt", value.into()));
 
         self
     }
@@ -1057,7 +1053,7 @@ where
         T: MongoComparable<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
-        self.ops.push(("$lte".to_string(), value.into()));
+        self.ops.push(("$lte", value.into()));
 
         self
     }
@@ -1099,7 +1095,7 @@ where
     {
         let bson_values: Vec<bson::Bson> = values.into_iter().map(|v| v.into()).collect();
 
-        self.ops.push(("$in".to_string(), bson_values.into()));
+        self.ops.push(("$in", bson_values.into()));
 
         self
     }
@@ -1144,7 +1140,7 @@ where
     {
         let bson_values: Vec<bson::Bson> = values.into_iter().map(|v| v.into()).collect();
 
-        self.ops.push(("$nin".to_string(), bson_values.into()));
+        self.ops.push(("$nin", bson_values.into()));
 
         self
     }
@@ -1177,7 +1173,7 @@ where
     /// // Resulting BSON: { "phone_number": { "$exists": true } }
     /// ```
     pub fn exists(mut self, exists: bool) -> Self {
-        self.ops.push(("$exists".to_string(), exists.into()));
+        self.ops.push(("$exists", exists.into()));
 
         self
     }

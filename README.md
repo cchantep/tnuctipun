@@ -13,6 +13,7 @@ The Puppeteer from Ringworld — wise, cautious, clever — or a type-safe Mongo
 - **Type-safe field access**: Use compile-time validated field names
 - **MongoDB query building**: Build complex queries with type safety
 - **MongoDB projection building**: Create projections with fluent method chaining
+- **MongoDB update building**: Create update documents with type-safe field operations
 - **Derive macros**: Automatically generate field witnesses and comparable traits
 - **Compile-time validation**: Catch field name typos and type mismatches at compile time
 
@@ -25,10 +26,17 @@ Add this to your `Cargo.toml`:
 nessus = "0.1.0"
 ```
 
+The core library only requires the `bson` crate for MongoDB document types. If you need to connect to MongoDB (for example, in applications using the binary), enable the `mongodb-client` feature:
+
+```toml
+[dependencies]
+nessus = { version = "0.1.0", features = ["mongodb-client"] }
+```
+
 ## Example
 
 ```rust
-use nessus::{FieldWitnesses, MongoComparable, filters::empty, projection::ProjectionBuilder};
+use nessus::{FieldWitnesses, MongoComparable, filters::empty, projection, updates};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -39,21 +47,34 @@ struct User {
 }
 
 // Type-safe filter building with compile-time field validation
-let mut builder = empty::<User>()
-    .eq::<user_fields::Name, _>("John".to_string())
-    .gt::<user_fields::Age, _>(18);
+let mut filter_builder = empty::<User>();
+
+filter_builder.eq::<user_fields::Name, _>("John".to_string());
+filter_builder.gt::<user_fields::Age, _>(18);
 
 // Convert to MongoDB document  
-let filter_doc = builder.and();
+let filter_doc = filter_builder.and();
 // Results in: { "$and": [{ "name": "John" }, { "age": { "$gt": 18 } }] }
 
 // Type-safe projection building with method chaining
-let projection_doc = ProjectionBuilder::<User>::new()
+let projection_doc = projection::empty::<User>()
     .includes::<user_fields::Name>()
     .includes::<user_fields::Age>()
     .excludes::<user_fields::Email>()  // Hide sensitive data
     .build();
 // Results in: { "name": 1, "age": 1, "email": 0 }
+
+// Type-safe update building with compile-time field validation  
+let update_doc = updates::empty::<User>()
+    .set::<user_fields::Name, _>("Jane".to_string())
+    .inc::<user_fields::Age, _>(1)
+    .unset::<user_fields::Email>()
+    .build();
+// Results in: { 
+//   "$set": { "name": "Jane" }, 
+//   "$inc": { "age": 1 }, 
+//   "$unset": { "email": "" } 
+// }
 ```
 
 ## Documentation
