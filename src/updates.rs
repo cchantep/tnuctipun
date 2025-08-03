@@ -1,6 +1,6 @@
 use bson;
 
-use crate::field_witnesses::FieldName;
+use crate::field_witnesses::{FieldName, HasField};
 
 pub struct UpdateBuilder<T> {
     prefix: Vec<String>,
@@ -24,6 +24,13 @@ impl<T> UpdateBuilder<T> {
         } else {
             format!("{}.{}", self.prefix.join("."), F::field_name())
         }
+    }
+
+    pub fn set<F: FieldName, V: Into<bson::Bson>>(&mut self, value: V) where T: HasField<F> {
+        // TODO: Combine
+        let path = self.field_path::<F>();
+        let clause = bson::Bson::Document(bson::doc! { "$set": { path.clone(): value.into() } });
+        self.clauses.push((path, clause));
     }
 
     pub fn build(self) -> bson::Document {

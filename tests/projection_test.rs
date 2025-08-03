@@ -1,6 +1,6 @@
 use bson;
 use nessus::FieldWitnesses;
-use nessus::projection::ProjectionBuilder;
+use nessus::projection::{empty, ProjectionBuilder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, FieldWitnesses)]
@@ -31,13 +31,14 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_includes_generates_correct_paths() {
         // Test that the includes method generates correct field paths through field_path
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .includes::<user_fields::Age>()
             .build();
 
         assert!(doc.contains_key("name"));
         assert!(doc.contains_key("age"));
+        
         assert_eq!(doc.get("name").unwrap(), &bson::Bson::Int32(1));
         assert_eq!(doc.get("age").unwrap(), &bson::Bson::Int32(1));
     }
@@ -45,13 +46,14 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_excludes_generates_correct_paths() {
         // Test that excludes method generates correct field paths through field_path
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .excludes::<user_fields::Email>()
             .excludes::<user_fields::Id>()
             .build();
 
         assert!(doc.contains_key("email"));
         assert!(doc.contains_key("id"));
+        
         assert_eq!(doc.get("email").unwrap(), &bson::Bson::Int32(0));
         assert_eq!(doc.get("id").unwrap(), &bson::Bson::Int32(0));
     }
@@ -61,8 +63,8 @@ mod projection_builder_integration_tests {
         // Test that project method generates correct field paths through field_path
         let custom_expr = bson::doc! { "$slice": [0, 10] };
 
-        let doc = ProjectionBuilder::<User>::new()
-            .project::<user_fields::Name>(custom_expr.clone().into())
+        let doc = empty::<User>()
+            .project("name".to_string(), custom_expr.clone().into())
             .build();
 
         assert!(doc.contains_key("name"));
@@ -74,10 +76,10 @@ mod projection_builder_integration_tests {
         // Test using includes, excludes, and project together in a chain
         let slice_expr = bson::doc! { "$slice": 5 };
 
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .excludes::<user_fields::Email>()
-            .project::<user_fields::Id>(slice_expr.clone().into())
+            .project("id".to_string(), slice_expr.clone().into())
             .build();
 
         assert!(doc.contains_key("name"));
@@ -92,7 +94,7 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_empty_build() {
         // Test building an empty projection
-        let doc = ProjectionBuilder::<User>::new().build();
+        let doc = empty::<User>().build();
 
         assert_eq!(doc.len(), 0);
         assert!(doc.is_empty());
@@ -101,7 +103,7 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_duplicate_field_handling() {
         // Test that later operations on the same field override earlier ones
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .excludes::<user_fields::Name>()
             .build();
@@ -124,9 +126,9 @@ mod projection_builder_integration_tests {
             }
         };
 
-        let doc = ProjectionBuilder::<User>::new()
-            .project::<user_fields::Name>(elem_match.clone().into())
-            .project::<user_fields::Age>(conditional.clone().into())
+        let doc = empty::<User>()
+            .project("name".to_string(), elem_match.clone().into())
+            .project("age".to_string(), conditional.clone().into())
             .build();
 
         assert!(doc.contains_key("name"));
@@ -138,11 +140,11 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_separate_structs() {
         // Test that different struct types create separate projections
-        let user_doc = ProjectionBuilder::<User>::new()
+        let user_doc = empty::<User>()
             .includes::<user_fields::Name>()
             .build();
 
-        let address_doc = ProjectionBuilder::<Address>::new()
+        let address_doc = empty::<Address>()
             .includes::<address_fields::Street>()
             .build();
 
@@ -165,11 +167,11 @@ mod projection_builder_integration_tests {
             }
         };
 
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .excludes::<user_fields::Email>()
-            .project::<user_fields::Id>(slice_expr.clone().into())
-            .project::<user_fields::Age>(conditional.clone().into())
+            .project("id".to_string(), slice_expr.clone().into())
+            .project("age".to_string(), conditional.clone().into())
             .build();
 
         assert_eq!(doc.len(), 4);
@@ -182,7 +184,7 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_field_type_verification() {
         // Test that the builder correctly handles different field types
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .includes::<user_fields::Age>()
             .includes::<user_fields::Email>()
@@ -200,17 +202,17 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_multiple_struct_types() {
         // Test projections with multiple different struct types
-        let user_doc = ProjectionBuilder::<User>::new()
+        let user_doc = empty::<User>()
             .includes::<user_fields::Name>()
             .includes::<user_fields::Age>()
             .build();
 
-        let address_doc = ProjectionBuilder::<Address>::new()
+        let address_doc = empty::<Address>()
             .includes::<address_fields::City>()
             .includes::<address_fields::Zip>()
             .build();
 
-        let profile_doc = ProjectionBuilder::<Profile>::new()
+        let profile_doc = empty::<Profile>()
             .includes::<profile_fields::Bio>()
             .includes::<profile_fields::AvatarUrl>()
             .build();
@@ -259,11 +261,11 @@ mod projection_builder_integration_tests {
             "$concat": ["$first_name", " ", "$last_name"]
         };
 
-        let doc = ProjectionBuilder::<User>::new()
-            .project::<user_fields::Name>(conditional.clone().into())
-            .project::<user_fields::Id>(array_ops.clone().into())
-            .project::<user_fields::Email>(date_ops.clone().into())
-            .project::<user_fields::Age>(string_ops.clone().into())
+        let doc = empty::<User>()
+            .project("name".to_string(), conditional.clone().into())
+            .project("id".to_string(), array_ops.clone().into())
+            .project("email".to_string(), date_ops.clone().into())
+            .project("age".to_string(), string_ops.clone().into())
             .build();
 
         assert_eq!(doc.len(), 4);
@@ -276,13 +278,13 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_performance_many_fields() {
         // Test performance with many fields - single field
-        let single_doc = ProjectionBuilder::<User>::new()
+        let single_doc = empty::<User>()
             .includes::<user_fields::Name>()
             .build();
         assert_eq!(single_doc.len(), 1);
 
         // Test performance with many fields - multiple fields
-        let many_doc = ProjectionBuilder::<User>::new()
+        let many_doc = empty::<User>()
             .includes::<user_fields::Name>()
             .includes::<user_fields::Age>()
             .includes::<user_fields::Email>()
@@ -291,9 +293,9 @@ mod projection_builder_integration_tests {
         assert_eq!(many_doc.len(), 4);
 
         // Test with mixed operations
-        let mixed_doc = ProjectionBuilder::<User>::new()
-            .project::<user_fields::Name>(bson::Bson::Null)
-            .project::<user_fields::Age>(bson::Bson::Int32(42))
+        let mixed_doc = empty::<User>()
+            .project("name".to_string(), bson::Bson::Null)
+            .project("age".to_string(), bson::Bson::Int32(42))
             .build();
 
         assert_eq!(mixed_doc.len(), 2);
@@ -304,10 +306,10 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_field_override_patterns() {
         // Test various field override patterns
-        let doc = ProjectionBuilder::<User>::new()
+        let doc = empty::<User>()
             .includes::<user_fields::Name>()
             .excludes::<user_fields::Name>()
-            .project::<user_fields::Name>(bson::doc! { "$toUpper": "$name" }.into())
+            .project("name".to_string(), bson::doc! { "$toUpper": "$name" }.into())
             .build();
 
         // The project call should win (last operation)
@@ -320,11 +322,11 @@ mod projection_builder_integration_tests {
     #[test]
     fn projection_builder_real_world_usage() {
         // Test a real-world usage pattern
-        let user_projection = ProjectionBuilder::<User>::new()
+        let user_projection = empty::<User>()
             .includes::<user_fields::Name>()
             .includes::<user_fields::Age>()
             .excludes::<user_fields::Email>() // Don't return sensitive email
-            .project::<user_fields::Id>(bson::doc! { "$toString": "$_id" }.into()) // Convert ObjectId to string
+            .project("id".to_string(), bson::doc! { "$toString": "$_id" }.into()) // Convert ObjectId to string
             .build();
 
         assert!(user_projection.contains_key("name"));
@@ -337,6 +339,7 @@ mod projection_builder_integration_tests {
         assert_eq!(user_projection.get("email").unwrap(), &bson::Bson::Int32(0));
 
         let expected_id_expr = bson::doc! { "$toString": "$_id" };
+        
         assert_eq!(user_projection.get("id").unwrap(), &expected_id_expr.into());
     }
 }

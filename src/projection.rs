@@ -5,9 +5,14 @@ use crate::path::Path;
 
 /// A builder for creating MongoDB projection documents with compile-time field verification.
 ///
-/// `ProjectionBuilder` provides a fluent API for constructing MongoDB projection documents
+/// `BasicProjectionBuilder` provides a fluent API for constructing MongoDB projection documents
 /// while ensuring that only fields that exist on the target struct `T` can be projected.
 /// This eliminates runtime errors caused by typos in field names.
+///
+/// This builder provides the basic/safe projection features using `includes()` and `excludes()` 
+/// methods. For additional projection capabilities with custom MongoDB expressions, see the 
+/// `ProjectionBuilder` trait which provides the `project()` method (requires manual field path 
+/// strings and is less type-safe).
 ///
 /// # Type Parameters
 ///
@@ -16,9 +21,8 @@ use crate::path::Path;
 /// # Examples
 ///
 /// ```rust
-/// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
+/// use nessus::{FieldWitnesses, projection::empty};
 /// use serde::{Serialize, Deserialize};
-/// use bson;
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
 /// struct User {
@@ -28,18 +32,13 @@ use crate::path::Path;
 ///     age: i32,
 /// }
 ///
-/// // Chain projection methods directly from new()
-/// let projection_doc = ProjectionBuilder::<User>::new()
+/// // Chain projection methods directly from empty()
+/// let projection_doc = empty::<User>()
 ///     .includes::<user_fields::Name>()
 ///     .includes::<user_fields::Age>()
 ///     .excludes::<user_fields::Email>()
 ///     .build();
-///
-/// // Or for custom expressions
-/// let slice_expr = bson::doc! { "$slice": 5 };
-/// let custom_projection = ProjectionBuilder::<User>::new()
-///     .project::<user_fields::Id>(slice_expr.into())
-///     .build();
+/// // Results in: { "name": 1, "age": 1, "email": 0 }
 /// ```
 ///
 /// # Field Path Construction
@@ -49,38 +48,38 @@ use crate::path::Path;
 /// - Without prefix: `"name"`
 /// - With prefix `["user"]`: `"user.name"`  
 /// - With nested prefix `["data", "profile"]`: `"data.profile.name"`
-pub struct ProjectionBuilder<T> {
+pub struct BasicProjectionBuilder<T> {
     prefix: Vec<String>,
     clauses: Vec<(String, bson::Bson)>,
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<T> Default for ProjectionBuilder<T> {
+impl<T> Default for BasicProjectionBuilder<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> ProjectionBuilder<T> {
-    /// Creates a new `ProjectionBuilder` instance.
+impl<T> BasicProjectionBuilder<T> {
+    /// Creates a new `BasicProjectionBuilder` instance.
     ///
     /// The builder starts with an empty prefix and no projection clauses.
     ///
     /// # Returns
     ///
-    /// A new `ProjectionBuilder` instance ready for method chaining.
+    /// A new `BasicProjectionBuilder` instance ready for method chaining.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::projection::ProjectionBuilder;
+    /// use nessus::projection::BasicProjectionBuilder;
     ///
     /// struct User {
     ///     name: String,
     ///     age: i32,
     /// }
     ///
-    /// let builder = ProjectionBuilder::<User>::new();
+    /// let builder = BasicProjectionBuilder::<User>::new();
     /// ```
     pub fn new() -> Self {
         Self {
@@ -132,7 +131,7 @@ impl<T> ProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
+    /// use nessus::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -141,7 +140,7 @@ impl<T> ProjectionBuilder<T> {
     /// }
     ///
     /// // Chain includes directly from new()
-    /// let doc = ProjectionBuilder::<User>::new()
+    /// let doc = empty::<User>()
     ///     .includes::<user_fields::Name>()
     ///     .includes::<user_fields::Email>()
     ///     .build();
@@ -175,7 +174,7 @@ impl<T> ProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
+    /// use nessus::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -185,7 +184,7 @@ impl<T> ProjectionBuilder<T> {
     /// }
     ///
     /// // Chain excludes directly from new()
-    /// let doc = ProjectionBuilder::<User>::new()
+    /// let doc = empty::<User>()
     ///     .excludes::<user_fields::Password>()
     ///     .build();
     /// // Results in: { "password": 0 }
@@ -195,67 +194,6 @@ impl<T> ProjectionBuilder<T> {
         T: HasField<F>,
     {
         self.project_field::<F>(false)
-    }
-
-    /// Adds a custom projection expression for a field.
-    ///
-    /// This method allows you to specify complex MongoDB projection expressions
-    /// such as `$slice`, `$elemMatch`, conditional projections, or computed fields.
-    /// The expression can be any valid BSON value or MongoDB projection operator.
-    ///
-    /// # Parameters
-    ///
-    /// * `expr` - A BSON expression defining the projection behavior for the field
-    ///
-    /// # Type Parameters
-    ///
-    /// * `F` - A field name marker type that implements `FieldName`
-    ///
-    /// # Constraints
-    ///
-    /// * `T` must have the field `F` (enforced by `HasField<F>` trait bound)
-    ///
-    /// # Returns
-    ///
-    /// A mutable reference to self for method chaining.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
-    /// use bson;
-    ///
-    /// #[derive(FieldWitnesses)]
-    /// struct User {
-    ///     name: String,
-    ///     tags: Vec<String>,
-    ///     scores: Vec<i32>,
-    /// }
-    ///
-    /// // Chain project methods directly from new()
-    /// let slice_expr = bson::doc! { "$slice": 5 };
-    /// let conditional = bson::doc! {
-    ///     "$cond": {
-    ///         "if": { "$gte": ["$scores", 80] },
-    ///         "then": "$name",
-    ///         "else": "Anonymous"
-    ///     }
-    /// };
-    ///
-    /// let doc = ProjectionBuilder::<User>::new()
-    ///     .project::<user_fields::Tags>(slice_expr.into())
-    ///     .project::<user_fields::Name>(conditional.into())
-    ///     .build();
-    /// ```
-    pub fn project<F: FieldName>(mut self, expr: bson::Bson) -> Self
-    where
-        T: HasField<F>,
-    {
-        let path = self.field_path::<F>();
-
-        self.clauses.push((path, expr));
-
-        self
     }
 
     /// Performs nested field projection using a lookup function.
@@ -291,7 +229,7 @@ impl<T> ProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
+    /// use nessus::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct Address {
@@ -306,7 +244,7 @@ impl<T> ProjectionBuilder<T> {
     /// }
     ///
     /// // Project nested field: user.address.city with full chaining
-    /// let doc = ProjectionBuilder::<User>::new()
+    /// let doc = empty::<User>()
     ///     .with_lookup::<user_fields::Address, _, address_fields::City, Address, _>(
     ///         |path| path.field::<address_fields::City>(),
     ///         |nested| nested.includes::<address_fields::City>()
@@ -322,7 +260,7 @@ impl<T> ProjectionBuilder<T> {
     where
         T: HasField<F>,
         L: FnOnce(&Path<F, T>) -> Path<G, U>,
-        N: FnOnce(ProjectionBuilder<U>) -> ProjectionBuilder<U>,
+        N: FnOnce(BasicProjectionBuilder<U>) -> BasicProjectionBuilder<U>,
     {
         // Create a base field path for the lookup
         let base_field: Path<F, T> = Path {
@@ -333,8 +271,8 @@ impl<T> ProjectionBuilder<T> {
         // Resolve the field path using the provided lookup function
         let resolved_field = lookup(&base_field);
 
-        // Create a new ProjectionBuilder for the nested field
-        let nested_builder = ProjectionBuilder::<U> {
+        // Create a new BasicProjectionBuilder for the nested field
+        let nested_builder = BasicProjectionBuilder::<U> {
             prefix: resolved_field.prefix.clone(),
             clauses: vec![],
             _marker: std::marker::PhantomData,
@@ -365,7 +303,7 @@ impl<T> ProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
+    /// use nessus::{FieldWitnesses, projection::empty};
     /// use bson;
     ///
     /// #[derive(FieldWitnesses)]
@@ -376,7 +314,7 @@ impl<T> ProjectionBuilder<T> {
     /// }
     ///
     /// // Chain projection methods directly from new()
-    /// let projection_doc = ProjectionBuilder::<User>::new()
+    /// let projection_doc = empty::<User>()
     ///     .includes::<user_fields::Name>()
     ///     .excludes::<user_fields::Email>()
     ///     .build();
@@ -391,7 +329,7 @@ impl<T> ProjectionBuilder<T> {
     /// the last value will be used in the final document:
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::ProjectionBuilder};
+    /// use nessus::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -400,7 +338,7 @@ impl<T> ProjectionBuilder<T> {
     /// }
     ///
     /// // Chain projection methods to show duplicate field behavior
-    /// let doc = ProjectionBuilder::<User>::new()
+    /// let doc = empty::<User>()
     ///     .includes::<user_fields::Name>()  // { "name": 1 }
     ///     .excludes::<user_fields::Name>()  // { "name": 0 } - this wins
     ///     .build();
@@ -414,6 +352,24 @@ impl<T> ProjectionBuilder<T> {
         }
 
         doc
+    }
+}
+
+pub fn empty<T>() -> BasicProjectionBuilder<T> {
+    BasicProjectionBuilder::new()
+}
+
+/// Fully functional projection builder, with both the basic (path safe) features 
+/// and projection using MongoDB expressions.
+pub trait ProjectionBuilder<T>: Sized {
+    fn project(self, path: String, expr: bson::Bson) -> Self;
+}
+
+impl<T> ProjectionBuilder<T> for BasicProjectionBuilder<T> {
+    fn project(mut self, path: String, expr: bson::Bson) -> Self {
+        self.clauses.push((path, expr));
+
+        self
     }
 }
 
@@ -456,7 +412,7 @@ mod tests {
     #[test]
     fn test_field_path_empty_prefix() {
         // Test field_path with empty prefix - should return just the field name
-        let builder = ProjectionBuilder::<TestStruct>::new();
+        let builder = empty::<TestStruct>();
 
         let path = builder.field_path::<Name>();
         assert_eq!(path, "name");
@@ -474,7 +430,7 @@ mod tests {
     #[test]
     fn test_field_path_single_prefix() {
         // Test field_path with a single prefix element
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["user".to_string()];
 
         let path = builder.field_path::<Name>();
@@ -487,7 +443,7 @@ mod tests {
     #[test]
     fn test_field_path_multiple_prefixes() {
         // Test field_path with multiple prefix elements
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["profile".to_string(), "address".to_string()];
 
         let path = builder.field_path::<Name>();
@@ -500,7 +456,7 @@ mod tests {
     #[test]
     fn test_field_path_deeply_nested_prefix() {
         // Test field_path with deeply nested prefix
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec![
             "collection".to_string(),
             "documents".to_string(),
@@ -515,7 +471,7 @@ mod tests {
     #[test]
     fn test_field_path_consistency_across_multiple_calls() {
         // Test that field_path returns consistent results across multiple calls
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["test".to_string()];
 
         let path1 = builder.field_path::<Name>();
@@ -530,7 +486,7 @@ mod tests {
     #[test]
     fn test_field_path_special_characters_in_prefix() {
         // Test field_path with prefixes containing special characters
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["test-prefix".to_string(), "sub_field".to_string()];
 
         let path = builder.field_path::<Email>();
@@ -540,7 +496,7 @@ mod tests {
     #[test]
     fn test_field_path_empty_string_prefix() {
         // Test field_path with empty string as prefix element
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["".to_string()];
 
         let path = builder.field_path::<Name>();
@@ -550,7 +506,7 @@ mod tests {
     #[test]
     fn test_field_path_mixed_prefix_types() {
         // Test field_path with mixed types of prefix strings
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec![
             "root".to_string(),
             "nested_object".to_string(),
@@ -567,7 +523,7 @@ mod tests {
     #[test]
     fn test_field_path_with_numeric_string_prefix() {
         // Test field_path with numeric strings as prefixes (like array indices)
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["users".to_string(), "0".to_string()];
 
         let path = builder.field_path::<Name>();
@@ -577,7 +533,7 @@ mod tests {
     #[test]
     fn test_field_path_different_field_types() {
         // Test field_path with different field marker types to ensure consistency
-        let mut builder = ProjectionBuilder::<TestStruct>::new();
+        let mut builder = empty::<TestStruct>();
         builder.prefix = vec!["common".to_string()];
 
         // Test that different field types produce different paths correctly
