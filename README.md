@@ -26,12 +26,7 @@ Add this to your `Cargo.toml`:
 tnuctipun = "0.1.0"
 ```
 
-The core library only requires the `bson` crate for MongoDB document types. If you need to connect to MongoDB (for example, in applications using the binary), enable the `mongodb-client` feature:
-
-```toml
-[dependencies]
-tnuctipun = { version = "0.1.0", features = ["mongodb-client"] }
-```
+The library only requires the `bson` crate for MongoDB document types and provides type-safe query building capabilities.
 
 ## Example
 
