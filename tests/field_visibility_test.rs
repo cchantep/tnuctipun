@@ -1,9 +1,8 @@
-use nessus::{FieldName, FieldWitnesses, MongoComparable};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, MongoComparable};
 // Test struct with private fields (no pub modifier) and include_private = true
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(include_private = true)]
+#[tnuctipun(include_private = true)]
 struct PrivateFieldsTest {
     name: String, // private field - included
     age: i32,     // private field - included
@@ -18,7 +17,7 @@ struct PublicFieldsTest {
 
 // Test struct with mixed visibility and include_private = true
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(include_private = true)]
+#[tnuctipun(include_private = true)]
 pub struct MixedVisibilityTest {
     name: String,      // private field - included
     pub age: i32,      // public field

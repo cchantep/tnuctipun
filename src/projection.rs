@@ -1,7 +1,6 @@
-use bson;
-
 use crate::field_witnesses::{FieldName, HasField};
 use crate::path::Path;
+use bson;
 
 /// A builder for creating MongoDB projection documents with compile-time field verification.
 ///
@@ -21,7 +20,7 @@ use crate::path::Path;
 /// # Examples
 ///
 /// ```rust
-/// use nessus::{FieldWitnesses, projection::empty};
+/// use tnuctipun::{FieldWitnesses, projection::empty};
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -71,7 +70,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::projection::BasicProjectionBuilder;
+    /// use tnuctipun::projection::BasicProjectionBuilder;
     ///
     /// struct User {
     ///     pub name: String,
@@ -164,7 +163,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -206,7 +205,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -260,7 +259,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct Address {
@@ -341,7 +340,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -366,7 +365,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// The following two approaches are equivalent:
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -419,7 +418,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     /// use bson;
     ///
     /// #[derive(FieldWitnesses)]
@@ -444,7 +443,7 @@ impl<T> BasicProjectionBuilder<T> {
     /// the last value will be used in the final document:
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, projection::empty};
+    /// use tnuctipun::{FieldWitnesses, projection::empty};
     ///
     /// #[derive(FieldWitnesses)]
     /// struct User {
@@ -485,7 +484,7 @@ impl<T> BasicProjectionBuilder<T> {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::{FieldWitnesses, projection::empty};
+/// use tnuctipun::{FieldWitnesses, projection::empty};
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -526,7 +525,7 @@ pub fn empty<T>() -> BasicProjectionBuilder<T> {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::{projection::{empty, ProjectionBuilder}};
+/// use tnuctipun::{projection::{empty, ProjectionBuilder}};
 /// use bson::doc;
 ///
 /// // Using custom MongoDB expressions
@@ -555,7 +554,7 @@ pub trait ProjectionBuilder<T>: Sized {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::projection::{empty, ProjectionBuilder};
+    /// use tnuctipun::projection::{empty, ProjectionBuilder};
     /// use bson::{doc, Bson};
     ///
     /// let mut builder = empty::<()>();

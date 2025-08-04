@@ -1,7 +1,6 @@
 // Minimal test to verify field name conflict resolution works
 
-use nessus::{FieldName, FieldWitnesses, HasField};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField};
 // Define two structs with the same field name to test conflict resolution
 #[derive(FieldWitnesses)]
 struct Product {

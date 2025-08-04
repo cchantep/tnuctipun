@@ -1,7 +1,7 @@
 //! Tests for individual MongoDB update operations ($set, $unset, $inc, etc.)
 
 use super::test_fixtures::*;
-use nessus::updates::{CurrentDateType, PopStrategy, empty};
+use tnuctipun::updates::{CurrentDateType, PopStrategy, empty};
 
 // Tests for $set operation
 #[test]

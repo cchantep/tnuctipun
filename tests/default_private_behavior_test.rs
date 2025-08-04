@@ -1,6 +1,5 @@
-use nessus::{FieldName, FieldWitnesses, MongoComparable};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, MongoComparable};
 // Test struct with mixed visibility and default behavior (include_private = false)
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct DefaultBehaviorTest {
@@ -24,7 +23,7 @@ fn test_default_behavior_skips_private_fields() {
     assert_eq!(defaultbehaviortest_fields::Age::field_name(), "age");
 
     // Test field access using HasField trait
-    use nessus::HasField;
+    use tnuctipun::HasField;
 
     let name_ref =
         <DefaultBehaviorTest as HasField<defaultbehaviortest_fields::Name>>::get_field(&user);

@@ -1,9 +1,8 @@
-use bson;
-
 use crate::field_filters::FieldFilterBuilder;
 use crate::field_witnesses::{FieldName, HasField};
 use crate::mongo_comparable::MongoComparable;
 use crate::path::Path;
+use bson;
 
 /// A builder for constructing MongoDB filters with type safety.
 ///
@@ -30,8 +29,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::FilterBuilder;
-    /// use nessus::FieldWitnesses;
+    /// use tnuctipun::filters::FilterBuilder;
+    /// use tnuctipun::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -66,8 +65,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, MongoComparable};
-    /// use nessus::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -103,8 +102,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -137,8 +136,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -173,8 +172,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -208,8 +207,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -242,8 +241,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -276,8 +275,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -310,8 +309,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::FieldWitnesses;
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -351,8 +350,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -403,8 +402,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -485,8 +484,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -530,8 +529,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -559,8 +558,8 @@ impl<T> FilterBuilder<T> {
     /// # Complex Example with Multiple Conditions
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -629,8 +628,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -693,8 +692,8 @@ impl<T> FilterBuilder<T> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::filters::empty;
-    /// use nessus::{FieldWitnesses, MongoComparable};
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -747,13 +746,13 @@ impl<T> Default for FilterBuilder<T> {
 /// # Example
 ///
 /// ```rust
-/// use nessus::filters::empty;
+/// use tnuctipun::filters::empty;
 /// use serde::{Serialize, Deserialize};
 /// use bson;
 ///
 /// // Self-contained example with manual trait implementations
-/// # use nessus::field_witnesses::{FieldName, HasField};
-/// # use nessus::mongo_comparable::MongoComparable;
+/// # use tnuctipun::field_witnesses::{FieldName, HasField};
+/// # use tnuctipun::mongo_comparable::MongoComparable;
 /// # struct Name;
 /// # impl FieldName for Name {
 /// #     fn field_name() -> &'static str { "name" }
@@ -804,8 +803,8 @@ impl<T> From<FilterBuilder<T>> for bson::Document {
 /// # Example
 ///
 /// ```rust
-/// use nessus::filters::empty;
-/// use nessus::{FieldWitnesses, MongoComparable};
+/// use tnuctipun::filters::empty;
+/// use tnuctipun::{FieldWitnesses, MongoComparable};
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]

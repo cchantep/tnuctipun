@@ -1,4 +1,4 @@
-//! Test module for nessus updates functionality
+//! Test module for tnuctipun updates functionality
 
 pub mod basic_operations;
 pub mod builder_functionality;

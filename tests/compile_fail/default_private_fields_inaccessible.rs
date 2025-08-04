@@ -1,8 +1,7 @@
 // This test verifies that private fields are not accessible by default (include_private = false)
 
-use nessus::{FieldName, FieldWitnesses, MongoComparable};
+use tnuctipun::{FieldWitnesses, MongoComparable};
 use serde::{Deserialize, Serialize};
-
 // Test struct with mixed visibility and default behavior (include_private = false)
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct DefaultBehaviorTest {

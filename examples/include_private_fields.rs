@@ -1,8 +1,7 @@
 // This example demonstrates how to control private field inclusion in field witnesses
 
-use nessus::{FieldName, FieldWitnesses, HasField, MongoComparable};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField, MongoComparable};
 // Example 1: Default behavior - private fields are skipped
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct UserDefault {
@@ -14,7 +13,7 @@ struct UserDefault {
 
 // Example 2: Include private fields explicitly
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(include_private = true)]
+#[tnuctipun(include_private = true)]
 struct UserWithPrivate {
     pub name: String, // Public field - included
     email: String,    // Private field - included
@@ -24,7 +23,7 @@ struct UserWithPrivate {
 
 // Example 3: Combine with other attributes
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(field_naming = "camelCase", include_private = true)]
+#[tnuctipun(field_naming = "camelCase", include_private = true)]
 struct UserCombined {
     pub user_name: String,  // Public field - included, named "userName"
     email_address: String,  // Private field - included, named "emailAddress"
@@ -133,6 +132,6 @@ fn main() {
 
     println!("\n=== Summary ===");
     println!("1. Default: #[derive(FieldWitnesses)] - skips private fields");
-    println!("2. Include private: #[nessus(include_private = true)] - includes all fields");
+    println!("2. Include private: #[tnuctipun(include_private = true)] - includes all fields");
     println!("3. Can combine with other attributes like field_naming");
 }

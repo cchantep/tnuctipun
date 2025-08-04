@@ -1,6 +1,6 @@
 //! Tests for enum types used in updates (UpdateOperation, CurrentDateType, PopStrategy)
 
-use nessus::updates::{CurrentDateType, PopStrategy, UpdateOperation};
+use tnuctipun::updates::{CurrentDateType, PopStrategy, UpdateOperation};
 
 #[test]
 fn test_update_operation_to_string() {

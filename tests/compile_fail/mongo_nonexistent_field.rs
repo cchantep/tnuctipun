@@ -1,9 +1,9 @@
 // This test verifies that MongoComparable can't be used with a non-existent field
 
-use nessus::{FieldWitnesses, MongoComparable};
-use nessus::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::HasField;
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
     pub Name: String,
@@ -14,7 +14,7 @@ struct Product {
 #[allow(non_camel_case_types)]
 struct Weight;
 
-impl nessus::field_witnesses::FieldName for Weight {
+impl tnuctipun::field_witnesses::FieldName for Weight {
     fn field_name() -> &'static str { "Weight" }
 }
 
@@ -27,6 +27,6 @@ fn main() {
     {}
     
     assert_implements_mongo_comparable::<Product, 
-        <Product as nessus::field_witnesses::HasField<Weight>>::Value, 
+        <Product as tnuctipun::field_witnesses::HasField<Weight>>::Value, 
         f64>();
 }

@@ -1,7 +1,7 @@
 //! Tests for logical operations (and, or, not)
 
 use super::test_fixtures::*;
-use nessus::filters::empty;
+use tnuctipun::filters::empty;
 
 #[test]
 fn test_and_function_empty_builder() {

@@ -1,8 +1,7 @@
 // This example demonstrates the field witness scoping solution
 
-use nessus::{FieldName, FieldWitnesses, HasField};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField};
 // Two structs with the same field names - this should not conflict
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Product {

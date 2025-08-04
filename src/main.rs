@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 
 // Import from our local crate
-use nessus::filters::empty;
-use nessus::{FieldWitnesses, MongoComparable};
+use tnuctipun::filters::empty;
+use tnuctipun::{FieldWitnesses, MongoComparable};
 
 // Example struct that we might want to query for
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]

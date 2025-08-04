@@ -1,19 +1,11 @@
 error[E0433]: failed to resolve: could not find `Email` in `defaultbehaviortest_fields`
-  --> tests/compile_fail/default_private_fields_inaccessible.rs:17:41
+  --> tests/compile_fail/default_private_fields_inaccessible.rs:16:41
    |
-17 |     let _ = defaultbehaviortest_fields::Email::field_name();
+16 |     let _ = defaultbehaviortest_fields::Email::field_name();
    |                                         ^^^^^ could not find `Email` in `defaultbehaviortest_fields`
 
 error[E0433]: failed to resolve: could not find `InternalId` in `defaultbehaviortest_fields`
-  --> tests/compile_fail/default_private_fields_inaccessible.rs:18:41
+  --> tests/compile_fail/default_private_fields_inaccessible.rs:17:41
    |
-18 |     let _ = defaultbehaviortest_fields::InternalId::field_name();
+17 |     let _ = defaultbehaviortest_fields::InternalId::field_name();
    |                                         ^^^^^^^^^^ could not find `InternalId` in `defaultbehaviortest_fields`
-
-warning: unused import: `FieldName`
- --> tests/compile_fail/default_private_fields_inaccessible.rs:3:14
-  |
-3 | use nessus::{FieldName, FieldWitnesses, MongoComparable};
-  |              ^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default

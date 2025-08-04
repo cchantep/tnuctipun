@@ -1,7 +1,7 @@
 //! Tests for advanced projection features and edge cases
 
 use super::test_fixtures::*;
-use nessus::projection::empty;
+use tnuctipun::projection::empty;
 
 #[test]
 fn projection_mixed_includes_excludes() {

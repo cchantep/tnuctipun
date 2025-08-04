@@ -1,7 +1,32 @@
+error[E0252]: the name `HasField` is defined multiple times
+ --> tests/compile_fail/mongo_nonexistent_field.rs:5:5
+  |
+3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+  |                                                  -------- previous import of the trait `HasField` here
+4 | use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
+5 | use tnuctipun::HasField;
+  |     ^^^^^^^^^^^^^^^^^^^ `HasField` reimported here
+  |
+  = note: `HasField` must be defined only once in the type namespace of this module
+
+warning: unused imports: `FieldName` and `HasField`
+ --> tests/compile_fail/mongo_nonexistent_field.rs:3:50
+  |
+3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+  |                                                  ^^^^^^^^  ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `tnuctipun::HasField`
+ --> tests/compile_fail/mongo_nonexistent_field.rs:5:5
+  |
+5 | use tnuctipun::HasField;
+  |     ^^^^^^^^^^^^^^^^^^^
+
 error[E0277]: the trait bound `Product: HasField<Weight>` is not satisfied
   --> tests/compile_fail/mongo_nonexistent_field.rs:30:10
    |
-30 |         <Product as nessus::field_witnesses::HasField<Weight>>::Value,
+30 |         <Product as tnuctipun::field_witnesses::HasField<Weight>>::Value,
    |          ^^^^^^^ the trait `HasField<Weight>` is not implemented for `Product`
    |
    = help: the following other types implement trait `HasField<F>`:

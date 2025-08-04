@@ -1,7 +1,7 @@
 //! Shared test fixtures for projection tests
 
-use nessus::FieldWitnesses;
 use serde::{Deserialize, Serialize};
+use tnuctipun::FieldWitnesses;
 
 #[derive(Deserialize, Serialize, FieldWitnesses)]
 pub struct User {

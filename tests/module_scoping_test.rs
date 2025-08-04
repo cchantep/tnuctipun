@@ -1,5 +1,4 @@
-use nessus::{FieldName, FieldWitnesses, HasField};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField};
 // Test that structs with the same name in different modules don't conflict
 mod user_management {
     use super::*;

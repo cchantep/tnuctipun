@@ -1,7 +1,7 @@
 //! Tests for nested field operations using with_lookup and with_field
 
 use super::test_fixtures::*;
-use nessus::updates::empty;
+use tnuctipun::updates::empty;
 
 // Tests for with_lookup function
 #[test]

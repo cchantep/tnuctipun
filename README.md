@@ -1,12 +1,12 @@
-# Nessus
+# Tnunctipun
 
-[![CI](https://github.com/cchantep/nessus/workflows/CI/badge.svg)](https://github.com/cchantep/nessus/actions)
-[![Crates.io](https://img.shields.io/crates/v/nessus.svg)](https://crates.io/crates/nessus)
-[![Documentation](https://docs.rs/nessus/badge.svg)](https://docs.rs/nessus)
-[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://cchantep.github.io/nessus/nessus/)
-[![codecov](https://codecov.io/gh/cchantep/nessus/branch/master/graph/badge.svg)](https://codecov.io/gh/cchantep/nessus)
+[![CI](https://github.com/cchantep/tnuctipun/workflows/CI/badge.svg)](https://github.com/cchantep/tnuctipun/actions)
+[![Crates.io](https://img.shields.io/crates/v/tnuctipun.svg)](https://crates.io/crates/tnuctipun)
+[![Documentation](https://docs.rs/tnuctipun/badge.svg)](https://docs.rs/tnuctipun)
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://cchantep.github.io/tnuctipun/tnuctipun/)
+[![codecov](https://codecov.io/gh/cchantep/tnuctipun/branch/master/graph/badge.svg)](https://codecov.io/gh/cchantep/tnuctipun)
 
-The Puppeteer from Ringworld — wise, cautious, clever — or a type-safe MongoDB builder library.
+The Tnuctipun of Ringworld — ancient, subversive, ingenious — or a type-safe MongoDB builder library.
 
 ## Features
 
@@ -23,20 +23,20 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nessus = "0.1.0"
+tnuctipun = "0.1.0"
 ```
 
 The core library only requires the `bson` crate for MongoDB document types. If you need to connect to MongoDB (for example, in applications using the binary), enable the `mongodb-client` feature:
 
 ```toml
 [dependencies]
-nessus = { version = "0.1.0", features = ["mongodb-client"] }
+tnuctipun = { version = "0.1.0", features = ["mongodb-client"] }
 ```
 
 ## Example
 
 ```rust
-use nessus::{FieldWitnesses, MongoComparable, filters::empty, projection, updates};
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection, updates};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
@@ -79,8 +79,8 @@ let update_doc = updates::empty::<User>()
 
 ## Documentation
 
-- **[API Documentation (GitHub Pages)](https://cchantep.github.io/nessus/nessus/)** - Latest development docs
-- **[Crates.io Documentation](https://docs.rs/nessus)** - Released version docs
+- **[API Documentation (GitHub Pages)](https://cchantep.github.io/tnuctipun/tnuctipun/)** - Latest development docs
+- **[Crates.io Documentation](https://docs.rs/tnuctipun)** - Released version docs
 
 ## Development
 

@@ -1,6 +1,5 @@
-use nessus::{FieldName, FieldWitnesses, HasField};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField};
 /// This test verifies that multiple structs with the same field names
 /// can coexist without naming conflicts.
 ///

@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of Nessus type-safe MongoDB query builder
+- Initial release of Tnunctipun type-safe MongoDB query builder
 - `FieldWitnesses` derive macro for compile-time field validation
 - `MongoComparable` derive macro for MongoDB document conversion
 - Type-safe filter building with `filters::empty()`
@@ -31,5 +31,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - All dependencies audited for known vulnerabilities
 
-[Unreleased]: https://github.com/cchantep/nessus/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/cchantep/nessus/releases/tag/v0.1.0
+[Unreleased]: https://github.com/cchantep/tnuctipun/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/cchantep/tnuctipun/releases/tag/v0.1.0

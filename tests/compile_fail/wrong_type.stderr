@@ -1,13 +1,13 @@
 error[E0308]: mismatched types
-  --> tests/compile_fail/wrong_type.rs:22:77
+  --> tests/compile_fail/wrong_type.rs:21:77
    |
-22 |     let price_filter = test_wrong_type::<product_fields::Price, Product, _>("wrong type".to_string());
+21 |     let price_filter = test_wrong_type::<product_fields::Price, Product, _>("wrong type".to_string());
    |                        ---------------------------------------------------- ^^^^^^^^^^^^^^^^^^^^^^^^ expected `f64`, found `String`
    |                        |
    |                        arguments to this function are incorrect
    |
 note: function defined here
-  --> tests/compile_fail/wrong_type.rs:11:8
+  --> tests/compile_fail/wrong_type.rs:10:8
    |
-11 | pub fn test_wrong_type<F, T, V>(value: V) -> (&'static str, String)
+10 | pub fn test_wrong_type<F, T, V>(value: V) -> (&'static str, String)
    |        ^^^^^^^^^^^^^^^          --------

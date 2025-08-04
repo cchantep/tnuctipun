@@ -1,7 +1,7 @@
 //! Tests for UpdateBuilder functionality, method chaining, and builder patterns
 
 use super::test_fixtures::*;
-use nessus::updates::{UpdateBuilder, empty};
+use tnuctipun::updates::{UpdateBuilder, empty};
 
 #[test]
 fn test_empty_builder_produces_empty_document() {

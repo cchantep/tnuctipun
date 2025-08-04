@@ -1,9 +1,9 @@
 // This test verifies that MongoComparable fails with incompatible types
 
-use nessus::{FieldWitnesses, MongoComparable};
-use nessus::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::HasField;
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
     pub Name: String,
@@ -22,6 +22,6 @@ fn main() {
     
     // Attempt to compare String field with CustomType
     assert_implements_mongo_comparable::<Product, 
-        <Product as nessus::field_witnesses::HasField<product_fields::Name>>::Value, 
+        <Product as tnuctipun::field_witnesses::HasField<product_fields::Name>>::Value, 
         CustomType>();
 }

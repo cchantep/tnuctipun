@@ -1,5 +1,4 @@
 use crate::field_witnesses::{FieldName, HasField};
-
 /// Macro to generate field witnesses (type-level field representations) for a struct
 ///
 /// This macro automatically generates:
@@ -11,8 +10,8 @@ use crate::field_witnesses::{FieldName, HasField};
 ///
 /// ```rust
 /// use serde::{Serialize, Deserialize};
-/// use nessus::DeclarativeFieldWitnesses;
-/// use nessus::mongo::type_safe_eq;
+/// use tnuctipun::DeclarativeFieldWitnesses;
+/// use tnuctipun::mongo::type_safe_eq;
 /// 
 /// #[derive(Debug, Clone, Serialize, Deserialize)]
 /// struct User {

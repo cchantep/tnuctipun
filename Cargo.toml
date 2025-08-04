@@ -1,15 +1,15 @@
 [workspace]
-members = [".", "nessus-derive"]
+members = [".", "tnuctipun-derive"]
 exclude = []
 
 [package]
-name = "nessus"
+name = "tnuctipun"
 version = "0.1.0"
 edition = "2024"
-description = "The Puppeteer from Ringworld — wise, cautious, clever — or a type-safe MongoDB builder library"
+description = "The Tnuctipun of Ringworld — ancient, subversive, ingenious — or a type-safe MongoDB builder library"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/cchantep/nessus"
-documentation = "https://docs.rs/nessus"
+repository = "https://github.com/cchantep/tnuctipun"
+documentation = "https://docs.rs/tnuctipun"
 keywords = ["mongodb", "database", "query", "type-safe", "derive"]
 categories = ["database"]
 authors = ["Cédric Chantepie <cchantep@users.noreply.github.com>"]
@@ -19,7 +19,7 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [[bin]]
-name = "nessus"
+name = "tnuctipun"
 path = "src/main.rs"
 required-features = ["mongodb-client"]
 
@@ -30,7 +30,7 @@ futures = "0.3.31"
 bson = "2.15.0"
 serde = { version = "1.0.219", features = ["derive"] }
 tokio = { version = "1.47.0", features = ["full"] }
-nessus-derive = { version = "0.1.0", path = "./nessus-derive" }
+tnuctipun-derive = { version = "0.1.0", path = "./tnuctipun-derive" }
 
 # MongoDB client is only needed for the binary, not the library
 mongodb = { version = "3.2.4", optional = true }

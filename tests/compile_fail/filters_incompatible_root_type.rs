@@ -1,9 +1,8 @@
 // This test verifies that FilterBuilder::with_lookup rejects paths with incompatible Root type parameters
 
-use nessus::filters::empty;
-use nessus::{FieldWitnesses, MongoComparable, path::Path};
+use tnuctipun::filters::empty;
+use tnuctipun::{FieldWitnesses, MongoComparable};
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Address {
     pub street: String,

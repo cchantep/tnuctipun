@@ -23,23 +23,23 @@ mod mongo_comparable;
 ///
 /// ## Container-level attributes
 ///
-/// - `#[nessus(field_naming = "strategy")]` - Apply a naming strategy to MongoDB field names only
+/// - `#[tnuctipun(field_naming = "strategy")]` - Apply a naming strategy to MongoDB field names only
 ///   - Built-in strategies: "PascalCase", "camelCase"
-/// - `#[nessus(include_private = true)]` - Include private fields in witness generation
+/// - `#[tnuctipun(include_private = true)]` - Include private fields in witness generation
 ///   - If not specified or set to false, private fields are skipped
 ///   - When true, both public and private fields generate witnesses
 ///
 /// ## Field-level attributes
 ///
-/// - `#[nessus(rename = "name")]` - Override the MongoDB field name for this specific field
-/// - `#[nessus(skip)]` - Skip generating witnesses for this field
+/// - `#[tnuctipun(rename = "name")]` - Override the MongoDB field name for this specific field
+/// - `#[tnuctipun(skip)]` - Skip generating witnesses for this field
 ///
 /// # Examples
 ///
 /// ## Basic usage (default behavior):
 ///
 /// ```ignore
-/// use nessus_derive::FieldWitnesses;
+/// use tnuctipun::derive::FieldWitnesses;
 ///
 /// #[derive(FieldWitnesses)]
 /// struct User {
@@ -60,7 +60,7 @@ mod mongo_comparable;
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
-/// #[nessus(field_naming = "camelCase")]
+/// #[tnuctipun(field_naming = "camelCase")]
 /// struct User {
 ///     user_name: String,
 ///     email_address: String,
@@ -79,12 +79,12 @@ mod mongo_comparable;
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
-/// #[nessus(field_naming = "camelCase")]
+/// #[tnuctipun(field_naming = "camelCase")]
 /// struct User {
 ///     user_name: String,              // -> "userName"
-///     #[nessus(rename = "email")]
+///     #[tnuctipun(rename = "email")]
 ///     email_address: String,          // -> "email" (override)
-///     #[nessus(skip)]
+///     #[tnuctipun(skip)]
 ///     internal_id: String,            // Skipped entirely
 /// }
 /// ```
@@ -93,7 +93,7 @@ mod mongo_comparable;
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
-/// #[nessus(include_private = true)]
+/// #[tnuctipun(include_private = true)]
 /// struct User {
 ///     pub user_name: String,          // Public field - included
 ///     email_address: String,          // Private field - included due to include_private = true
@@ -122,7 +122,7 @@ mod mongo_comparable;
 /// The macro generates a module containing field witness types for type-safe field access.
 /// For a struct named `User`, the generated module will be `user_fields` containing
 /// field witness types for each field in the struct.
-#[proc_macro_derive(FieldWitnesses, attributes(nessus))]
+#[proc_macro_derive(FieldWitnesses, attributes(tnuctipun))]
 pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
     field_witnesses::derive_field_witnesses(input)
 }
@@ -139,7 +139,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 ///
 /// The MongoComparable derive macro supports the same container-level attributes as FieldWitnesses:
 ///
-/// - `#[nessus(include_private = true)]`
+/// - `#[tnuctipun(include_private = true)]`
 /// - Include private fields in trait implementations
 /// - If not specified or set to false, private fields are skipped
 /// - When true, both public and private fields generate MongoComparable implementations
@@ -147,7 +147,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 /// Example:
 ///
 /// ```ignore
-/// use nessus_derive::{FieldWitnesses, MongoComparable};
+/// use tnuctipun::derive::{FieldWitnesses, MongoComparable};
 ///
 /// #[derive(FieldWitnesses, MongoComparable)]
 /// struct User {
@@ -167,7 +167,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses, MongoComparable)]
-/// #[nessus(include_private = true)]
+/// #[tnuctipun(include_private = true)]
 /// struct User {
 ///     pub name: String,    // Public field - included
 ///     private_id: u64,     // Private field - included due to include_private = true

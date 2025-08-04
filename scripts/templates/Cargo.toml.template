@@ -1,0 +1,11 @@
+[package]
+name = "doc_snippet_batch_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tnuctipun = { path = "{{PROJECT_PATH}}" }
+bson = "{{BSON_VERSION}}"
+serde = { version = "{{SERDE_VERSION}}", features = ["derive"] }
+mongodb = "{{MONGODB_VERSION}}"
+tokio = { version = "{{TOKIO_VERSION}}", features = ["full"] }

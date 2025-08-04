@@ -1,9 +1,8 @@
 // This test verifies that BasicProjectionBuilder::with_lookup rejects paths with incompatible Root type parameters
 
-use nessus::projection::empty;
-use nessus::{FieldWitnesses, path::Path};
+use tnuctipun::projection::empty;
+use tnuctipun::{FieldWitnesses};
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Address {
     pub street: String,
