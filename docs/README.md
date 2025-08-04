@@ -12,7 +12,7 @@ Welcome to the comprehensive user guide for **Tnuctipun**, a type-safe MongoDB q
 
 ### 📚 User Guide
 
-- [**Introduction & Motivation**](user-guide/01-introduction.md) - Project overview and why Tnunctipun exists
+- [**Introduction & Motivation**](user-guide/01-introduction.md) - Project overview and why Tnuctipun exists
 - [**Getting Started**](user-guide/02-getting-started.md) - Installation and basic setup
 - [**Finding Documents**](user-guide/03-finding-documents.md) - Query building with filters and projections
 - [**Updating Documents**](user-guide/04-updating-documents.md) - Type-safe update operations

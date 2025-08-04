@@ -18,16 +18,11 @@ Add Tnuctipun to your `Cargo.toml`:
 tnuctipun = "0.1.0"
 ```
 
-The core library only requires the `bson` crate for MongoDB document types. If you need to connect to MongoDB (for example, in applications using the binary), enable the `mongodb-client` feature:
-
-```toml
-[dependencies]
-tnuctipun = { version = "0.1.0", features = ["mongodb-client"] }
-```
+Tnuctipun is a MongoDB query builder library that generates BSON documents. It doesn't include MongoDB connectivity - you'll need to add the MongoDB driver separately if you want to connect to a database.
 
 ## Required Dependencies
 
-Tnuctipun works with the official MongoDB Rust driver and requires these additional dependencies:
+Tnuctipun works with the official MongoDB Rust driver. Here are the dependencies you'll need:
 
 ```toml
 [dependencies]
@@ -36,8 +31,8 @@ tnuctipun = "0.1.0"
 serde = { version = "1.0", features = ["derive"] }
 bson = "2.0"
 
-# For MongoDB connectivity (optional)
-mongodb = "2.0"  # If using mongodb-client feature
+# For MongoDB connectivity (you must add these separately)
+mongodb = "2.0"  # For connecting to MongoDB
 tokio = { version = "1.0", features = ["full"] }  # For async operations
 ```
 

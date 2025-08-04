@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of Tnunctipun type-safe MongoDB query builder
+- Initial release of Tnuctipun type-safe MongoDB query builder
 - `FieldWitnesses` derive macro for compile-time field validation
 - `MongoComparable` derive macro for MongoDB document conversion
 - Type-safe filter building with `filters::empty()`

@@ -1,4 +1,4 @@
-# Tnunctipun
+# Tnuctipun
 
 [![CI](https://github.com/cchantep/tnuctipun/workflows/CI/badge.svg)](https://github.com/cchantep/tnuctipun/actions)
 [![Crates.io](https://img.shields.io/crates/v/tnuctipun.svg)](https://crates.io/crates/tnuctipun)

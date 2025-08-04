@@ -36,7 +36,7 @@ If applicable, add a minimal code example to help explain your problem:
 
  - OS: [e.g. Ubuntu 20.04, macOS 12.0, Windows 11]
  - Rust version: [e.g. 1.70.0]
- - Tnunctipun version: [e.g. 0.1.0]
+ - Tnuctipun version: [e.g. 0.1.0]
  - MongoDB version: [e.g. 6.0.0]
 
 **Additional context**

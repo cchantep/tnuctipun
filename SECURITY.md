@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The following versions of Tnunctipun are currently supported with security updates:
+The following versions of Tnuctipun are currently supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,7 +11,7 @@ The following versions of Tnunctipun are currently supported with security updat
 
 ## Reporting a Vulnerability
 
-To report a security vulnerability in Tnunctipun, please email the maintainer at cchantep@users.noreply.github.com with a detailed description of the issue.
+To report a security vulnerability in Tnuctipun, please email the maintainer at cchantep@users.noreply.github.com with a detailed description of the issue.
 
 Please include:
 - A description of the vulnerability

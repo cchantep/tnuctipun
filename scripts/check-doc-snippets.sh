@@ -287,6 +287,11 @@ bson = "2.0"
 serde = { version = "1.0", features = ["derive"] }
 mongodb = "2.0"
 tokio = { version = "1.0", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+async-trait = "0.1"
+prometheus = "0.13"
+config = "0.13"
+uuid = { version = "1.0", features = ["v4", "serde"] }
 EOF
     fi
     

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Tnunctipun Release Script
-# This script helps automate the release process for Tnunctipun
+# Tnuctipun Release Script
+# This script helps automate the release process for Tnuctipun
 
 set -e
 
@@ -115,7 +115,7 @@ create_tag() {
 
 # Main script
 main() {
-    echo "🚀 Tnunctipun Release Script"
+    echo "🚀 Tnuctipun Release Script"
     echo "======================="
     echo
     

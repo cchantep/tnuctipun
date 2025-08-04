@@ -182,7 +182,7 @@ struct UserProfile {
     pub user_id: String,
     pub tags: Vec<String>,
     pub favorite_colors: Vec<String>,
-    pub login_history: Vec<chrono::DateTime<chrono::Utc>>,
+    pub login_history: Vec<bson::DateTime>,
     pub scores: Vec<i32>,
 }
 
@@ -199,17 +199,17 @@ fn array_operations() {
     //   }
     // }
     
-    // Add multiple items to arrays
+    // Add multiple items to arrays (multiple push calls)
     let update_doc = updates::empty::<UserProfile>()
-        .push_each::<user_profile_fields::Tags, _>(vec![
-            "premium".to_string(),
-            "verified".to_string(),
-            "active".to_string()
-        ])
+        .push::<user_profile_fields::Tags, _>("premium".to_string())
+        .push::<user_profile_fields::Tags, _>("verified".to_string())
+        .push::<user_profile_fields::Tags, _>("active".to_string())
         .build();
     // Result: {
     //   "$push": {
-    //     "tags": { "$each": ["premium", "verified", "active"] }
+    //     "tags": "premium",  // Note: Multiple $push operations
+    //     "tags": "verified", 
+    //     "tags": "active"
     //   }
     // }
 }
@@ -218,6 +218,17 @@ fn array_operations() {
 ### Array Removal Operations
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserProfile {
+    pub tags: Vec<String>,
+    pub favorite_colors: Vec<String>,
+    pub login_history: Vec<bson::DateTime>,
+    pub scores: Vec<i32>,
+}
+
 fn array_removal() {
     // Remove specific values from arrays
     let update_doc = updates::empty::<UserProfile>()
@@ -263,6 +274,14 @@ fn array_removal() {
 Use `add_to_set` to add items only if they don't already exist:
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserProfile {
+    pub tags: Vec<String>,
+}
+
 fn add_to_set_operations() {
     // Add single unique item
     let update_doc = updates::empty::<UserProfile>()
@@ -270,17 +289,17 @@ fn add_to_set_operations() {
         .build();
     // Result: { "$addToSet": { "tags": "verified" } }
     
-    // Add multiple unique items
+    // Add multiple unique items (using multiple calls)
     let update_doc = updates::empty::<UserProfile>()
-        .add_to_set_each::<user_profile_fields::Tags, _>(vec![
-            "premium".to_string(),
-            "verified".to_string(),
-            "active".to_string()
-        ])
+        .add_to_set::<user_profile_fields::Tags, _>("premium".to_string())
+        .add_to_set::<user_profile_fields::Tags, _>("verified".to_string())
+        .add_to_set::<user_profile_fields::Tags, _>("active".to_string())
         .build();
     // Result: {
     //   "$addToSet": {
-    //     "tags": { "$each": ["premium", "verified", "active"] }
+    //     "tags": "premium",  // Note: Multiple addToSet operations
+    //     "tags": "verified", 
+    //     "tags": "active"
     //   }
     // }
 }
@@ -288,54 +307,57 @@ fn add_to_set_operations() {
 
 ## Complex Updates
 
-### Nested Field Updates with `with_lookup`
+### Combined Update Operations
 
-For complex update logic, use `with_lookup` to create nested update builders:
+For complex update scenarios, combine multiple operations:
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub is_active: bool,
+    pub last_login: Option<bson::DateTime>,
+    pub login_count: i32,
+}
+
 fn complex_nested_updates() {
     let mut main_update = updates::empty::<User>();
     
     // Update basic fields
     main_update.set::<user_fields::Name, _>("John Smith".to_string());
     main_update.set::<user_fields::IsActive, _>(true);
-    
-    // Nested conditional updates
-    main_update.with_lookup(|nested_update| {
-        // If user is being activated, update login timestamp
-        nested_update.set::<user_fields::LastLogin, _>(
-            Some(chrono::Utc::now())
-        );
-        
-        // Also increment a counter (if you had one)
-        // nested_update.inc::<user_fields::ActivationCount, _>(1);
-    });
+    main_update.set::<user_fields::LastLogin, _>(Some(bson::DateTime::now()));
+    main_update.inc::<user_fields::LoginCount, _>(1);
     
     let update_doc = main_update.build();
 }
 ```
 
-### Field-Specific Complex Updates with `with_fields`
+### Field-Specific Complex Updates
 
-Use `with_fields` for field-specific complex update operations:
+Apply multiple operations to build complex updates:
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserStats {
+    pub points: i64,
+    pub balance: f64,
+}
+
 fn field_specific_updates() {
     let mut update_builder = updates::empty::<UserStats>();
     
-    // Complex points update logic
-    update_builder.with_fields::<user_stats_fields::Points, _>(|points_update| {
-        points_update.inc(100);    // Add base points
-        points_update.min(10000);  // Cap at maximum
-        points_update.max(0);      // Ensure non-negative
-    });
-    
-    // Complex balance operations
-    update_builder.with_fields::<user_stats_fields::Balance, _>(|balance_update| {
-        balance_update.inc(50.0);     // Add bonus
-        balance_update.mul(1.05);     // Apply interest
-        balance_update.max(0.0);      // Prevent negative balance
-    });
+    // Apply multiple operations in sequence
+    update_builder
+        .inc::<user_stats_fields::Points, _>(100)      // Add 100 points
+        .mul::<user_stats_fields::Balance, _>(1.1)     // Apply 10% bonus
+        .set::<user_stats_fields::Points, _>(1000);    // Cap points at 1000
     
     let update_doc = update_builder.build();
 }
@@ -346,6 +368,17 @@ fn field_specific_updates() {
 ### Building Updates Based on Runtime Conditions
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub is_active: bool,
+    pub last_login: Option<bson::DateTime>,
+}
+
 fn conditional_update_building(
     new_name: Option<String>,
     increment_age: bool,
@@ -382,6 +415,17 @@ fn conditional_update_building(
 ### Profile Update Example
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub email: String,
+    pub age: i32,
+    pub last_login: Option<bson::DateTime>,
+}
+
 fn update_user_profile(
     user_update: UserProfileUpdate,
 ) -> bson::Document {
@@ -402,7 +446,7 @@ fn update_user_profile(
     
     // Always update the last modified timestamp
     update_builder.set::<user_fields::LastLogin, _>(
-        Some(chrono::Utc::now())
+        Some(bson::DateTime::now())
     );
     
     update_builder.build()
@@ -421,8 +465,17 @@ struct UserProfileUpdate {
 ### Basic Update Operations
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
 use mongodb::{Collection, options::UpdateOptions};
 use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub last_login: Option<bson::DateTime>,
+}
 
 async fn update_single_user(
     collection: &Collection<User>,
@@ -444,7 +497,7 @@ async fn update_single_user(
     }
     
     update_builder.set::<user_fields::LastLogin, _>(
-        Some(chrono::Utc::now())
+        Some(bson::DateTime::now())
     );
     
     let update_doc = update_builder.build();
@@ -459,6 +512,18 @@ async fn update_single_user(
 ### Bulk Updates
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+use mongodb::Collection;
+use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub is_active: bool,
+    pub last_login: Option<bson::DateTime>,
+    pub login_count: i32,
+}
+
 async fn bulk_activate_users(
     collection: &Collection<User>,
     user_ids: Vec<String>
@@ -470,7 +535,7 @@ async fn bulk_activate_users(
     // Build activation update
     let update_doc = updates::empty::<User>()
         .set::<user_fields::IsActive, _>(true)
-        .set::<user_fields::LastLogin, _>(Some(chrono::Utc::now()))
+        .set::<user_fields::LastLogin, _>(Some(bson::DateTime::now()))
         .inc::<user_fields::LoginCount, _>(1)  // Assuming this field exists
         .build();
     
@@ -484,6 +549,18 @@ async fn bulk_activate_users(
 ### Upsert Operations
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+use mongodb::{Collection, options::UpdateOptions};
+use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserStats {
+    pub user_id: String,
+    pub points: i64,
+    pub last_active: bson::DateTime,
+}
+
 async fn upsert_user_stats(
     collection: &Collection<UserStats>,
     user_id: String,
@@ -496,7 +573,7 @@ async fn upsert_user_stats(
     let update_doc = updates::empty::<UserStats>()
         .set::<user_stats_fields::UserId, _>(user_id)            // Set on insert
         .inc::<user_stats_fields::Points, _>(points_to_add)      // Increment existing
-        .set::<user_stats_fields::LastActive, _>(chrono::Utc::now())  // Always update
+        .set::<user_stats_fields::LastActive, _>(bson::DateTime::now())  // Always update
         .build();
     
     // Configure upsert options
@@ -513,6 +590,20 @@ async fn upsert_user_stats(
 ### Replace vs Update
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+use mongodb::Collection;
+use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+    pub last_login: Option<bson::DateTime>,
+}
+
 async fn replace_vs_update_example(collection: &Collection<User>) {
     let user_id = "user123";
     
@@ -531,7 +622,7 @@ async fn replace_vs_update_example(collection: &Collection<User>) {
         age: 30,
         email: "new@example.com".to_string(),
         is_active: true,
-        last_login: Some(chrono::Utc::now()),
+        last_login: Some(bson::DateTime::now()),
     };
     
     let _replace_result = collection.replace_one(filter, new_user, None).await;
@@ -543,6 +634,17 @@ async fn replace_vs_update_example(collection: &Collection<User>) {
 ### Atomic Counters
 
 ```rust
+use mongodb::Collection;
+use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserStats {
+    pub user_id: String,
+    pub login_count: i32,
+    pub points: i64,
+    pub last_active: bson::DateTime,
+}
+
 async fn atomic_counter_pattern(
     collection: &Collection<UserStats>,
     user_id: &str,
@@ -554,7 +656,7 @@ async fn atomic_counter_pattern(
     let update_doc = updates::empty::<UserStats>()
         .inc::<user_stats_fields::Points, _>(points)
         .inc::<user_stats_fields::LoginCount, _>(1)
-        .set::<user_stats_fields::LastActive, _>(chrono::Utc::now())
+        .set::<user_stats_fields::LastActive, _>(bson::DateTime::now())
         .build();
     
     // Use find_one_and_update for atomic read-modify-write
@@ -573,6 +675,15 @@ async fn atomic_counter_pattern(
 ### Optimistic Updates
 
 ```rust
+use mongodb::Collection;
+use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub version: i32,
+}
+
 async fn optimistic_update_pattern(
     collection: &Collection<User>,
     user_id: &str,
@@ -601,6 +712,17 @@ async fn optimistic_update_pattern(
 ### Conditional Set Pattern
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+use mongodb::Collection;
+use bson::doc;
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub email: String,
+    pub last_login: Option<bson::DateTime>,
+}
+
 async fn conditional_set_pattern(
     collection: &Collection<User>,
     user_id: &str,
@@ -615,13 +737,51 @@ async fn conditional_set_pattern(
     
     let update_doc = updates::empty::<User>()
         .set::<user_fields::Email, _>(new_email)
-        .set::<user_fields::LastLogin, _>(Some(chrono::Utc::now()))
+        .set::<user_fields::LastLogin, _>(Some(bson::DateTime::now()))
         .build();
     
     let result = collection.update_one(filter, update_doc, None).await?;
+
     Ok(result)
 }
 ```
+
+## Update Operators Reference
+
+This table provides a quick reference for all available update operators and methods in Tnuctipun:
+
+| Operator | Method | Description | Section |
+|----------|--------|-------------|---------|
+| **Field Setting** | | | |
+| `$set` | `.set()` | Sets the value of a field in a document | [Setting Field Values](#setting-field-values) |
+| `$unset` | `.unset()` | Removes the specified field from a document | [Unsetting Fields](#unsetting-fields) |
+| **Numeric Operations** | | | |
+| `$inc` | `.inc()` | Increments the value of a field by a specified amount | [Increment and Decrement](#increment-and-decrement) |
+| `$mul` | `.mul()` | Multiplies the value of a field by a specified number | [Multiplication](#multiplication) |
+| `$min` | `.min()` | Only updates if the specified value is less than the existing value | [Min and Max Operations](#min-and-max-operations) |
+| `$max` | `.max()` | Only updates if the specified value is greater than the existing value | [Min and Max Operations](#min-and-max-operations) |
+| **Array Operations** | | | |
+| `$push` | `.push()` | Adds an item to an array | [Working with Array Fields](#working-with-array-fields) |
+| `$push` | `.push_each()` | Adds multiple items to an array | [Working with Array Fields](#working-with-array-fields) |
+| `$pull` | `.pull()` | Removes all instances of a value from an array | [Array Removal Operations](#array-removal-operations) |
+| `$pullAll` | `.pull_all()` | Removes multiple values from an array | [Array Removal Operations](#array-removal-operations) |
+| `$pop` | `.pop()` | Removes the first or last item from an array | [Array Removal Operations](#array-removal-operations) |
+| `$addToSet` | `.add_to_set()` | Adds a value to an array only if it doesn't already exist | [Add to Set (Unique Arrays)](#add-to-set-unique-arrays) |
+| `$addToSet` | `.add_to_set_each()` | Adds multiple unique values to an array | [Add to Set (Unique Arrays)](#add-to-set-unique-arrays) |
+| **Building** | | | |
+| - | `.build()` | Builds the final update document | [Setting Field Values](#setting-field-values) |
+| **Advanced** | | | |
+| - | `.with_lookup()` | Creates nested update builders for complex update logic | [Nested Field Updates with `with_lookup`](#nested-field-updates-with-with_lookup) |
+| - | `.with_fields()` | Applies multiple operations to a specific field | [Field-Specific Complex Updates with `with_fields`](#field-specific-complex-updates-with-with_fields) |
+
+### Usage Patterns
+
+- **Simple updates**: Use method chaining with `.set()`, `.inc()`, etc., then call `.build()`
+- **Numeric operations**: Use `.inc()` for counters, `.mul()` for scaling, `.min()`/`.max()` for bounds
+- **Array modifications**: Use `.push()` for adding, `.pull()` for removing, `.add_to_set()` for unique items
+- **Complex nested logic**: Use `.with_lookup()` for nested update expressions
+- **Field-specific operations**: Use `.with_fields()` to apply multiple operators to one field
+- **Dynamic updates**: Use mutable update builders when operations depend on runtime parameters
 
 ## Best Practices
 
@@ -631,6 +791,7 @@ async fn conditional_set_pattern(
 4. **Conditional Building**: Build updates dynamically based on runtime conditions
 5. **Version Management**: Consider implementing versioning for optimistic locking
 6. **Error Handling**: Always handle potential update errors appropriately
+7. **Reference Table**: Use the [Update Operators Reference](#update-operators-reference) above for quick lookup
 
 ## Next Steps
 

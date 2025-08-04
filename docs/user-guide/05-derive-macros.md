@@ -69,7 +69,10 @@ struct User {
 **Generated Code (conceptual):**
 
 ```rust
+// Note: This is automatically generated - you don't write this manually
 mod user_fields {
+    use tnuctipun::FieldName;
+    
     pub struct Name;
     pub struct Age;
     pub struct Email;
@@ -95,10 +98,17 @@ Field witnesses are used in query building:
 ```rust
 use tnuctipun::filters::empty;
 
+#[derive(FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+}
+
 // Type-safe field access
 let mut filter = empty::<User>();
 filter.eq::<user_fields::Name, _>("John".to_string());  // ✅ Valid
-filter.eq::<user_fields::InvalidField, _>("value");     // ❌ Compile error
+// filter.eq::<user_fields::InvalidField, _>("value");     // ❌ Compile error
 ```
 
 ### Struct Naming and Module Generation
@@ -107,13 +117,22 @@ The macro generates module names based on the struct name:
 
 ```rust
 #[derive(FieldWitnesses)]
-struct User { ... }           // → user_fields module
+struct User {
+    pub name: String,
+    pub age: i32,
+}                             // → user_fields module
 
 #[derive(FieldWitnesses)]
-struct UserProfile { ... }    // → user_profile_fields module
+struct UserProfile {
+    pub id: String,
+    pub display_name: String,
+}                             // → user_profile_fields module
 
 #[derive(FieldWitnesses)]
-struct OrderItem { ... }      // → order_item_fields module
+struct OrderItem {
+    pub product_id: String,
+    pub quantity: i32,
+}                             // → order_item_fields module
 ```
 
 **Naming Rules:**
@@ -142,6 +161,18 @@ struct User {
 The macro enables these comparison operations:
 
 ```rust
+use tnuctipun::filters::empty;
+
+#[derive(FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+}
+
+// Create a filter builder
+let mut filter = empty::<User>();
+
 // Equality and inequality
 filter.eq::<user_fields::Name, _>("John".to_string());
 filter.ne::<user_fields::Age, _>(0);
@@ -153,7 +184,7 @@ filter.lt::<user_fields::Age, _>(65);
 filter.lte::<user_fields::Age, _>(64);
 
 // Array operations
-filter.in_array::<user_fields::Name, _>(vec!["John".to_string(), "Jane".to_string()]);
+filter.r#in::<user_fields::Name, _>(vec!["John".to_string(), "Jane".to_string()]);
 filter.nin::<user_fields::Email, _>(vec!["spam@example.com".to_string()]);
 ```
 
@@ -257,7 +288,9 @@ struct User {
 Use `#[tnuctipun(skip)]` to exclude fields from witness generation:
 
 ```rust
-#[derive(FieldWitnesses)]
+use tnuctipun::filters::empty;
+
+#[derive(FieldWitnesses, MongoComparable)]
 struct User {
     pub name: String,               // → Included
     pub email: String,              // → Included
@@ -272,7 +305,7 @@ struct User {
 // Usage: internal_id and temp_data are not available in queries
 let mut filter = empty::<User>();
 filter.eq::<user_fields::Name, _>("John".to_string());      // ✅ Available
-filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error - skipped field
+// filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error - skipped field
 ```
 
 ### Combined Attributes
@@ -289,7 +322,7 @@ struct ComplexUser {
     #[tnuctipun(skip)]
     internal_hash: String,                      // → Skipped
     
-    #[tnunctipun(rename = "isActive")]
+    #[tnuctipun(rename = "isActive")]
     is_user_active: bool,                       // → "isActive"
     
     created_timestamp: chrono::DateTime<chrono::Utc>,  // → "createdTimestamp"
@@ -305,7 +338,9 @@ Control whether private fields are included in field witness generation.
 By default, only `pub` fields generate witnesses:
 
 ```rust
-#[derive(FieldWitnesses)]
+use tnuctipun::filters::empty;
+
+#[derive(FieldWitnesses, MongoComparable)]
 struct User {
     pub name: String,               // ✅ Witness generated
     pub email: String,              // ✅ Witness generated
@@ -316,7 +351,7 @@ struct User {
 // Only public fields are available
 let mut filter = empty::<User>();
 filter.eq::<user_fields::Name, _>("John".to_string());      // ✅ Works
-filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error
+// filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error
 ```
 
 ### Including Private Fields
@@ -324,7 +359,9 @@ filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error
 Use `#[tnuctipun(include_private = true)]` to include private fields:
 
 ```rust
-#[derive(FieldWitnesses)]
+use tnuctipun::filters::empty;
+
+#[derive(FieldWitnesses, MongoComparable)]
 #[tnuctipun(include_private = true)]
 struct User {
     pub name: String,               // ✅ Witness generated
@@ -400,19 +437,33 @@ product_filter.eq::<product_fields::Name, _>("Widget".to_string());
 Field witnesses work with generic structs:
 
 ```rust
+use tnuctipun::filters::empty;
+
 #[derive(FieldWitnesses, MongoComparable)]
 struct Container<T> {
     pub id: String,
     pub data: T,
-    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub created_at: bson::DateTime,
 }
 
-// Usage with specific types
-type UserContainer = Container<User>;
-type ProductContainer = Container<Product>;
+#[derive(FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+}
 
-let mut filter = empty::<UserContainer>();
-filter.eq::<container_fields::Id, _>("container123".to_string());
+#[derive(FieldWitnesses, MongoComparable)]  
+struct Product {
+    pub name: String,
+    pub price: f64,
+}
+
+// Use with specific generic types
+let mut user_container_filter = empty::<Container<User>>();
+user_container_filter.eq::<container_fields::Id, _>("container_123".to_string());
+
+let mut product_container_filter = empty::<Container<Product>>();
+product_container_filter.eq::<container_fields::Id, _>("product_456".to_string());
 ```
 
 ### Nested Structs
@@ -420,6 +471,8 @@ filter.eq::<container_fields::Id, _>("container123".to_string());
 Each struct needs its own derives, even when nested:
 
 ```rust
+use tnuctipun::filters::empty;
+
 #[derive(FieldWitnesses, MongoComparable)]
 struct Address {
     pub street: String,
@@ -448,8 +501,16 @@ address_filter.eq::<address_fields::City, _>("New York".to_string());
 #### Field Does Not Exist
 
 ```rust
+use tnuctipun::filters::empty;
+
+#[derive(FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+}
+
 // Error: no field `InvalidField` in module `user_fields`
-filter.eq::<user_fields::InvalidField, _>("value");
+let mut filter = empty::<User>();
+// filter.eq::<user_fields::InvalidField, _>("value");  // ❌ Compile error
 ```
 
 **Solution**: Check field name spelling and ensure the field exists in your struct.
@@ -457,13 +518,16 @@ filter.eq::<user_fields::InvalidField, _>("value");
 #### Private Field Access
 
 ```rust
+use tnuctipun::filters::empty;
+
 #[derive(FieldWitnesses)]
 struct User {
     name: String,  // Private field
 }
 
 // Error: field witness not generated for private field
-filter.eq::<user_fields::Name, _>("John");
+let mut filter = empty::<User>();
+// filter.eq::<user_fields::Name, _>("John");  // ❌ Compile error - private field
 ```
 
 **Solution**: Either make the field `pub` or use `#[tnuctipun(include_private = true)]`.
@@ -471,13 +535,16 @@ filter.eq::<user_fields::Name, _>("John");
 #### Missing Derives
 
 ```rust
+use tnuctipun::filters::empty;
+
 // Error: trait bound not satisfied
 #[derive(FieldWitnesses)]  // Missing MongoComparable
 struct User {
     pub name: String,
 }
 
-filter.eq::<user_fields::Name, _>("John");  // Fails without MongoComparable
+let mut filter = empty::<User>();
+// filter.eq::<user_fields::Name, _>("John");  // Fails without MongoComparable
 ```
 
 **Solution**: Add the `MongoComparable` derive.
@@ -485,12 +552,18 @@ filter.eq::<user_fields::Name, _>("John");  // Fails without MongoComparable
 #### Type Mismatch
 
 ```rust
-// Error: expected `String`, found `&str`
-filter.eq::<user_fields::Name, _>("John");  // &str instead of String
-```
+use tnuctipun::filters::empty;
 
-**Solution**: Match the exact field type or use conversion:
-```rust
+#[derive(FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+}
+
+let mut filter = empty::<User>();
+// Error: expected `String`, found `&str`
+// filter.eq::<user_fields::Name, _>("John");  // &str instead of String
+
+// Solution: Match the exact field type or use conversion:
 filter.eq::<user_fields::Name, _>("John".to_string());  // Correct
 ```
 
@@ -533,4 +606,4 @@ If you encounter field naming conflicts, check:
 
 - [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices
 - [**Getting Started**](02-getting-started.md) - Return to basics if needed
-- [**API Documentation**](https://cchantep.github.io/tnuctipun/tnunctipun/) - Complete API reference
+- [**API Documentation**](https://cchantep.github.io/tnuctipun/tnuctipun/) - Complete API reference

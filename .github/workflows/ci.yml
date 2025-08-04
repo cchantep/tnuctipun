@@ -262,7 +262,7 @@ jobs:
         EOF
         
         # Update user guide to link to API docs
-        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnunctipun/|../api/tnuctipun/|g' {} \;
+        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnuctipun/|../api/tnuctipun/|g' {} \;
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     - name: Upload Pages artifact

@@ -1,6 +1,6 @@
-# Contributing to Tnunctipun
+# Contributing to Tnuctipun
 
-Thank you for your interest in contributing to Tnunctipun! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code changes.
+Thank you for your interest in contributing to Tnuctipun! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code changes.
 
 ## How to Contribute
 
