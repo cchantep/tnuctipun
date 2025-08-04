@@ -1,9 +1,8 @@
-use nessus::{FieldName, FieldWitnesses, MongoComparable};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField, MongoComparable};
 // Test struct with mixed visibility and include_private = true
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(include_private = true)]
+#[tnuctipun(include_private = true)]
 struct UserWithPrivate {
     pub name: String, // public field
     email: String,    // private field - should be included
@@ -22,7 +21,7 @@ struct UserWithoutPrivate {
 
 // Test struct with all private fields and include_private = true
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(include_private = true)]
+#[tnuctipun(include_private = true)]
 struct AllPrivateIncluded {
     name: String,
     age: i32,
@@ -39,7 +38,7 @@ struct AllPrivateSkipped {
 
 // Test struct with all public fields (include_private should not matter)
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-#[nessus(include_private = false)]
+#[tnuctipun(include_private = false)]
 struct AllPublic {
     pub name: String,
     pub age: i32,
@@ -65,7 +64,7 @@ fn test_include_private_true() {
     );
 
     // Test field access using HasField trait
-    use nessus::HasField;
+    use tnuctipun::HasField;
 
     let name_ref = <UserWithPrivate as HasField<userwithprivate_fields::Name>>::get_field(&user);
 
@@ -96,7 +95,6 @@ fn test_include_private_false_default() {
     assert_eq!(userwithoutprivate_fields::Age::field_name(), "age");
 
     // Test field access using HasField trait
-    use nessus::HasField;
 
     let name_ref =
         <UserWithoutPrivate as HasField<userwithoutprivate_fields::Name>>::get_field(&user);
@@ -126,7 +124,6 @@ fn test_all_private_fields_included() {
     assert_eq!(allprivateincluded_fields::Email::field_name(), "email");
 
     // Test field access using HasField trait
-    use nessus::HasField;
 
     let name_ref =
         <AllPrivateIncluded as HasField<allprivateincluded_fields::Name>>::get_field(&user);
@@ -156,7 +153,6 @@ fn test_all_public_fields() {
     assert_eq!(allpublic_fields::Email::field_name(), "email");
 
     // Test field access using HasField trait
-    use nessus::HasField;
 
     let name_ref = <AllPublic as HasField<allpublic_fields::Name>>::get_field(&user);
     let age_ref = <AllPublic as HasField<allpublic_fields::Age>>::get_field(&user);
@@ -171,7 +167,7 @@ fn test_all_public_fields() {
 fn test_combine_with_other_attributes() {
     // Test that include_private works with other attributes like field_naming
     #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
-    #[nessus(field_naming = "camelCase", include_private = true)]
+    #[tnuctipun(field_naming = "camelCase", include_private = true)]
     struct CombinedAttributesTest {
         pub user_name: String, // public field
         email_address: String, // private field - should be included with camelCase naming
@@ -193,7 +189,6 @@ fn test_combine_with_other_attributes() {
     );
 
     // Test field access using HasField trait
-    use nessus::HasField;
 
     let name_ref =
         <CombinedAttributesTest as HasField<combinedattributestest_fields::UserName>>::get_field(

@@ -1,7 +1,7 @@
 //! Tests for basic nested field projections (simplified to avoid complex API issues)
 
 use super::test_fixtures::*;
-use nessus::projection::empty;
+use tnuctipun::projection::empty;
 
 #[test]
 fn projection_basic_include() {

@@ -1,5 +1,4 @@
 use bson;
-
 use num_traits::Num;
 use std::collections::HashMap;
 
@@ -32,7 +31,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::updates::UpdateBuilder;
+    /// use tnuctipun::updates::UpdateBuilder;
     ///
     /// struct User {
     ///     pub name: String,
@@ -113,7 +112,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     /// use bson::doc;
     ///
@@ -157,7 +156,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -205,7 +204,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -253,7 +252,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -301,7 +300,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -352,7 +351,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::{empty, CurrentDateType}};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::{empty, CurrentDateType}};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -405,7 +404,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     /// use bson::doc;
     ///
@@ -454,7 +453,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, updates::{empty, PopStrategy}};
+    /// use tnuctipun::{FieldWitnesses, updates::{empty, PopStrategy}};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -503,7 +502,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     /// use bson::{doc, Bson};
     ///
@@ -556,7 +555,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -606,7 +605,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     /// use bson::Bson;
     ///
@@ -661,7 +660,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldName, FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -714,7 +713,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -745,26 +744,37 @@ impl<T> UpdateBuilder<T> {
     ///
     /// # Usage with Multiple Nested Operations
     ///
-    /// ```rust,ignore
-    /// use nessus::{FieldWitnesses, updates::empty};
+    /// ```rust
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
-    /// // Using the same structs from above
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Address {
+    ///     pub street: String,
+    ///     pub city: String,
+    ///     pub zip_code: String,
+    /// }
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct User {
+    ///     pub name: String,
+    ///     pub home_address: Address,
+    ///     pub work_address: Address,
+    /// }
+    ///
     /// let update_doc = empty::<User>()
     ///     .with_lookup::<user_fields::HomeAddress, _, address_fields::City, Address, _>(
     ///         |path| path.field::<address_fields::City>(),
-    ///         |mut nested| {
+    ///         |nested| {
     ///             nested
     ///                 .set::<address_fields::City, _>("Boston".to_string())
     ///                 .set::<address_fields::ZipCode, _>("02101".to_string());
-    ///             nested
     ///         }
     ///     )
     ///     .with_lookup::<user_fields::WorkAddress, _, address_fields::Street, Address, _>(
     ///         |path| path.field::<address_fields::Street>(),
-    ///         |mut nested| {
+    ///         |nested| {
     ///             nested.set::<address_fields::Street, _>("123 Business Ave".to_string());
-    ///             nested
     ///         }
     ///     )
     ///     .build();
@@ -840,7 +850,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -873,7 +883,7 @@ impl<T> UpdateBuilder<T> {
     /// The following two approaches are equivalent:
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -920,7 +930,7 @@ impl<T> UpdateBuilder<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -944,7 +954,7 @@ impl<T> UpdateBuilder<T> {
     /// Operations of the same type are combined into a single operation document:
     ///
     /// ```rust
-    /// use nessus::{FieldWitnesses, updates::empty};
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(FieldWitnesses, Serialize, Deserialize)]
@@ -994,7 +1004,7 @@ impl<T> UpdateBuilder<T> {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::updates::UpdateOperation;
+/// use tnuctipun::updates::UpdateOperation;
 ///
 /// let set_op = UpdateOperation::Set;
 ///
@@ -1114,7 +1124,7 @@ impl std::fmt::Display for UpdateOperation {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::updates::CurrentDateType;
+/// use tnuctipun::updates::CurrentDateType;
 ///
 /// let date_type = CurrentDateType::Date;
 ///
@@ -1128,7 +1138,7 @@ impl std::fmt::Display for UpdateOperation {
 /// # Usage with UpdateBuilder
 ///
 /// ```rust
-/// use nessus::updates::{UpdateBuilder, CurrentDateType};
+/// use tnuctipun::updates::{UpdateBuilder, CurrentDateType};
 /// // Assuming you have appropriate field witnesses set up
 ///
 /// let mut builder = UpdateBuilder::<()>::new();
@@ -1163,7 +1173,7 @@ pub enum CurrentDateType {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::updates::CurrentDateType;
+/// use tnuctipun::updates::CurrentDateType;
 ///
 /// assert_eq!(format!("{}", CurrentDateType::Date), "date");
 /// assert_eq!(format!("{}", CurrentDateType::Timestamp), "timestamp");
@@ -1190,7 +1200,7 @@ impl std::fmt::Display for CurrentDateType {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::updates::PopStrategy;
+/// use tnuctipun::updates::PopStrategy;
 /// use bson::Bson;
 ///
 /// let first_strategy = PopStrategy::First;
@@ -1205,7 +1215,7 @@ impl std::fmt::Display for CurrentDateType {
 /// # Usage with UpdateBuilder
 ///
 /// ```rust
-/// use nessus::updates::{UpdateBuilder, PopStrategy};
+/// use tnuctipun::updates::{UpdateBuilder, PopStrategy};
 /// // Assuming you have appropriate field witnesses set up
 ///
 /// let mut builder = UpdateBuilder::<()>::new();
@@ -1238,7 +1248,7 @@ pub enum PopStrategy {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::updates::PopStrategy;
+/// use tnuctipun::updates::PopStrategy;
 /// use bson::Bson;
 ///
 /// let strategy = PopStrategy::First;
@@ -1272,7 +1282,7 @@ impl From<PopStrategy> for bson::Bson {
 /// # Examples
 ///
 /// ```rust
-/// use nessus::{FieldWitnesses, updates::empty};
+/// use tnuctipun::{FieldWitnesses, updates::empty};
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(FieldWitnesses, Serialize, Deserialize)]

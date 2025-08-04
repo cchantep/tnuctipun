@@ -1,7 +1,7 @@
 //! Integration tests combining multiple projection features
 
 use super::test_fixtures::*;
-use nessus::projection::empty;
+use tnuctipun::projection::empty;
 
 #[test]
 fn projection_integration_comprehensive_user_projection() {

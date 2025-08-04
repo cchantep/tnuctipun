@@ -1,6 +1,6 @@
 // This test verifies that primitive types do NOT implement NonEmptyStruct
 
-use nessus::NonEmptyStruct;
+use tnuctipun::NonEmptyStruct;
 
 fn main() {
     // This should fail to compile because String does not implement NonEmptyStruct

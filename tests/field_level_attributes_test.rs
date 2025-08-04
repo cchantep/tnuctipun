@@ -1,9 +1,7 @@
-use nessus::field_witnesses::FieldName;
-use nessus_derive::FieldWitnesses;
-
+use tnuctipun::{FieldName, FieldWitnesses};
 // Test field-level attribute functionality
 // Note: These tests document the intended behavior and test the infrastructure
-// Field-level attributes (#[nessus(rename)], #[nessus(skip)]) are implemented
+// Field-level attributes (#[tnuctipun(rename)], #[tnuctipun(skip)]) are implemented
 // but require attribute registration to work with the full syntax
 
 #[test]
@@ -27,20 +25,21 @@ fn test_field_witness_generation_works() {
 
 #[test]
 fn test_field_level_rename_behavior_documentation() {
-    // This test documents the intended behavior of #[nessus(rename = "name")]
+    // This test documents the intended behavior of #[tnuctipun(rename = "name")]
     // once the attribute is properly registered
 
     // Expected behavior for:
+    //
     // #[derive(FieldWitnesses)]
     // struct User {
-    //     #[nessus(rename = "email")]
+    //     #[tnuctipun(rename = "email")]
     //     email_address: String,
     // }
-
+    //
     // Should generate:
     // - Rust type: user_fields::EmailAddress
     // - MongoDB field name: "email" (not "email_address")
-
+    //
     // The rename attribute should only affect FieldName::field_name(),
     // not the generated Rust type names
 
@@ -53,24 +52,27 @@ fn test_field_level_rename_behavior_documentation() {
 
 #[test]
 fn test_field_level_skip_behavior_documentation() {
-    // This test documents the intended behavior of #[nessus(skip)]
+    // This test documents the intended behavior of #[tnuctipun(skip)]
     // once the attribute is properly registered
 
     // Expected behavior for:
+    //
     // #[derive(FieldWitnesses)]
     // struct User {
     //     name: String,
-    //     #[nessus(skip)]
+    //     #[tnuctipun(skip)]
     //     internal_field: String,
     // }
-
+    //
     // Should generate:
+    //
     // - user_fields::Name (normal field)
     // - NO user_fields::Internal_field (skipped)
     // - HasField<user_fields::Name> impl (normal)
     // - NO HasField<user_fields::Internal_field> impl (skipped)
 
     // The skip attribute should prevent both:
+    //
     // 1. Field witness type generation
     // 2. HasField implementation generation
 
@@ -88,12 +90,12 @@ fn test_field_attribute_priority_over_container_strategy() {
 
     // Expected behavior for:
     // #[derive(FieldWitnesses)]
-    // #[nessus(field_naming = "camelCase")]
+    // #[tnuctipun(field_naming = "camelCase")]
     // struct User {
     //     user_name: String,                    // -> "userName" (container strategy)
-    //     #[nessus(rename = "email")]
+    //     #[tnuctipun(rename = "email")]
     //     email_address: String,               // -> "email" (field override)
-    //     #[nessus(skip)]
+    //     #[tnuctipun(skip)]
     //     internal_id: String,                 // -> not generated (field override)
     //     is_active: bool,                     // -> "isActive" (container strategy)
     // }
@@ -121,16 +123,16 @@ fn test_multiple_fields_with_different_attributes() {
 
     // Expected behavior for:
     // #[derive(FieldWitnesses)]
-    // #[nessus(field_naming = "camelCase")]
+    // #[tnuctipun(field_naming = "camelCase")]
     // struct CompleteTest {
     //     normal_field: String,                 // -> "normalField" (container)
-    //     #[nessus(rename = "id")]
+    //     #[tnuctipun(rename = "id")]
     //     user_id: i64,                         // -> "id" (field rename)
-    //     #[nessus(rename = "createdAt")]
+    //     #[tnuctipun(rename = "createdAt")]
     //     created_timestamp: String,            // -> "createdAt" (field rename)
-    //     #[nessus(skip)]
+    //     #[tnuctipun(skip)]
     //     internal_cache: String,               // -> skipped (field skip)
-    //     #[nessus(skip)]
+    //     #[tnuctipun(skip)]
     //     temp_data: Vec<u8>,                   // -> skipped (field skip)
     //     is_active: bool,                      // -> "isActive" (container)
     // }
@@ -198,8 +200,8 @@ fn test_attribute_parsing_concept() {
     // This documents the parsing logic that's implemented
 
     // The implemented parsing handles:
-    // #[nessus(rename = "value")] -> Some("value".to_string())
-    // #[nessus(skip)] -> true
+    // #[tnuctipun(rename = "value")] -> Some("value".to_string())
+    // #[tnuctipun(skip)] -> true
     // No attributes -> default values
 
     // Test rename concept
@@ -228,6 +230,7 @@ fn test_field_attribute_use_cases() {
     // Use case 1: Database field name different from Rust field name
     let rust_field = "email_address";
     let db_field = "email";
+
     assert_ne!(rust_field, db_field);
 
     // Use case 2: Skip internal/computed fields

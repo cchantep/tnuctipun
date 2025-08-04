@@ -1,9 +1,9 @@
 // This test verifies that MongoComparable works correctly with collection types
 
-use nessus::{FieldWitnesses, MongoComparable};
-use nessus::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::HasField;
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
     Name: String,
@@ -30,6 +30,6 @@ fn main() {
     
     // Attempt to compare with the custom collection
     assert_implements_mongo_comparable::<CustomProduct, 
-        <CustomProduct as nessus::field_witnesses::HasField<customproduct_fields::BadCollection>>::Value, 
+        <CustomProduct as tnuctipun::field_witnesses::HasField<customproduct_fields::BadCollection>>::Value, 
         String>();
 }

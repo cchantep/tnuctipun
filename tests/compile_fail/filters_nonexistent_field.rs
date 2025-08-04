@@ -1,10 +1,9 @@
 // This test verifies that using a nonexistent field with filter_builder will cause a compile error
 
-use nessus::filters::empty;
-use nessus::field_witnesses::FieldName;
-use nessus::{FieldWitnesses, MongoComparable};
+use tnuctipun::{FieldWitnesses, MongoComparable};
+use tnuctipun::filters::empty;
+use tnuctipun::field_witnesses::FieldName;
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
     pub Name: String,

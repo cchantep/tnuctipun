@@ -1,6 +1,5 @@
 // Simple standalone example to prove field name conflicts are resolved
-use nessus::{FieldName, FieldWitnesses};
-
+use tnuctipun::{FieldName, FieldWitnesses};
 #[derive(FieldWitnesses)]
 #[allow(dead_code)] // This struct is used only for field witness generation in this example
 struct Product {

@@ -1,7 +1,7 @@
 //! Integration tests combining multiple operations and complex scenarios
 
 use super::test_fixtures::*;
-use nessus::updates::{PopStrategy, empty};
+use tnuctipun::updates::{PopStrategy, empty};
 
 #[test]
 fn test_mixed_operations_comprehensive() {

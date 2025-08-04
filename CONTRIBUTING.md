@@ -1,6 +1,6 @@
-# Contributing to Nessus
+# Contributing to Tnunctipun
 
-Thank you for your interest in contributing to Nessus! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code changes.
+Thank you for your interest in contributing to Tnunctipun! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code changes.
 
 ## How to Contribute
 
@@ -11,7 +11,7 @@ Thank you for your interest in contributing to Nessus! We welcome contributions 
 
 ## Bug Reports & Feature Requests
 
-- Please use [GitHub Issues](https://github.com/cchantep/nessus/issues) to report bugs or request features.
+- Please use [GitHub Issues](https://github.com/cchantep/tnuctipun/issues) to report bugs or request features.
 - Include as much detail as possible, including steps to reproduce, expected behavior, and environment information.
 
 ## Coding Guidelines

@@ -32,13 +32,13 @@ The macro supports two built-in strategies with **generic string transformations
 
 ### 3. **Field-level Overrides**
 
-- `#[nessus(rename = "custom_name")]` - Override specific field names
-- `#[nessus(skip)]` - Skip field witness generation for specific fields
+- `#[tnuctipun(rename = "custom_name")]` - Override specific field names
+- `#[tnuctipun(skip)]` - Skip field witness generation for specific fields
 
 ### 4. **Private Field Control**
 
-- `#[nessus(include_private = true)]` - Include private fields in witness generation
-- `#[nessus(include_private = false)]` - Skip private fields (default behavior)
+- `#[tnuctipun(include_private = true)]` - Include private fields in witness generation
+- `#[tnuctipun(include_private = false)]` - Skip private fields (default behavior)
 
 ## Usage Examples
 
@@ -57,7 +57,7 @@ struct User {
 ```rust
 // Built-in strategies
 #[derive(FieldWitnesses)]
-#[nessus(field_naming = "camelCase")]
+#[tnuctipun(field_naming = "camelCase")]
 struct User {
     user_name: String,      // → "userName"
     email_address: String,  // → "emailAddress"
@@ -65,18 +65,18 @@ struct User {
 
 // Field-level overrides
 #[derive(FieldWitnesses)]
-#[nessus(field_naming = "camelCase")]
+#[tnuctipun(field_naming = "camelCase")]
 struct User {
     user_name: String,              // → "userName"
-    #[nessus(rename = "email")]
+    #[tnuctipun(rename = "email")]
     email_address: String,          // → "email" (override)
-    #[nessus(skip)]
+    #[tnuctipun(skip)]
     internal_id: String,            // Skipped entirely
 }
 
 // Private field control
 #[derive(FieldWitnesses)]
-#[nessus(include_private = true)]
+#[tnuctipun(include_private = true)]
 struct UserWithPrivate {
     pub user_name: String,          // Public field - included
     email_address: String,          // Private field - included
@@ -84,7 +84,7 @@ struct UserWithPrivate {
 
 // Combined attributes
 #[derive(FieldWitnesses)]
-#[nessus(field_naming = "camelCase", include_private = true)]
+#[tnuctipun(field_naming = "camelCase", include_private = true)]
 struct UserCombined {
     pub user_name: String,          // → "userName" (public)
     email_address: String,          // → "emailAddress" (private, included)
@@ -102,7 +102,7 @@ struct UserCombined {
 - Comprehensive error handling
 - Updated documentation and examples
 - Complete functionality tests
-- The `nessus` attribute is registered and working correctly
+- The `tnuctipun` attribute is registered and working correctly
 
 ✅ **All Features Working:**
 

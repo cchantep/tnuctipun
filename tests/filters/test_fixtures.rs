@@ -1,8 +1,7 @@
 //! Shared test fixtures, mock types, and field implementations for filters tests
 
-use nessus::FieldWitnesses;
-use nessus_derive::MongoComparable;
 use serde::{Deserialize, Serialize};
+use tnuctipun::{FieldWitnesses, MongoComparable};
 
 // Define test structs
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]

@@ -1,7 +1,9 @@
 // This test verifies that a struct WITHOUT FieldWitnesses does NOT implement NonEmptyStruct
 
-use nessus::NonEmptyStruct;
+use tnuctipun::{FieldWitnesses, NonEmptyStruct};
+use tnuctipun::NonEmptyStruct;
 use serde::{Serialize, Deserialize};
+use tnuctipun::FieldWitnesses;
 
 // This struct does NOT derive FieldWitnesses
 #[derive(Debug, Clone, Serialize, Deserialize)]

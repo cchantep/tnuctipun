@@ -8,8 +8,8 @@ pub mod projection;
 pub mod updates;
 
 // Re-export the procedural macros
-pub use nessus_derive::FieldWitnesses;
-pub use nessus_derive::MongoComparable;
+pub use tnuctipun_derive::FieldWitnesses;
+pub use tnuctipun_derive::MongoComparable;
 
 // Export the traits
 pub use crate::field_filters::FieldFilterBuilder;

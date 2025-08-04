@@ -1,6 +1,6 @@
 //! Shared test fixtures, mock types, and field implementations
 
-use nessus::field_witnesses::{FieldName, HasField};
+use tnuctipun::{FieldName, HasField};
 
 // Mock field name marker types for testing
 pub struct TestFieldName;

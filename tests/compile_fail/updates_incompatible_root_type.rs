@@ -1,9 +1,8 @@
 // This test verifies that UpdateBuilder::with_lookup rejects paths with incompatible Root type parameters
 
-use nessus::updates::empty;
-use nessus::{FieldWitnesses, path::Path};
+use tnuctipun::updates::empty;
+use tnuctipun::{FieldWitnesses};
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Address {
     pub street: String,

@@ -1,12 +1,13 @@
 # Release and Publication Guide
 
-This document describes the process for releasing new versions of the Nessus library to crates.io.
+This document describes the process for releasing new versions of the Tnunctipun library to crates.io.
 
 ## Overview
 
-Nessus uses a workspace-based project structure with two crates:
-- `nessus-derive`: Procedural macros for deriving traits
-- `nessus`: Main library that depends on `nessus-derive`
+Tnuctipun uses a workspace-based project structure with two crates:
+
+- `tnuctipun-derive`: Procedural macros for deriving traits
+- `tnuctipun`: Main library that depends on `tnuctipun-derive`
 
 The publication process is automated through GitHub Actions but requires careful version management.
 
@@ -97,7 +98,7 @@ If you prefer manual control, follow these steps:
 Both crates must have synchronized versions. Update versions in:
 
 - `Cargo.toml` (main crate)
-- `nessus-derive/Cargo.toml` (derive crate)
+- `tnuctipun-derive/Cargo.toml` (derive crate)
 
 #### For a patch release (0.1.0 → 0.1.1):
 
@@ -122,11 +123,11 @@ cargo set-version --workspace 1.0.0
 
 ### Step 3: Update Dependencies
 
-Ensure `nessus-derive` dependency version is updated in the main `Cargo.toml`:
+Ensure `tnuctipun-derive` dependency version is updated in the main `Cargo.toml`:
 
 ```toml
 [dependencies]
-nessus-derive = { version = "0.2.0", path = "./nessus-derive" }  # Update version here
+tnuctipun-derive = { version = "0.2.0", path = "./tnuctipun-derive" }  # Update version here
 ```
 
 ### Step 4: Update Changelog
@@ -164,7 +165,7 @@ git push origin v0.2.0
 3. **Test installation**: Try installing the new version:
 
 ```bash
-cargo install nessus --version 0.2.0
+cargo install tnuctipun --version 0.2.0
 ```
 
 ## Automated Release Workflow
@@ -175,9 +176,9 @@ The GitHub Actions workflow performs these steps:
 2. **Testing**: Runs the full test suite before publishing
 3. **Dry Run**: Performs a dry run to catch issues before actual publishing
 4. **Sequential Publishing**: 
-   - Publishes `nessus-derive` first
+   - Publishes `tnuctipun-derive` first
    - Waits for it to become available on crates.io
-   - Then publishes `nessus`
+   - Then publishes `tnuctipun`
 5. **GitHub Release**: Creates a GitHub release with the tag
 
 ## Troubleshooting
@@ -214,7 +215,7 @@ Error: Tag version (0.2.0) does not match main crate version (0.1.0)
 #### Dependency Not Found
 
 ```
-error: failed to select a version for the requirement `nessus-derive = "^0.2.0"`
+error: failed to select a version for the requirement `tnuctipun-derive = "^0.2.0"`
 ```
 
 **Solution**: The derive crate hasn't propagated to crates.io yet. The workflow waits 60 seconds and retries.
@@ -239,7 +240,7 @@ If the automated process fails, you can publish manually:
 cargo login YOUR_CRATES_IO_TOKEN
 
 # Publish derive crate first
-cd nessus-derive
+cd tnuctipun-derive
 cargo publish
 
 # Wait a few minutes, then publish main crate
@@ -283,8 +284,8 @@ For breaking changes, provide:
 If a critical issue is discovered:
 
 ```bash
-cargo yank --version 0.2.0 nessus
-cargo yank --version 0.2.0 nessus-derive
+cargo yank --version 0.2.0 tnuctipun
+cargo yank --version 0.2.0 tnuctipun-derive
 ```
 
 Then immediately prepare a patch release with the fix.
@@ -301,6 +302,7 @@ For security issues:
 ## Quick Reference
 
 ### Automated Release
+
 ```bash
 # Recommended: Use the release script
 ./scripts/release.sh
@@ -310,12 +312,13 @@ For security issues:
 ```
 
 ### Manual Release
+
 ```bash
 # 1. Update versions
 cargo set-version --workspace X.Y.Z
 
 # 2. Update dependency version in main Cargo.toml
-# Edit: nessus-derive = { version = "X.Y.Z", path = "./nessus-derive" }
+# Edit: tnuctipun-derive = { version = "X.Y.Z", path = "./tnuctipun-derive" }
 
 # 3. Commit and tag
 git add .
@@ -326,10 +329,11 @@ git push origin vX.Y.Z
 ```
 
 ### Emergency Procedures
+
 ```bash
 # Yank a problematic release
-cargo yank --version X.Y.Z nessus
-cargo yank --version X.Y.Z nessus-derive
+cargo yank --version X.Y.Z tnuctipun
+cargo yank --version X.Y.Z tnuctipun-derive
 
 # Then release a fix immediately
 ```

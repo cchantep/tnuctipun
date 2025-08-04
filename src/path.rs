@@ -1,5 +1,4 @@
 use crate::field_witnesses::{FieldName, HasField};
-
 /// A type-safe path builder for navigating nested document structures in MongoDB queries.
 ///
 /// The `Path` struct represents a navigation path through nested document fields,
@@ -22,8 +21,8 @@ use crate::field_witnesses::{FieldName, HasField};
 /// # Example
 ///
 /// ```rust
-/// use nessus::path::Path;
-/// use nessus::FieldWitnesses;
+/// use tnuctipun::path::Path;
+/// use tnuctipun::FieldWitnesses;
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -64,8 +63,8 @@ impl<F: FieldName, T: HasField<F>, Root> Path<F, T, Root> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::path::Path;
-    /// use nessus::FieldWitnesses;
+    /// use tnuctipun::path::Path;
+    /// use tnuctipun::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -112,8 +111,8 @@ impl<F: FieldName, T: HasField<F>, Root> Path<F, T, Root> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::path::Path;
-    /// use nessus::FieldWitnesses;
+    /// use tnuctipun::path::Path;
+    /// use tnuctipun::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -169,8 +168,8 @@ impl<F: FieldName, T: HasField<F>, Root> Default for Path<F, T, Root> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::path::Path;
-    /// use nessus::FieldWitnesses;
+    /// use tnuctipun::path::Path;
+    /// use tnuctipun::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -194,8 +193,8 @@ impl<F: FieldName, T: HasField<F>, Root> Clone for Path<F, T, Root> {
     /// # Example
     ///
     /// ```rust
-    /// use nessus::path::Path;
-    /// use nessus::FieldWitnesses;
+    /// use tnuctipun::path::Path;
+    /// use tnuctipun::FieldWitnesses;
     /// use serde::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]

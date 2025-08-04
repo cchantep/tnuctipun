@@ -1,9 +1,8 @@
 // This test verifies that using the wrong type with filter_builder will cause a compile error
 
-use nessus::filters::empty;
-use nessus::{FieldWitnesses, MongoComparable};
+use tnuctipun::{FieldWitnesses, MongoComparable};
+use tnuctipun::filters::empty;
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
     pub Price: f64,

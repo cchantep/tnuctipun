@@ -1,8 +1,8 @@
-# Global ownership
+# Global owner
 * @cchantep
 
-# Derive macros
-/nessus-derive/ @cchantep
+# Derive crate specific
+/tnuctipun-derive/ @cchantep
 
 # CI/CD
 /.github/ @cchantep

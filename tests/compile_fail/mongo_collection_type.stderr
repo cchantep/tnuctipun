@@ -1,3 +1,28 @@
+error[E0252]: the name `HasField` is defined multiple times
+ --> tests/compile_fail/mongo_collection_type.rs:5:5
+  |
+3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+  |                                                  -------- previous import of the trait `HasField` here
+4 | use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
+5 | use tnuctipun::HasField;
+  |     ^^^^^^^^^^^^^^^^^^^ `HasField` reimported here
+  |
+  = note: `HasField` must be defined only once in the type namespace of this module
+
+warning: unused imports: `FieldName` and `HasField`
+ --> tests/compile_fail/mongo_collection_type.rs:3:50
+  |
+3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
+  |                                                  ^^^^^^^^  ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `tnuctipun::HasField`
+ --> tests/compile_fail/mongo_collection_type.rs:5:5
+  |
+5 | use tnuctipun::HasField;
+  |     ^^^^^^^^^^^^^^^^^^^
+
 error[E0277]: the trait bound `CustomProduct: MongoComparable<CustomCollection, std::string::String>` is not satisfied
   --> tests/compile_fail/mongo_collection_type.rs:32:42
    |

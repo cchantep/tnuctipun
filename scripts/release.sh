@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Nessus Release Script
-# This script helps automate the release process for Nessus
+# Tnunctipun Release Script
+# This script helps automate the release process for Tnunctipun
 
 set -e
 
@@ -84,16 +84,15 @@ update_version() {
     # Update main Cargo.toml
     sed -i.bak "s/^version = \".*\"/version = \"$new_version\"/" Cargo.toml
     
-    # Update derive Cargo.toml
-    sed -i.bak "s/^version = \".*\"/version = \"$new_version\"/" nessus-derive/Cargo.toml
+    # Update derive crate version
+    echo "Updating tnuctipun-derive to version $new_version"
+    sed -i.bak "s/^version = ".*"/version = "$new_version"/" tnuctipun-derive/Cargo.toml
     
-    # Update dependency version in main Cargo.toml
-    sed -i.bak "s/nessus-derive = { version = \".*\", path/nessus-derive = { version = \"$new_version\", path/" Cargo.toml
+    # Update dependency reference in main Cargo.toml
+    sed -i.bak "s/tnuctipun-derive = { version = ".*", path/tnuctipun-derive = { version = "$new_version", path/" Cargo.toml
     
-    # Remove backup files
-    rm -f Cargo.toml.bak nessus-derive/Cargo.toml.bak
-    
-    print_success "Version updated to $new_version"
+    # Clean up backup files
+    rm -f Cargo.toml.bak tnuctipun-derive/Cargo.toml.bak    print_success "Version updated to $new_version"
 }
 
 # Function to create and push tag
@@ -116,7 +115,7 @@ create_tag() {
 
 # Main script
 main() {
-    echo "🚀 Nessus Release Script"
+    echo "🚀 Tnunctipun Release Script"
     echo "======================="
     echo
     

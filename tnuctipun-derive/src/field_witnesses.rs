@@ -2,6 +2,37 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Attribute, Data, DeriveInput, Fields, Lit, Visibility, parse_macro_input};
 
+/// Derive macro for generating field witnesses with full attribute support.
+///
+/// This macro generates type-safe field markers for struct fields, enabling compile-time
+/// validation of field access in MongoDB operations. It provides extensive customization
+/// through container-level and field-level attributes.
+///
+/// The macro generates two distinct naming schemes:
+///
+/// 1. **Struct marker names**: Always converted to PascalCase regardless of strategy (e.g., `user_name` → `UserName`)
+/// 2. **MongoDB field names**: Controlled by the field naming strategy (returned by `FieldName::field_name()`)
+///
+/// This separation ensures Rust code follows proper naming conventions while allowing flexible
+/// MongoDB field naming.
+///
+/// # Attributes
+///
+/// ## Container-level attributes
+///
+/// - `#[tnuctipun(field_naming = "strategy")]` - Apply a naming strategy to MongoDB field names
+///   - Built-in strategies: "PascalCase", "camelCase"
+///   - If not specified, MongoDB field names are kept as-is (no transformation)
+///   - **Note**: This only affects `FieldName::field_name()` output, not struct marker names
+/// - `#[tnuctipun(include_private = true)]` - Include private fields in witness generation
+///   - If not specified or set to false, private fields are skipped
+///   - When true, both public and private fields generate witnesses
+///
+/// ## Field-level attributes
+///
+/// - `#[tnuctipun(rename = "name")]` - Override the MongoDB field name for this specific field
+/// - `#[tnuctipun(skip)]` - Skip generating witnesses for this field
+///
 /// Built-in field naming strategies
 struct FieldNaming;
 
@@ -53,25 +84,25 @@ struct FieldAttributes {
 ///
 /// ## Container-level attributes
 ///
-/// - `#[nessus(field_naming = "strategy")]` - Apply a naming strategy to MongoDB field names
+/// - `#[tnuctipun(field_naming = "strategy")]` - Apply a naming strategy to MongoDB field names
 ///   - Built-in strategies: "PascalCase", "camelCase"
 ///   - If not specified, MongoDB field names are kept as-is (no transformation)
 ///   - **Note**: This only affects `FieldName::field_name()` output, not struct marker names
-/// - `#[nessus(include_private = true)]` - Include private fields in witness generation
+/// - `#[tnuctipun(include_private = true)]` - Include private fields in witness generation
 ///   - If not specified or set to false, private fields are skipped
 ///   - When true, both public and private fields generate witnesses
 ///
 /// ## Field-level attributes
 ///
-/// - `#[nessus(rename = "name")]` - Override the MongoDB field name for this specific field
-/// - `#[nessus(skip)]` - Skip generating witnesses for this field
+/// - `#[tnuctipun(rename = "name")]` - Override the MongoDB field name for this specific field
+/// - `#[tnuctipun(skip)]` - Skip generating witnesses for this field
 ///
 /// # Examples
 ///
 /// ## Basic usage (default behavior):
 ///
 /// ```ignore
-/// use nessus_derive::FieldWitnesses;
+/// use tnuctipun::derive::FieldWitnesses;
 ///
 /// #[derive(FieldWitnesses)]
 /// struct User {
@@ -92,7 +123,7 @@ struct FieldAttributes {
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
-/// #[nessus(field_naming = "camelCase")]
+/// #[tnuctipun(field_naming = "camelCase")]
 /// struct User {
 ///     user_name: String,
 ///     email_address: String,
@@ -129,12 +160,12 @@ struct FieldAttributes {
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
-/// #[nessus(field_naming = "camelCase")]
+/// #[tnuctipun(field_naming = "camelCase")]
 /// struct User {
 ///     user_name: String,              // -> "userName"
-///     #[nessus(rename = "email")]
+///     #[tnuctipun(rename = "email")]
 ///     email_address: String,          // -> "email" (override)
-///     #[nessus(skip)]
+///     #[tnuctipun(skip)]
 ///     internal_id: String,            // Skipped entirely
 /// }
 /// ```
@@ -143,7 +174,7 @@ struct FieldAttributes {
 ///
 /// ```ignore
 /// #[derive(FieldWitnesses)]
-/// #[nessus(include_private = true)]
+/// #[tnuctipun(include_private = true)]
 /// struct User {
 ///     pub user_name: String,          // Public field - included
 ///     email_address: String,          // Private field - included due to include_private = true
@@ -197,7 +228,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
             let field_name = field.ident.as_ref().unwrap();
             let field_attrs = parse_field_attributes(&field.attrs);
 
-            // Skip fields marked with #[nessus(skip)]
+            // Skip fields marked with #[tnuctipun(skip)]
             if field_attrs.skip {
                 return None;
             }
@@ -235,7 +266,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
                 #[derive(Debug, Clone)]
                 pub struct #struct_marker_name;
 
-                impl ::nessus::field_witnesses::FieldName for #struct_marker_name {
+                impl ::tnuctipun::field_witnesses::FieldName for #struct_marker_name {
                     fn field_name() -> &'static str {
                         #mongo_field_name_expr
                     }
@@ -249,7 +280,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
         let field_name = field.ident.as_ref().unwrap();
         let field_attrs = parse_field_attributes(&field.attrs);
 
-        // Skip fields marked with #[nessus(skip)]
+        // Skip fields marked with #[tnuctipun(skip)]
         if field_attrs.skip {
             return None;
         }
@@ -266,7 +297,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
         );
 
         Some(quote! {
-            impl ::nessus::field_witnesses::HasField<#fields_mod_name::#struct_marker_name> for #struct_name {
+            impl ::tnuctipun::field_witnesses::HasField<#fields_mod_name::#struct_marker_name> for #struct_name {
                 type Value = #field_type;
 
                 fn get_field(&self) -> &Self::Value {
@@ -278,7 +309,7 @@ pub fn derive_field_witnesses(input: TokenStream) -> TokenStream {
 
     // Generate the final code
     let expanded = quote! {
-        impl ::nessus::field_witnesses::NonEmptyStruct for #struct_name {}
+        impl ::tnuctipun::field_witnesses::NonEmptyStruct for #struct_name {}
 
         // Create a module containing all field witnesses specifically for this struct
         // This prevents naming conflicts when multiple structs have fields with the same name
@@ -298,7 +329,7 @@ fn parse_container_attributes(attrs: &[Attribute]) -> ContainerAttributes {
     let mut container_attrs = ContainerAttributes::default();
 
     for attr in attrs {
-        if attr.path().is_ident("nessus") {
+        if attr.path().is_ident("tnuctipun") {
             let _ = attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("field_naming") {
                     let value: Lit = meta.value()?.parse()?;
@@ -352,7 +383,7 @@ fn parse_field_attributes(attrs: &[Attribute]) -> FieldAttributes {
     let mut field_attrs = FieldAttributes::default();
 
     for attr in attrs {
-        if attr.path().is_ident("nessus") {
+        if attr.path().is_ident("tnuctipun") {
             let _ = attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("rename") {
                     let value: Lit = meta.value()?.parse()?;

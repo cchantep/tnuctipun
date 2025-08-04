@@ -1,7 +1,7 @@
 //! Integration tests combining multiple filter operations
 
 use super::test_fixtures::*;
-use nessus::filters::empty;
+use tnuctipun::filters::empty;
 
 #[test]
 fn test_comprehensive_filter_chain() {

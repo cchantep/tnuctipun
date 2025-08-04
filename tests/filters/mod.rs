@@ -1,4 +1,4 @@
-//! Test module for nessus filters functionality
+//! Test module for tnuctipun filters functionality
 
 #[cfg(test)]
 pub mod test_fixtures;

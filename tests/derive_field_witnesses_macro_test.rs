@@ -1,6 +1,5 @@
-use nessus::{FieldName, FieldWitnesses, HasField, NonEmptyStruct};
 use serde::{Deserialize, Serialize};
-
+use tnuctipun::{FieldName, FieldWitnesses, HasField, NonEmptyStruct};
 // Test struct with the derive macro
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 pub struct DeriveUser {

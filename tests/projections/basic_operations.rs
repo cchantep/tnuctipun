@@ -1,7 +1,7 @@
 //! Tests for basic projection operations: includes, excludes, project
 
 use super::test_fixtures::*;
-use nessus::projection::{ProjectionBuilder, empty};
+use tnuctipun::projection::{ProjectionBuilder, empty};
 
 #[test]
 fn projection_includes_generates_correct_paths() {

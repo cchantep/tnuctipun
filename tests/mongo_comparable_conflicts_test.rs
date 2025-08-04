@@ -1,11 +1,10 @@
 #![allow(non_camel_case_types)]
 
-use nessus::{FieldWitnesses, MongoComparable};
+use tnuctipun::{FieldWitnesses, MongoComparable};
 
 // Test potential MongoComparable conflicts
 mod user_management {
     use super::*;
-
     #[derive(Debug, Clone, FieldWitnesses, MongoComparable)]
     pub struct User {
         pub name: String,
@@ -38,7 +37,7 @@ mod admin_panel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nessus::mongo_comparable::MongoComparable;
+    use tnuctipun::mongo_comparable::MongoComparable;
 
     #[test]
     fn test_mongo_comparable_no_conflicts() {

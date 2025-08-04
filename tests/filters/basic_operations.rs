@@ -1,7 +1,7 @@
 //! Tests for basic filter operations
 
 use super::test_fixtures::*;
-use nessus::filters::empty;
+use tnuctipun::filters::empty;
 
 #[test]
 fn test_eq_filter() {

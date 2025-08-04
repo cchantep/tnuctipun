@@ -17,7 +17,7 @@ fn parse_container_attributes(attrs: &[Attribute]) -> ContainerAttributes {
     let mut container_attrs = ContainerAttributes::default();
 
     for attr in attrs {
-        if attr.path().is_ident("nessus") {
+        if attr.path().is_ident("tnuctipun") {
             let _ = attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("include_private") {
                     let value: Lit = meta.value()?.parse()?;
@@ -82,7 +82,7 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
             // DEBUG: println!("{} ==> {:?}: {}", name, &field.ident, field_tname);
 
             impls.push(quote! {
-                impl nessus::mongo_comparable::MongoComparable<#field_type, #field_type> for #name {}
+                impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #field_type> for #name {}
             });
         }
 
@@ -114,7 +114,7 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
                         };
 
                         impls.push(quote! {
-                            impl nessus::mongo_comparable::MongoComparable<#field_type, #compatible_type> for #name {}
+                            impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #compatible_type> for #name {}
                         });
                     }
                 }
@@ -139,7 +139,7 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
                         if !implemented_types.contains(&impl_key) {
                             implemented_types.insert(impl_key);
                             impls.push(quote! {
-                                impl nessus::mongo_comparable::MongoComparable<#field_type, #inner_type> for #name {}
+                                impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #inner_type> for #name {}
                             });
                         }
 
@@ -171,7 +171,7 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
                                         };
 
                                         impls.push(quote! {
-                                            impl nessus::mongo_comparable::MongoComparable<#field_type, Option<#compatible_type>> for #name {}
+                                            impl tnuctipun::mongo_comparable::MongoComparable<#field_type, Option<#compatible_type>> for #name {}
                                         });
                                     }
                                 }
@@ -192,7 +192,7 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
                         if !implemented_types.contains(&impl_key) {
                             implemented_types.insert(impl_key);
                             impls.push(quote! {
-                                impl nessus::mongo_comparable::MongoComparable<#field_type, #item_type> for #name {}
+                                impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #item_type> for #name {}
                             });
                         }
                     }

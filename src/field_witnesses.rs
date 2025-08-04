@@ -10,7 +10,7 @@
 /// The simplest way to generate field witnesses is to use the derive macro:
 ///
 /// ```rust
-/// use nessus::FieldWitnesses;
+/// use tnuctipun::FieldWitnesses;
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
@@ -44,7 +44,7 @@ pub trait HasField<F: FieldName> {
 /// Examples of compile-time type safety:
 ///
 /// ```compile_fail
-/// use nessus::field_witnesses::HasField;
+/// use tnuctipun::field_witnesses::HasField;
 ///
 /// // Define a simple struct with an i32 age field
 /// struct User { age: i32 }
@@ -72,7 +72,7 @@ pub trait FieldName {
 /// It's implemented for structs that have at least one field and are using the `FieldWitnesses` derive macro.
 ///
 /// ```rust
-/// use nessus::{FieldWitnesses, NonEmptyStruct};
+/// use tnuctipun::{FieldWitnesses, NonEmptyStruct};
 ///
 /// #[derive(Debug, Clone, FieldWitnesses)]
 /// struct User {
@@ -87,7 +87,7 @@ pub trait NonEmptyStruct {}
 /// Example showing compile error when trying to access a nonexistent field:
 ///
 /// ```compile_fail
-/// use nessus::{HasField, FieldName};
+/// use tnuctipun::{HasField, FieldName};
 ///
 /// // Define a simple struct
 /// struct User { name: String }
@@ -230,14 +230,17 @@ mod tests {
 
         // Test compile-time type safety for name field
         let name_ref: &String = <TestUser as HasField<test_name>>::get_field(&user);
+
         assert_eq!(name_ref, "Test");
 
         // Test compile-time type safety for age field
         let age_ref: &i32 = <TestUser as HasField<test_age>>::get_field(&user);
+
         assert_eq!(*age_ref, 42);
 
         // Test compile-time type safety for email field
         let email_ref: &String = <TestUser as HasField<test_email>>::get_field(&user);
+
         assert_eq!(email_ref, "test@example.com");
     }
 }

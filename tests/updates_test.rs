@@ -1,4 +1,4 @@
-//! Test module for nessus updates functionality
+//! Test module for tnuctipun updates functionality
 
 mod updates;
 

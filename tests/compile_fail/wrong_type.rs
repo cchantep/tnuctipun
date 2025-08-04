@@ -1,8 +1,7 @@
 // This test verifies that using the wrong type will cause a compile error
 
-use nessus::{FieldName, FieldWitnesses, HasField};
+use tnuctipun::{FieldWitnesses, HasField, FieldName};
 use serde::{Serialize, Deserialize};
-
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
 struct Product {
     pub Price: f64,
