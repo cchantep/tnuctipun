@@ -79,7 +79,8 @@ let update_doc = updates::empty::<User>()
 
 ## Documentation
 
-- **[API Documentation (GitHub Pages)](https://cchantep.github.io/tnuctipun/tnuctipun/)** - Latest development docs
+- **[User Guide](https://cchantep.github.io/tnuctipun/)** - Comprehensive documentation with examples and tutorials
+- **[API Documentation](https://cchantep.github.io/tnuctipun/api/tnuctipun/)** - Complete API reference (auto-generated)
 - **[Crates.io Documentation](https://docs.rs/tnuctipun)** - Released version docs
 
 ## Development
