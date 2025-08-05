@@ -1,8 +1,6 @@
 ---
 title: Introduction & Motivation
 layout: page
-nav_order: 1
-parent: User Guide
 ---
 
 # Introduction & Motivation

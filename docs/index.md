@@ -1,7 +1,6 @@
 ---
 title: Home
-layout: default
-nav_order: 1
+layout: page
 description: "Tnuctipun - Type-safe MongoDB query and update builder for Rust"
 permalink: /
 ---

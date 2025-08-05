@@ -4,30 +4,11 @@ description: "Type-safe MongoDB query and update builder for Rust"
 baseurl: "/tnuctipun"
 url: "https://cchantep.github.io"
 
-# Theme - just-the-docs is better for technical documentation
-remote_theme: just-the-docs/just-the-docs
+# Theme - using minima which is GitHub Pages compatible
+theme: minima
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-
-# just-the-docs theme configuration
-color_scheme: nil # Use default, or set to "dark" for dark mode
-search_enabled: true
-search:
-  heading_level: 2
-  previews: 3
-  preview_words_before: 5
-  preview_words_after: 10
-  tokenizer_separator: /[\s/]+/
-  rel_url: true
-
-# Navigation structure
-nav_sort: case_insensitive
-nav_external_links:
-  - title: "API Documentation"
-    url: "/tnuctipun/api/tnuctipun/"
-  - title: "GitHub Repository"
-    url: "https://github.com/cchantep/tnuctipun"
 
 # Markdown settings
 markdown: kramdown
@@ -45,22 +26,20 @@ collections:
     output: true
     permalink: /examples/:name/
 
-# Defaults for just-the-docs theme
+# Defaults for minima theme
 defaults:
   - scope:
       path: ""
       type: "pages"
     values:
-      layout: "default"
+      layout: "page"
   - scope:
       path: "user-guide"
       type: "pages"
     values:
-      layout: "default"
-      parent: "User Guide"
+      layout: "page"
   - scope:
       path: "examples"
       type: "pages"  
     values:
-      layout: "default"
-      parent: "Examples"
+      layout: "page"

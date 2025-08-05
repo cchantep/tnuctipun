@@ -1,8 +1,6 @@
 ---
 title: Updating Documents
 layout: page
-nav_order: 4
-parent: User Guide
 ---
 
 # Updating Documents

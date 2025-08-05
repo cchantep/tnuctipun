@@ -1,8 +1,6 @@
 ---
 title: Getting Started
 layout: page
-nav_order: 2
-parent: User Guide
 ---
 
 # Getting Started
