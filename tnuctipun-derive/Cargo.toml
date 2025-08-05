@@ -6,6 +6,7 @@ description = "Derive macros for the Tnuctipun MongoDB type-safe query builder l
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/cchantep/tnuctipun"
 documentation = "https://docs.rs/tnuctipun-derive"
+readme = "README.md"
 keywords = ["mongodb", "database", "derive", "macro", "type-safe"]
 categories = ["database"]
 authors = ["Cédric Chantepie <cchantep@users.noreply.github.com>"]
