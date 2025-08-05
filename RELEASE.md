@@ -48,6 +48,7 @@ Use the provided release script for a streamlined, safe release process:
 ```
 
 **What the script does:**
+
 1. ✅ Validates prerequisites (clean git status, correct branch)
 2. ✅ Runs comprehensive tests (`cargo test`, `clippy`, `fmt`)
 3. ✅ Prompts for version type (patch/minor/major) or custom version
@@ -56,6 +57,7 @@ Use the provided release script for a streamlined, safe release process:
 6. ✅ Triggers automated GitHub Actions release
 
 **Interactive Example:**
+
 ```bash
 🚀 Nessus Release Script
 =======================
