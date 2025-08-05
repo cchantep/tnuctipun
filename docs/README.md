@@ -1,7 +1,7 @@
 ---
 title: Tnuctipun User Guide
 layout: home
-nav_order: 1
+nav_exclude: true
 ---
 
 # Tnuctipun User Guide

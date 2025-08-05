@@ -1,8 +1,8 @@
 # Jekyll configuration for GitHub Pages
 title: "Tnuctipun User Guide"
 description: "Type-safe MongoDB query and update builder for Rust"
-baseurl: "/tnuctipun"
-url: "https://cchantep.github.io"
+baseurl: ""
+url: "https://cchantep.github.io/tnuctipun"
 
 # Theme - just-the-docs is better for technical documentation
 remote_theme: just-the-docs/just-the-docs
@@ -25,7 +25,7 @@ search:
 nav_sort: case_insensitive
 nav_external_links:
   - title: "API Documentation"
-    url: "../api/tnuctipun/"
+    url: "/api/tnuctipun/"
   - title: "GitHub Repository"
     url: "https://github.com/cchantep/tnuctipun"
 
