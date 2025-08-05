@@ -1,7 +1,7 @@
 ---
 title: Basic Usage Examples
 layout: page
-parent: Examples
+nav_exclude: true
 ---
 
 # Basic Usage Examples

@@ -1,6 +1,7 @@
 ---
 title: Finding Documents
 layout: page
+nav_exclude: true
 ---
 
 # Finding Documents

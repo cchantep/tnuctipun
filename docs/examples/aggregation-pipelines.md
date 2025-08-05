@@ -1,7 +1,7 @@
 ---
 title: Aggregation Pipelines
 layout: page
-parent: Examples
+nav_exclude: true
 ---
 
 # Aggregation Pipeline Examples

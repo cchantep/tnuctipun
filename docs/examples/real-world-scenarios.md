@@ -1,7 +1,7 @@
 ---
 title: Real-World Scenarios
 layout: page
-parent: Examples
+nav_exclude: true
 ---
 
 # Real-World Scenarios

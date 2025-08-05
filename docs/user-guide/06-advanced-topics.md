@@ -1,6 +1,7 @@
 ---
 title: Advanced Topics
 layout: page
+nav_exclude: true
 ---
 
 # Advanced Query Patterns

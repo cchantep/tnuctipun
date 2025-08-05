@@ -1,6 +1,7 @@
 ---
 title: Introduction & Motivation
 layout: page
+nav_exclude: true
 ---
 
 # Introduction & Motivation

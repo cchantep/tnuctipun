@@ -1,6 +1,7 @@
 ---
 title: Derive Macros
 layout: page
+nav_exclude: true
 ---
 
 # Derive Macros

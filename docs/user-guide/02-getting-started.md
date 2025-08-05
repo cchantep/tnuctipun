@@ -1,6 +1,7 @@
 ---
 title: Getting Started
 layout: page
+nav_exclude: true
 ---
 
 # Getting Started

@@ -1,5 +1,5 @@
 # Jekyll configuration for GitHub Pages
-title: "Tnuctipun User Guide"
+title: "Tnuctipun"
 description: "Type-safe MongoDB query and update builder for Rust"
 baseurl: "/tnuctipun"
 url: "https://cchantep.github.io"
@@ -9,6 +9,11 @@ theme: minima
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+
+# Minima theme settings
+header_pages:
+  - index.md
+  - user-guide/index.md
 
 # Markdown settings
 markdown: kramdown

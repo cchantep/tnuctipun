@@ -1,6 +1,7 @@
 ---
 title: Updating Documents
 layout: page
+nav_exclude: true
 ---
 
 # Updating Documents

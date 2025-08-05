@@ -1,7 +1,7 @@
 ---
 title: Complex Filters
 layout: page
-parent: Examples
+nav_exclude: true
 ---
 
 # Complex Filter Examples
