@@ -629,4 +629,4 @@ If you encounter field naming conflicts, check:
 
 - [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices
 - [**Getting Started**](02-getting-started.md) - Return to basics if needed
-- [**API Documentation**](https://cchantep.github.io/tnuctipun/tnuctipun/) - Complete API reference
+- [**API Documentation**](/tnuctipun/api/tnuctipun/) - Complete API reference

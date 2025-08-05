@@ -25,7 +25,7 @@ Welcome to the comprehensive user guide for **Tnunctipun**, a type-safe MongoDB 
 
 ### 🔧 API Documentation
 
-- [**API Reference**](api/tnuctipun/) - Complete API documentation
+- [**API Reference**](/tnuctipun/api/tnuctipun/) - Complete API documentation
 
 ### 📖 Examples
 

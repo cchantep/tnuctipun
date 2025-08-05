@@ -68,8 +68,8 @@ jobs:
     - name: Run doctests
       run: cargo test --doc --all-features
 
-  check:
-    name: Check
+  lint:
+    name: Rust Lint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -165,8 +165,8 @@ jobs:
         done
         echo "✅ Internal link validation successful"
 
-  docs:
-    name: Docs
+  doc_build:
+    name: Documentation Preparation
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -223,24 +223,8 @@ jobs:
         mkdir -p _site/api
         cp -r target/doc/* _site/api/
         
-        # Create main index page that redirects to user guide
-        cat > _site/index.html << 'EOF'
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Tnuctipun Documentation</title>
-            <meta http-equiv="refresh" content="0; url=./user-guide/">
-        </head>
-        <body>
-            <p><a href="./user-guide/">Go to User Guide</a></p>
-            <p><a href="./api/tnuctipun/">Go to API Documentation</a></p>
-        </body>
-        </html>
-        EOF
-        
-        # Update user guide to link to API docs
-        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnuctipun/|../api/tnuctipun/|g' {} \;
+        # Update user guide to link to API docs using relative paths
+        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnuctipun/|/tnuctipun/api/tnuctipun/|g' {} \;
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     - name: Upload Pages artifact
@@ -249,13 +233,13 @@ jobs:
       with:
         path: ./_site
 
-  deploy-docs:
-    name: Deploy Docs
+  doc_deploy:
+    name: Documentation Deploy
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs:
       - doc_validation
       - doc_snippets
-      - docs
+      - doc_build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
