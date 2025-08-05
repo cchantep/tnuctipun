@@ -92,6 +92,79 @@ jobs:
     - name: Check workspace
       run: cargo check --workspace --all-targets --all-features
 
+  docs_validation:
+    name: Docs Validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-docs-validation-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-docs-validation-
+          ${{ runner.os }}-cargo-
+    
+    - name: Build API documentation
+      run: |
+        cargo doc --no-deps --all-features
+      env:
+        RUSTDOCFLAGS: -D warnings
+
+    - name: Setup Ruby for Jekyll
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+        working-directory: ./docs
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Jekyll dependencies
+      run: |
+        cd docs
+        gem install bundler
+        bundle install
+
+    - name: Validate Jekyll build
+      run: |
+        cd docs
+        bundle exec jekyll build --destination ../_site_validation
+        echo "✅ Jekyll build validation successful"
+
+    - name: Check for broken internal links
+      run: |
+        # Basic validation of internal markdown links (excluding vendor directories)
+        find docs -name "*.md" -type f -not -path "*/vendor/*" -not -path "*/.bundle/*" -exec grep -H '\[.*\](.*\.md)' {} \; | while IFS=: read -r file link; do
+          # Extract the link path
+          link_path=$(echo "$link" | sed -n 's/.*(\([^)]*\.md\)).*/\1/p')
+          if [[ -n "$link_path" && "$link_path" != http* ]]; then
+            # Convert relative path to absolute
+            if [[ "$link_path" = /* ]]; then
+              full_path="docs$link_path"
+            else
+              dir=$(dirname "$file")
+              full_path="$dir/$link_path"
+            fi
+            if [[ ! -f "$full_path" ]]; then
+              echo "❌ Broken link in $file: $link_path (resolved to $full_path)"
+              exit 1
+            fi
+          fi
+        done
+        echo "✅ Internal link validation successful"
+
   docs:
     name: Docs
     runs-on: ubuntu-latest
@@ -117,18 +190,64 @@ jobs:
       uses: actions/configure-pages@v5
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     
-    - name: Build documentation
+    - name: Build API documentation
       run: |
         cargo doc --no-deps --all-features
-        echo '<meta http-equiv="refresh" content="0; url=tnuctipun">' > target/doc/index.html
       env:
         RUSTDOCFLAGS: -D warnings
+
+    - name: Setup Ruby for Jekyll
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+        working-directory: ./docs
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Install Jekyll dependencies
+      run: |
+        cd docs
+        gem install bundler
+        bundle install
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Build user guide with Jekyll
+      run: |
+        cd docs
+        bundle exec jekyll build --destination ../_site
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Combine documentation
+      run: |
+        # Create the final documentation structure
+        mkdir -p _site/api
+        cp -r target/doc/* _site/api/
+        
+        # Create main index page that redirects to user guide
+        cat > _site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Tnuctipun Documentation</title>
+            <meta http-equiv="refresh" content="0; url=./user-guide/">
+        </head>
+        <body>
+            <p><a href="./user-guide/">Go to User Guide</a></p>
+            <p><a href="./api/tnuctipun/">Go to API Documentation</a></p>
+        </body>
+        </html>
+        EOF
+        
+        # Update user guide to link to API docs
+        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnuctipun/|../api/tnuctipun/|g' {} \;
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     - name: Upload Pages artifact
       uses: actions/upload-pages-artifact@v3
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       with:
-        path: ./target/doc
+        path: ./_site
 
   deploy-docs:
     name: Deploy Docs
@@ -218,10 +337,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Set up Go
+      uses: actions/setup-go@v5
       with:
-        python-version: '3.x'
+        go-version: '1.21'
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
@@ -238,5 +357,8 @@ jobs:
           ${{ runner.os }}-cargo-doc-snippets-
           ${{ runner.os }}-cargo-
     
+    - name: Build doc-checker
+      run: cd tools/doc-checker && go build -o doc-checker .
+    
     - name: Check documentation snippets
-      run: ./scripts/check-doc-snippets.sh
+      run: ./tools/doc-checker/doc-checker -o json

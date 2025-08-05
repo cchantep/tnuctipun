@@ -32,7 +32,10 @@ fi
 echo "✅ Clippy check passed!"
 
 # Source git utility functions
-source "$(dirname "$0")/../git-utils.sh"
+# Get the repository root directory
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+source "$REPO_ROOT/scripts/git-utils.sh"
 
 # Check documentation snippets only if there are changes to .md files in the pushed commits
 echo "🔍 Checking for Markdown file changes in pushed commits..."
@@ -40,11 +43,11 @@ echo "🔍 Checking for Markdown file changes in pushed commits..."
 if check_files_changed "md"; then
     echo "📝 Markdown files changed in pushed commits"
     echo "📝 Markdown changes detected in push, checking documentation snippets..."
-    if ! ./scripts/check-doc-snippets.sh; then
+    if ! ./tools/doc-checker/doc-checker > /dev/null 2>&1; then
         echo "❌ Documentation snippets check failed!"
         echo ""
         echo "Please fix the failing documentation examples before pushing."
-        echo "You can run './scripts/check-doc-snippets.sh' to see the issues."
+        echo "You can run './tools/doc-checker/doc-checker' to see the issues."
         echo ""
         echo "Push aborted."
         exit 1

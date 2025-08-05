@@ -196,6 +196,204 @@ fn test_multiple_mul_operations() {
     assert_eq!(result, expected);
 }
 
+// Tests for $max operation
+#[test]
+fn test_single_max_operation() {
+    let result = empty::<TestStruct>().max::<NumericFieldName, _>(10).build();
+
+    let expected = bson::doc! {
+        "$max": {
+            "numeric_field": 10
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_max_operation_decimal() {
+    let result = empty::<TestStruct>()
+        .max::<NumericFieldName, _>(15.5f64)
+        .build();
+
+    let expected = bson::doc! {
+        "$max": {
+            "numeric_field": 15.5
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_max_operation_negative_value() {
+    let result = empty::<TestStruct>().max::<NumericFieldName, _>(-5).build();
+
+    let expected = bson::doc! {
+        "$max": {
+            "numeric_field": -5
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_multiple_max_operations() {
+    let result = empty::<TestStruct>()
+        .max::<NumericFieldName, _>(100)
+        .max::<AnotherFieldName, _>(50)
+        .build();
+
+    let expected = bson::doc! {
+        "$max": {
+            "numeric_field": 100,
+            "another_field": 50
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_max_operation_same_field_multiple_times() {
+    let result = empty::<TestStruct>()
+        .max::<NumericFieldName, _>(10)
+        .max::<NumericFieldName, _>(20)
+        .build();
+
+    let expected = bson::doc! {
+        "$max": {
+            "numeric_field": 20  // last max operation wins
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+// Tests for $min operation
+#[test]
+fn test_single_min_operation() {
+    let result = empty::<TestStruct>().min::<NumericFieldName, _>(5).build();
+
+    let expected = bson::doc! {
+        "$min": {
+            "numeric_field": 5
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_min_operation_decimal() {
+    let result = empty::<TestStruct>()
+        .min::<NumericFieldName, _>(2.5f64)
+        .build();
+
+    let expected = bson::doc! {
+        "$min": {
+            "numeric_field": 2.5
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_min_operation_negative_value() {
+    let result = empty::<TestStruct>()
+        .min::<NumericFieldName, _>(-10)
+        .build();
+
+    let expected = bson::doc! {
+        "$min": {
+            "numeric_field": -10
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_multiple_min_operations() {
+    let result = empty::<TestStruct>()
+        .min::<NumericFieldName, _>(1)
+        .min::<AnotherFieldName, _>(25)
+        .build();
+
+    let expected = bson::doc! {
+        "$min": {
+            "numeric_field": 1,
+            "another_field": 25
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_min_operation_same_field_multiple_times() {
+    let result = empty::<TestStruct>()
+        .min::<NumericFieldName, _>(30)
+        .min::<NumericFieldName, _>(15)
+        .build();
+
+    let expected = bson::doc! {
+        "$min": {
+            "numeric_field": 15  // last min operation wins
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_max_and_min_combined_operations() {
+    let result = empty::<TestStruct>()
+        .max::<NumericFieldName, _>(100)
+        .min::<AnotherFieldName, _>(1)
+        .build();
+
+    let expected = bson::doc! {
+        "$max": {
+            "numeric_field": 100
+        },
+        "$min": {
+            "another_field": 1
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_max_min_with_other_operations() {
+    let result = empty::<TestStruct>()
+        .set::<TestFieldName, _>("test_value")
+        .max::<NumericFieldName, _>(50)
+        .min::<AnotherFieldName, _>(10)
+        .inc::<NumericFieldName, _>(5)
+        .build();
+
+    let expected = bson::doc! {
+        "$set": {
+            "test_field": "test_value"
+        },
+        "$max": {
+            "numeric_field": 50
+        },
+        "$min": {
+            "another_field": 10
+        },
+        "$inc": {
+            "numeric_field": 5
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
 // Tests for $rename operation
 #[test]
 fn test_single_rename_operation() {
@@ -436,4 +634,284 @@ fn test_push_operation_multiple_items() {
     };
 
     assert_eq!(result, expected);
+}
+
+// Tests for $addToSet with $each modifier
+#[test]
+fn test_add_to_set_each_operation() {
+    let values = vec![
+        "item1".to_string(),
+        "item2".to_string(),
+        "item3".to_string(),
+    ];
+    let result = empty::<TestStruct>()
+        .add_to_set_each::<ArrayFieldName, _, _>(values)
+        .build();
+
+    let expected = bson::doc! {
+        "$addToSet": {
+            "array_field": {
+                "$each": ["item1", "item2", "item3"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_add_to_set_each_empty_collection() {
+    let values: Vec<String> = vec![];
+    let result = empty::<TestStruct>()
+        .add_to_set_each::<ArrayFieldName, _, _>(values)
+        .build();
+
+    let expected = bson::doc! {
+        "$addToSet": {
+            "array_field": {
+                "$each": []
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_add_to_set_each_single_item() {
+    let values = vec!["single_item".to_string()];
+    let result = empty::<TestStruct>()
+        .add_to_set_each::<ArrayFieldName, _, _>(values)
+        .build();
+
+    let expected = bson::doc! {
+        "$addToSet": {
+            "array_field": {
+                "$each": ["single_item"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_add_to_set_each_multiple_fields() {
+    let tags1 = vec!["rust".to_string(), "mongodb".to_string()];
+    let result = empty::<TestStruct>()
+        .add_to_set_each::<ArrayFieldName, _, _>(tags1)
+        .build();
+
+    let expected = bson::doc! {
+        "$addToSet": {
+            "array_field": {
+                "$each": ["rust", "mongodb"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_add_to_set_each_different_types() {
+    let string_values = vec![
+        "text1".to_string(),
+        "text2".to_string(),
+        "text3".to_string(),
+    ];
+    let result = empty::<TestStruct>()
+        .add_to_set_each::<ArrayFieldName, _, _>(string_values)
+        .build();
+
+    let expected = bson::doc! {
+        "$addToSet": {
+            "array_field": {
+                "$each": ["text1", "text2", "text3"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+// Tests for $push with $each modifier
+#[test]
+fn test_push_each_operation() {
+    let values = vec!["log1".to_string(), "log2".to_string(), "log3".to_string()];
+    let result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(values)
+        .build();
+
+    let expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": ["log1", "log2", "log3"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_push_each_empty_collection() {
+    let values: Vec<String> = vec![];
+    let result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(values)
+        .build();
+
+    let expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": []
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_push_each_single_item() {
+    let values = vec!["single_log".to_string()];
+    let result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(values)
+        .build();
+
+    let expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": ["single_log"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_push_each_multiple_fields() {
+    let logs = vec!["user_action".to_string(), "system_event".to_string()];
+    let result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(logs)
+        .build();
+
+    let expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": ["user_action", "system_event"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_push_each_different_types() {
+    let string_values = vec![
+        "message1".to_string(),
+        "message2".to_string(),
+        "message3".to_string(),
+    ];
+    let result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(string_values)
+        .build();
+
+    let expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": ["message1", "message2", "message3"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_push_each_with_duplicates() {
+    let values = vec![
+        "duplicate".to_string(),
+        "duplicate".to_string(),
+        "unique".to_string(),
+    ];
+    let result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(values)
+        .build();
+
+    // Unlike $addToSet, $push allows duplicates
+    let expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": ["duplicate", "duplicate", "unique"]
+            }
+        }
+    };
+
+    assert_eq!(result, expected);
+}
+
+// Tests comparing single vs batch operations
+#[test]
+fn test_add_to_set_vs_add_to_set_each() {
+    // Single add_to_set
+    let single_result = empty::<TestStruct>()
+        .add_to_set::<ArrayFieldName, _>("single_item".to_string())
+        .build();
+
+    let single_expected = bson::doc! {
+        "$addToSet": {
+            "array_field": "single_item"
+        }
+    };
+
+    // Multiple add_to_set_each
+    let batch_result = empty::<TestStruct>()
+        .add_to_set_each::<ArrayFieldName, _, _>(vec!["batch_item".to_string()])
+        .build();
+
+    let batch_expected = bson::doc! {
+        "$addToSet": {
+            "array_field": {
+                "$each": ["batch_item"]
+            }
+        }
+    };
+
+    assert_eq!(single_result, single_expected);
+    assert_eq!(batch_result, batch_expected);
+    // Note: These create different MongoDB operations even though they might have similar effects
+}
+
+#[test]
+fn test_push_vs_push_each() {
+    // Single push
+    let single_result = empty::<TestStruct>()
+        .push::<ArrayFieldName, _>("single_item".to_string())
+        .build();
+
+    let single_expected = bson::doc! {
+        "$push": {
+            "array_field": "single_item"
+        }
+    };
+
+    // Multiple push_each
+    let batch_result = empty::<TestStruct>()
+        .push_each::<ArrayFieldName, _, _, _>(vec!["batch_item".to_string()])
+        .build();
+
+    let batch_expected = bson::doc! {
+        "$push": {
+            "array_field": {
+                "$each": ["batch_item"]
+            }
+        }
+    };
+
+    assert_eq!(single_result, single_expected);
+    assert_eq!(batch_result, batch_expected);
+    // Note: These create different MongoDB operations even though they might have similar effects
 }

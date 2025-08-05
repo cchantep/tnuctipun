@@ -1,6 +1,6 @@
 # Release and Publication Guide
 
-This document describes the process for releasing new versions of the Tnunctipun library to crates.io.
+This document describes the process for releasing new versions of the Tnuctipun library to crates.io.
 
 ## Overview
 
