@@ -86,13 +86,15 @@ update_version() {
     
     # Update derive crate version
     echo "Updating tnuctipun-derive to version $new_version"
-    sed -i.bak "s/^version = ".*"/version = "$new_version"/" tnuctipun-derive/Cargo.toml
+    sed -i.bak "s/^version = \".*\"/version = \"$new_version\"/" tnuctipun-derive/Cargo.toml
     
     # Update dependency reference in main Cargo.toml
-    sed -i.bak "s/tnuctipun-derive = { version = ".*", path/tnuctipun-derive = { version = "$new_version", path/" Cargo.toml
+    sed -i.bak "s/tnuctipun-derive = { version = \".*\", path/tnuctipun-derive = { version = \"$new_version\", path/" Cargo.toml
     
     # Clean up backup files
-    rm -f Cargo.toml.bak tnuctipun-derive/Cargo.toml.bak    print_success "Version updated to $new_version"
+    rm -f Cargo.toml.bak tnuctipun-derive/Cargo.toml.bak
+    
+    print_success "Version updated to $new_version"
 }
 
 # Function to create and push tag

@@ -4,7 +4,7 @@ exclude = []
 
 [package]
 name = "tnuctipun"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "The Tnuctipun of Ringworld — ancient, subversive, ingenious — or a type-safe MongoDB builder library"
 license = "MIT OR Apache-2.0"
@@ -23,7 +23,7 @@ chrono = "0.4"
 frunk = "0.4.4"
 bson = "2.15.0"
 serde = { version = "1.0.219", features = ["derive"] }
-tnuctipun-derive = { version = "0.1.0", path = "./tnuctipun-derive" }
+tnuctipun-derive = { version = "0.1.1", path = "./tnuctipun-derive" }
 num-traits = "0.2.19"
 
 [features]
