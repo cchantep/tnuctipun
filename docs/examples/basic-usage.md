@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Basic Usage Examples
-
 This page provides simple, runnable examples to get you started with Tnuctipun quickly.
 
 ## Simple User Management

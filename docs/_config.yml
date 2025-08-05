@@ -9,11 +9,13 @@ theme: minima
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+  - jekyll-relative-links
 
 # Minima theme settings
 header_pages:
   - index.md
   - user-guide/index.md
+  - api.md
 
 # Markdown settings
 markdown: kramdown
@@ -24,6 +26,11 @@ kramdown:
     block:
       line_numbers: false
   input: GFM
+
+# Jekyll relative links - automatically converts .md links
+relative_links:
+  enabled: true
+  collections: true
 
 # Collections for examples
 collections:

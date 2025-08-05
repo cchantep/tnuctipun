@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Real-World Scenarios
-
 Practical examples showing how to use Tnuctipun in real-world applications, including e-commerce, user management, and analytics.
 
 ## E-Commerce Product Catalog

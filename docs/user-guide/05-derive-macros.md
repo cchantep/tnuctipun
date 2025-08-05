@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Derive Macros
-
 This guide provides detailed documentation about Tnuctipun's procedural macros. The derive macros (`FieldWitnesses` and `MongoComparable`) are the foundation that enables type-safe field access and query building.
 
 ## Table of Contents
@@ -626,6 +624,6 @@ If you encounter field naming conflicts, check:
 
 ## Next Steps
 
-- [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices
-- [**Getting Started**](02-getting-started.md) - Return to basics if needed
+- [**Advanced Topics**](06-advanced-topics/) - Explore complex scenarios and best practices
+- [**Getting Started**](02-getting-started/) - Return to basics if needed
 - [**API Documentation**](/tnuctipun/api/tnuctipun/) - Complete API reference

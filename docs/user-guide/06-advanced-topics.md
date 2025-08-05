@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Advanced Query Patterns
-
 This guide demonstrates advanced Tnuctipun-specific query building techniques that leverage the library's type-safe field access and compile-time validation features.
 
 ## Dynamic Query Building

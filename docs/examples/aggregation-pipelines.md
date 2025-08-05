@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Aggregation Pipeline Examples
-
 Examples showing how to use Tnuctipun's type-safe filters and projections in MongoDB aggregation pipelines.
 
 ## Basic Pipeline with $match and $project

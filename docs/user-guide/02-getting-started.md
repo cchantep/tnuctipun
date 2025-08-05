@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Getting Started
-
 This guide will walk you through setting up Tnuctipun and creating your first type-safe MongoDB operations.
 
 ## Installation

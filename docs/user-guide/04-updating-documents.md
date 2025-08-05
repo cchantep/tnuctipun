@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Updating Documents
-
 This guide covers how to use Tnuctipun to build type-safe update operations for MongoDB. You'll learn to create update documents from simple field assignments to complex operations involving arrays, nested objects, and conditional updates.
 
 ## Table of Contents
@@ -606,5 +604,5 @@ This table provides a quick reference for all available update operators and met
 
 Now that you've mastered update operations:
 
-- [**Derive Macros**](05-derive-macros.md) - Understand the macro system in detail
-- [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices
+- [**Derive Macros**](05-derive-macros/) - Understand the macro system in detail
+- [**Advanced Topics**](06-advanced-topics/) - Explore complex scenarios and best practices

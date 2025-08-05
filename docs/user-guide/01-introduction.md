@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Introduction & Motivation
-
 ## What is Tnuctipun?
 
 Tnuctipun is a **type-safe MongoDB query and update builder library** for Rust.

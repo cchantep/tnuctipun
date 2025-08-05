@@ -4,8 +4,6 @@ layout: page
 nav_exclude: true
 ---
 
-# Complex Filter Examples
-
 Advanced filtering examples showing dynamic query building and complex conditions using the available Tnuctipun API.
 
 ## Multi-Condition Filtering
