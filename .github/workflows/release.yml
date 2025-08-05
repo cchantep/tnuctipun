@@ -21,10 +21,19 @@ jobs:
       id: create_release
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/}
-        gh release create "$TAG_NAME" \
-          --title "Release $TAG_NAME" \
-          --generate-notes \
-          --latest
+        
+        # Check if release already exists
+        if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+          echo "Release $TAG_NAME already exists, skipping creation"
+          echo "release_url=$(gh release view "$TAG_NAME" --json url --jq .url)" >> $GITHUB_OUTPUT
+        else
+          echo "Creating new release $TAG_NAME"
+          gh release create "$TAG_NAME" \
+            --title "Release $TAG_NAME" \
+            --generate-notes \
+            --latest
+          echo "release_url=$(gh release view "$TAG_NAME" --json url --jq .url)" >> $GITHUB_OUTPUT
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,6 +47,18 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
     
+    - name: Generate cache key
+      id: cache_key
+      run: |
+        # Generate a hash from Cargo.lock files manually
+        if [ -f "Cargo.lock" ] && [ -f "tnuctipun-derive/Cargo.lock" ]; then
+          HASH=$(cat Cargo.lock tnuctipun-derive/Cargo.lock | sha256sum | cut -d' ' -f1 | head -c 16)
+          echo "key_suffix=$HASH" >> $GITHUB_OUTPUT
+        else
+          # Fallback to date-based key if files don't exist
+          echo "key_suffix=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Cache cargo registry
       uses: actions/cache@v4
       with:
@@ -45,7 +66,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-release-${{ steps.cache_key.outputs.key_suffix }}
         restore-keys: |
           ${{ runner.os }}-cargo-release-
           ${{ runner.os }}-cargo-
