@@ -13,9 +13,7 @@ permissions:
   id-token: write
 
 env:
-  CARGO_T         # Update user guide to link to API docs
-        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnunctipun/tnuctipun/|./api/tnuctipun/|g' {} \;     # Update user guide to link to API docs
-        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnunctipun/tnuctipun/|./api/tnuctipun/|g' {} \;M_COLOR: always
+  CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
 
 jobs:
@@ -216,8 +214,7 @@ jobs:
     - name: Build user guide with Jekyll
       run: |
         cd docs
-        # Build Jekyll site with proper baseurl for GitHub Pages
-        bundle exec jekyll build --destination ../_site --baseurl ""
+        bundle exec jekyll build --destination ../_site
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     - name: Combine documentation
@@ -226,7 +223,21 @@ jobs:
         mkdir -p _site/api
         cp -r target/doc/* _site/api/
         
-        # Skip creating index.html - Jekyll will generate it from index.md
+        # Create main index page that redirects to user guide
+        cat > _site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Tnuctipun Documentation</title>
+            <meta http-equiv="refresh" content="0; url=./user-guide/">
+        </head>
+        <body>
+            <p><a href="./user-guide/">Go to User Guide</a></p>
+            <p><a href="./api/tnuctipun/">Go to API Documentation</a></p>
+        </body>
+        </html>
+        EOF
         
         # Update user guide to link to API docs
         find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnuctipun/|../api/tnuctipun/|g' {} \;
