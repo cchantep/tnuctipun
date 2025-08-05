@@ -624,6 +624,6 @@ If you encounter field naming conflicts, check:
 
 ## Next Steps
 
-- [**Advanced Topics**](06-advanced-topics/) - Explore complex scenarios and best practices
-- [**Getting Started**](02-getting-started/) - Return to basics if needed
+- [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices
+- [**Getting Started**](02-getting-started.md) - Return to basics if needed
 - [**API Documentation**](/tnuctipun/api/tnuctipun/) - Complete API reference

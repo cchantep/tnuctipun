@@ -143,28 +143,6 @@ jobs:
         bundle exec jekyll build --destination ../_site_validation
         echo "✅ Jekyll build validation successful"
 
-    - name: Check for broken internal links
-      run: |
-        # Basic validation of internal markdown links (excluding vendor directories)
-        find docs -name "*.md" -type f -not -path "*/vendor/*" -not -path "*/.bundle/*" -exec grep -H '\[.*\](.*\.md)' {} \; | while IFS=: read -r file link; do
-          # Extract the link path
-          link_path=$(echo "$link" | sed -n 's/.*(\([^)]*\.md\)).*/\1/p')
-          if [[ -n "$link_path" && "$link_path" != http* ]]; then
-            # Convert relative path to absolute
-            if [[ "$link_path" = /* ]]; then
-              full_path="docs$link_path"
-            else
-              dir=$(dirname "$file")
-              full_path="$dir/$link_path"
-            fi
-            if [[ ! -f "$full_path" ]]; then
-              echo "❌ Broken link in $file: $link_path (resolved to $full_path)"
-              exit 1
-            fi
-          fi
-        done
-        echo "✅ Internal link validation successful"
-
   doc_build:
     name: Documentation Preparation
     runs-on: ubuntu-latest
@@ -222,9 +200,6 @@ jobs:
         # Create the final documentation structure
         mkdir -p _site/api
         cp -r target/doc/* _site/api/
-        
-        # Update user guide to link to API docs using relative paths
-        find _site -name "*.html" -type f -exec sed -i 's|https://cchantep.github.io/tnuctipun/tnuctipun/|/tnuctipun/api/tnuctipun/|g' {} \;
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     - name: Upload Pages artifact

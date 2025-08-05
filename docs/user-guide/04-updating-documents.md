@@ -604,5 +604,5 @@ This table provides a quick reference for all available update operators and met
 
 Now that you've mastered update operations:
 
-- [**Derive Macros**](05-derive-macros/) - Understand the macro system in detail
-- [**Advanced Topics**](06-advanced-topics/) - Explore complex scenarios and best practices
+- [**Derive Macros**](05-derive-macros.md) - Understand the macro system in detail
+- [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices

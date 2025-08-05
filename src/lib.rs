@@ -1,8 +1,15 @@
 //! # Tnuctipun
 //!
-//! <img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" />
+//! <img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" style="border: 1px solid #ddd; border-radius: 8px;" />
+//!
+//! **Type-safe MongoDB query and update builder for Rust**
 //!
 //! The Tnuctipun of Ringworld — ancient, subversive, ingenious — or a type-safe MongoDB builder library.
+//!
+//! ## Overview
+//!
+//! Tnuctipun provides compile-time type safety for MongoDB operations by generating field witnesses
+//! and enabling type-checked query, projection, and update building.
 //!
 //! ## Features
 //!
@@ -13,7 +20,7 @@
 //! - **Derive macros**: Automatically generate field witnesses and comparable traits
 //! - **Compile-time validation**: Catch field name typos and type mismatches at compile time
 //!
-//! ## Example
+//! ## Quick Start
 //!
 //! ```rust
 //! use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection, updates};
@@ -35,6 +42,15 @@
 //! // Convert to MongoDB document
 //! let filter_doc = filter_builder.and();
 //! ```
+//!
+//! For comprehensive documentation, see the [User Guide](https://cchantep.github.io/tnuctipun/).
+//!
+//! ## Modules
+//!
+//! - [`filters`] - Query filter building
+//! - [`projection`] - Field projection building  
+//! - [`updates`] - Update document building
+//! - [`field_witnesses`] - Field witness types and traits
 
 // Modules
 pub mod field_filters;
