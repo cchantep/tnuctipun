@@ -56,28 +56,27 @@ tnuctipun = "0.1"
 Then start building type-safe MongoDB queries:
 
 ```rust
-use tnuctipun::{Filters, Updates};
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, updates};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Filters, Updates)]
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct User {
-    name: String,
-    email: String,
-    age: u32,
-    active: bool,
+    pub name: String,
+    pub email: String,
+    pub age: u32,
+    pub active: bool,
 }
 
 // Type-safe query building
-let filter = User::filter()
-    .name().eq("Alice")
-    .and()
-    .age().gte(18)
-    .build();
+let filter = empty::<User>()
+    .eq::<user_fields::Name, _>("Alice".to_string())
+    .gte::<user_fields::Age, _>(18)
+    .and();
 
 // Type-safe updates
-let update = User::update()
-    .set_active(true)
-    .inc_age(1)
+let update = updates::empty::<User>()
+    .set::<user_fields::Active, _>(true)
+    .inc::<user_fields::Age, _>(1)
     .build();
 ```
 
@@ -86,7 +85,3 @@ let update = User::update()
 - **GitHub Repository**: [cchantep/tnuctipun](https://github.com/cchantep/tnunctipun)
 - **Documentation**: This user guide and [API documentation](api/tnuctipun/)
 - **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/cchantep/tnunctipun/issues)
-
----
-
-*Tnunctipun: Building safer MongoDB applications, one query at a time.*
