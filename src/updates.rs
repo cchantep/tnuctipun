@@ -230,6 +230,102 @@ impl<T> UpdateBuilder<T> {
         self
     }
 
+    /// Updates a field only if the specified value is greater than the existing field value.
+    ///
+    /// This method corresponds to MongoDB's `$max` operator, which only updates the field if the specified value
+    /// is greater than the existing field value. If the field does not exist, it sets the field to the specified value.
+    /// The field must contain a value that can be compared to the specified value, typically numeric types or dates.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    /// * `N` - A numeric type that implements `Num` and can be converted into `bson::Bson`
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - The value to compare against the existing field value
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct HighScore {
+    ///     pub best_score: i32,
+    ///     pub max_level: i32,
+    /// }
+    ///
+    /// let update_doc = empty::<HighScore>()
+    ///     .max::<highscore_fields::BestScore, _>(1500)     // Only update if 1500 > current score
+    ///     .max::<highscore_fields::MaxLevel, _>(10)        // Only update if 10 > current max level
+    ///     .build();
+    /// // Results in: { "$max": { "best_score": 1500, "max_level": 10 } }
+    /// ```
+    pub fn max<F: FieldName, N: Num + Into<bson::Bson>>(&mut self, value: N) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        let path = self.field_path::<F>();
+
+        self.push_clause(UpdateOperation::Max, path, value.into());
+
+        self
+    }
+
+    /// Updates a field only if the specified value is less than the existing field value.
+    ///
+    /// This method corresponds to MongoDB's `$min` operator, which only updates the field if the specified value
+    /// is less than the existing field value. If the field does not exist, it sets the field to the specified value.
+    /// The field must contain a value that can be compared to the specified value, typically numeric types or dates.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    /// * `N` - A numeric type that implements `Num` and can be converted into `bson::Bson`
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - The value to compare against the existing field value
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Pricing {
+    ///     pub lowest_price: f64,
+    ///     pub min_quantity: i32,
+    /// }
+    ///
+    /// let update_doc = empty::<Pricing>()
+    ///     .min::<pricing_fields::LowestPrice, _>(29.99)    // Only update if 29.99 < current price
+    ///     .min::<pricing_fields::MinQuantity, _>(5)        // Only update if 5 < current min quantity
+    ///     .build();
+    /// // Results in: { "$min": { "lowest_price": 29.99, "min_quantity": 5 } }
+    /// ```
+    pub fn min<F: FieldName, N: Num + Into<bson::Bson>>(&mut self, value: N) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        let path = self.field_path::<F>();
+
+        self.push_clause(UpdateOperation::Min, path, value.into());
+
+        self
+    }
+
     /// Multiplies the value of a numeric field by the specified amount.
     ///
     /// This method corresponds to MongoDB's `$mul` operator, which multiplies the value of a field by a number.
@@ -428,6 +524,102 @@ impl<T> UpdateBuilder<T> {
         let path = self.field_path::<F>();
 
         self.push_clause(UpdateOperation::AddToSet, path, value.into());
+
+        self
+    }
+
+    /// Adds multiple values to an array field only if they do not already exist.
+    ///
+    /// This method corresponds to MongoDB's `$addToSet` operator with the `$each` modifier,
+    /// which adds multiple values to an array unless the values are already present.
+    /// This ensures array uniqueness without duplicates for all provided values.
+    /// If the field is not an array, the operation will fail. If the field does not exist,
+    /// it creates a new array with the unique values.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    /// * `I` - An iterable type that yields items of type `V`
+    /// * `V` - A value type that can be converted into `bson::Bson`
+    ///
+    /// # Parameters
+    ///
+    /// * `values` - An iterable collection of values to add to the array if they're not already present
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    /// use bson::doc;
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Article {
+    ///     pub tags: Vec<String>,
+    ///     pub categories: Vec<String>,
+    /// }
+    ///
+    /// let new_tags = vec!["rust".to_string(), "mongodb".to_string(), "database".to_string()];
+    /// let new_categories = vec!["programming".to_string(), "tutorial".to_string()];
+    ///
+    /// let update_doc = empty::<Article>()
+    ///     .add_to_set_each::<article_fields::Tags, _, _>(new_tags)
+    ///     .add_to_set_each::<article_fields::Categories, _, _>(new_categories)
+    ///     .build();
+    /// // Results in: {
+    /// //   "$addToSet": {
+    /// //     "tags": { "$each": ["rust", "mongodb", "database"] },
+    /// //     "categories": { "$each": ["programming", "tutorial"] }
+    /// //   }
+    /// // }
+    /// ```
+    ///
+    /// # Difference from `add_to_set`
+    ///
+    /// Unlike `add_to_set` which adds a single value, `add_to_set_each` can efficiently
+    /// add multiple values in a single operation:
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Collection {
+    ///     pub items: Vec<String>,
+    /// }
+    ///
+    /// // Single value addition
+    /// let single_update = empty::<Collection>()
+    ///     .add_to_set::<collection_fields::Items, _>("item1".to_string())
+    ///     .build();
+    /// // Results in: { "$addToSet": { "items": "item1" } }
+    ///
+    /// // Multiple value addition
+    /// let multiple_update = empty::<Collection>()
+    ///     .add_to_set_each::<collection_fields::Items, _, _>(vec!["item1".to_string(), "item2".to_string()])
+    ///     .build();
+    /// // Results in: { "$addToSet": { "items": { "$each": ["item1", "item2"] } } }
+    /// ```
+    pub fn add_to_set_each<F: FieldName, I: IntoIterator<Item = V>, V: Into<bson::Bson>>(
+        &mut self,
+        values: I,
+    ) -> &mut Self
+    where
+        T: HasField<F>,
+        T::Value: IntoIterator<Item = V>,
+    {
+        let path = self.field_path::<F>();
+        let values_vec: Vec<bson::Bson> = values.into_iter().map(|v| v.into()).collect();
+
+        self.push_clause(
+            UpdateOperation::AddToSet,
+            path,
+            bson::doc! { "$each": values_vec }.into(),
+        );
 
         self
     }
@@ -683,6 +875,176 @@ impl<T> UpdateBuilder<T> {
         let path = self.field_path::<F>();
 
         self.push_clause(UpdateOperation::Push, path, value.into());
+
+        self
+    }
+
+    /// Appends multiple values to an array field with advanced options.
+    ///
+    /// This method corresponds to MongoDB's `$push` operator with the `$each` modifier,
+    /// along with optional modifiers like `$slice`, `$sort`, and `$position`. It provides
+    /// more control over how values are added to arrays compared to the basic `push` method.
+    ///
+    /// The method accepts a `PushEach` clause that can be configured with:
+    /// - `$each`: The array of values to append (always included)
+    /// - `$slice`: Limits the array to a specified number of elements
+    /// - `$sort`: Sorts the array elements after adding new values
+    /// - `$position`: Specifies where in the array to insert the new elements
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    /// * `I` - An iterable type that yields items of type `V`
+    /// * `V` - A value type that can be converted into `bson::Bson`
+    /// * `Clause` - A type that can be converted into `PushEach<I, V>`
+    ///
+    /// # Parameters
+    ///
+    /// * `clause` - A `PushEach` clause or any type that converts to it, containing the values and options
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct GameData {
+    ///     pub scores: Vec<i32>,
+    ///     pub tags: Vec<String>,
+    /// }
+    ///
+    /// // Basic usage - just append values
+    /// let values = vec![100, 200, 300];
+    /// let update_doc = empty::<GameData>()
+    ///     .push_each::<gamedata_fields::Scores, _, _, _>(values)
+    ///     .build();
+    /// // Results in: { "$push": { "scores": { "$each": [100, 200, 300] } } }
+    /// ```
+    ///
+    /// # Advanced Usage with PushEach Options
+    ///
+    /// For more advanced scenarios, you can create a `PushEach` instance with specific options:
+    ///
+    /// ```rust
+    /// use tnuctipun::updates::{PushEach, PushEachSlice, PushEachSort};
+    ///
+    /// // This would be used with appropriate field setup
+    /// // let push_clause = PushEach::from(vec![1, 2, 3])
+    /// //     .with_slice(PushEachSlice::PushFirstSlice(5))
+    /// //     .with_sort(PushEachSort::PushSortDescending);
+    /// ```
+    ///
+    /// # Difference from `push`
+    ///
+    /// Unlike `push` which adds a single value, `push_each` efficiently adds multiple
+    /// values in a single operation and supports advanced array manipulation options.
+    pub fn push_each<
+        F: FieldName,
+        I: IntoIterator<Item = V>,
+        V: Into<bson::Bson>,
+        Clause: Into<PushEach<I, V>>,
+    >(
+        &mut self,
+        clause: Clause,
+    ) -> &mut Self
+    where
+        T: HasField<F>,
+        T::Value: IntoIterator<Item = V>,
+    {
+        let path = self.field_path::<F>();
+        let c: PushEach<I, V> = clause.into();
+
+        self.push_clause(UpdateOperation::Push, path, c.into());
+
+        self
+    }
+
+    /// Performs a raw update operation with a custom BSON expression.
+    ///
+    /// This method provides an escape hatch for advanced MongoDB update operations
+    /// that are not directly supported by the type-safe methods. It allows you to
+    /// specify any MongoDB update operator along with a custom BSON expression.
+    ///
+    /// **Warning**: This method bypasses type safety and should be used with caution.
+    /// Prefer using the type-safe methods when possible. This is intended for cases
+    /// where you need to use MongoDB features that aren't yet supported by the
+    /// typed API, or for complex expressions that require manual BSON construction.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `F` - A field name marker type that implements `FieldName`
+    ///
+    /// # Parameters
+    ///
+    /// * `op` - The MongoDB update operation to perform
+    /// * `expr` - A raw BSON expression for the operation
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldName, FieldWitnesses, updates::{empty, UpdateOperation}};
+    /// use serde::{Serialize, Deserialize};
+    /// use bson::{doc, Bson};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Document {
+    ///     pub custom_field: String,
+    ///     pub array_field: Vec<i32>,
+    /// }
+    ///
+    /// // Example: Using a complex $push operation with multiple modifiers
+    /// let complex_push = doc! {
+    ///     "$each": [1, 2, 3],
+    ///     "$slice": -10,
+    ///     "$sort": -1
+    /// };
+    ///
+    /// let update_doc = empty::<Document>()
+    ///     .untyped::<document_fields::ArrayField>(
+    ///         UpdateOperation::Push,
+    ///         Bson::Document(complex_push)
+    ///     )
+    ///     .build();
+    /// // Results in: {
+    /// //   "$push": {
+    /// //     "array_field": {
+    /// //       "$each": [1, 2, 3],
+    /// //       "$slice": -10,
+    /// //       "$sort": -1
+    /// //     }
+    /// //   }
+    /// // }
+    /// ```
+    ///
+    /// # Use Cases
+    ///
+    /// - Complex array operations with multiple modifiers
+    /// - New MongoDB operators not yet supported by the typed API
+    /// - Custom aggregation expressions in update operations
+    /// - Conditional updates using MongoDB expressions
+    ///
+    /// # Evolution Note
+    ///
+    /// This method is marked for potential removal if a comprehensive safe expression
+    /// builder is implemented in the future. The goal is to eventually provide type-safe
+    /// alternatives for all MongoDB update operations.
+    pub fn untyped<F: FieldName>(&mut self, op: UpdateOperation, expr: bson::Bson) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        // EVOLUTION: Remove if a safe expression builder is provided
+        let path = self.field_path::<F>();
+
+        self.push_clause(op, path, expr);
 
         self
     }
@@ -1034,6 +1396,18 @@ pub enum UpdateOperation {
     /// The field must contain a numeric value. If the field does not exist, it is created with the increment value.
     Inc,
 
+    /// Updates a field only if the specified value is greater than the existing field value.
+    ///
+    /// Corresponds to MongoDB's `$max` operator, which only updates the field if the specified value
+    /// is greater than the existing field value. If the field does not exist, it sets the field to the specified value.
+    Max,
+
+    /// Updates a field only if the specified value is less than the existing field value.
+    ///
+    /// Corresponds to MongoDB's `$min` operator, which only updates the field if the specified value
+    /// is less than the existing field value. If the field does not exist, it sets the field to the specified value.
+    Min,
+
     /// Multiplies the value of a field by the specified amount.
     ///
     /// Corresponds to MongoDB's `$mul` operator, which multiplies the value of a field by a number.
@@ -1091,6 +1465,8 @@ impl UpdateOperation {
             UpdateOperation::Set => "$set",
             UpdateOperation::Unset => "$unset",
             UpdateOperation::Inc => "$inc",
+            UpdateOperation::Max => "$max",
+            UpdateOperation::Min => "$min",
             UpdateOperation::Mul => "$mul",
             UpdateOperation::Rename => "$rename",
             UpdateOperation::CurrentDate => "$currentDate",
@@ -1100,6 +1476,347 @@ impl UpdateOperation {
             UpdateOperation::PullAll => "$pullAll",
             UpdateOperation::Push => "$push",
         }
+    }
+}
+
+/// Controls how many elements to keep in an array after a `$push` operation with `$each`.
+///
+/// This enum corresponds to MongoDB's `$slice` modifier for the `$push` operator,
+/// which limits the array to a specified number of elements after adding new values.
+/// The slice operation happens after the `$push` and `$sort` operations.
+///
+/// # Examples
+///
+/// ```rust
+/// use tnuctipun::updates::PushEachSlice;
+/// use bson::Bson;
+///
+/// let keep_first_10 = PushEachSlice::PushFirstSlice(10);
+/// let bson_val: Bson = keep_first_10.into(); // Results in Bson::Int32(10)
+///
+/// let keep_last_5 = PushEachSlice::PushLastSlice(5);
+/// let bson_val: Bson = keep_last_5.into(); // Results in Bson::Int32(-5)
+/// ```
+pub enum PushEachSlice {
+    /// Empties the array (keeps 0 elements).
+    ///
+    /// Corresponds to `$slice: 0` in MongoDB, which removes all elements from the array.
+    PushEmptySlice,
+
+    /// Keeps only the last n elements of the array.
+    ///
+    /// Corresponds to `$slice: -n` in MongoDB. This is useful for implementing
+    /// a "recent items" or "last n entries" pattern.
+    PushLastSlice(usize),
+
+    /// Keeps only the first n elements of the array.
+    ///
+    /// Corresponds to `$slice: n` in MongoDB. This is useful for implementing
+    /// a "top n" or "first n entries" pattern.
+    PushFirstSlice(usize),
+}
+
+impl From<PushEachSlice> for bson::Bson {
+    fn from(slice: PushEachSlice) -> Self {
+        match slice {
+            PushEachSlice::PushEmptySlice => bson::Bson::Int32(0),
+            PushEachSlice::PushLastSlice(n) => bson::Bson::Int32(-(n as i32)),
+            PushEachSlice::PushFirstSlice(n) => bson::Bson::Int32(n as i32),
+        }
+    }
+}
+
+/// Specifies how to sort array elements after a `$push` operation with `$each`.
+///
+/// This enum corresponds to MongoDB's `$sort` modifier for the `$push` operator,
+/// which sorts the array elements after adding new values but before applying
+/// any `$slice` operation.
+///
+/// # Examples
+///
+/// ```rust
+/// use tnuctipun::updates::PushEachSort;
+/// use bson::{Bson, doc};
+///
+/// let ascending = PushEachSort::PushSortAscending;
+/// let bson_val: Bson = ascending.into(); // Results in Bson::Int32(1)
+///
+/// let descending = PushEachSort::PushSortDescending;
+/// let bson_val: Bson = descending.into(); // Results in Bson::Int32(-1)
+///
+/// // For complex sorting on embedded documents
+/// let sort_expr = doc! { "score": -1, "timestamp": 1 };
+/// let complex_sort = PushEachSort::PushSortExpression(sort_expr);
+/// ```
+pub enum PushEachSort {
+    /// Sort array elements in ascending order.
+    ///
+    /// Corresponds to `$sort: 1` in MongoDB. For numeric values, this sorts
+    /// from smallest to largest. For strings, this sorts alphabetically.
+    PushSortAscending,
+
+    /// Sort array elements in descending order.
+    ///
+    /// Corresponds to `$sort: -1` in MongoDB. For numeric values, this sorts
+    /// from largest to smallest. For strings, this sorts in reverse alphabetical order.
+    PushSortDescending,
+
+    /// Sort using a custom expression document.
+    ///
+    /// Corresponds to `$sort: { field: 1, other_field: -1 }` in MongoDB.
+    /// This is useful when working with arrays of embedded documents where
+    /// you need to sort by specific fields within those documents.
+    ///
+    /// # TODO
+    /// In the future, this will be replaced with a type-safe expression builder
+    /// to avoid manual BSON document construction.
+    PushSortExpression(bson::Document),
+}
+
+impl From<PushEachSort> for bson::Bson {
+    fn from(sort: PushEachSort) -> Self {
+        match sort {
+            PushEachSort::PushSortAscending => bson::Bson::Int32(1),
+            PushEachSort::PushSortDescending => bson::Bson::Int32(-1),
+            PushEachSort::PushSortExpression(expr) => expr.into(),
+        }
+    }
+}
+
+/// Specifies where to insert new elements in an array during a `$push` operation with `$each`.
+///
+/// This enum corresponds to MongoDB's `$position` modifier for the `$push` operator,
+/// which determines where in the existing array the new elements should be inserted.
+/// By default, new elements are appended to the end of the array.
+///
+/// # Examples
+///
+/// ```rust
+/// use tnuctipun::updates::PushEachPosition;
+/// use bson::Bson;
+///
+/// let insert_at_start = PushEachPosition::PushTakeFirst(0);
+/// let bson_val: Bson = insert_at_start.into(); // Results in Bson::Int32(0)
+///
+/// let insert_at_position_3 = PushEachPosition::PushTakeFirst(3);
+/// let bson_val: Bson = insert_at_position_3.into(); // Results in Bson::Int32(3)
+/// ```
+pub enum PushEachPosition {
+    /// Insert elements starting at the specified position from the beginning.
+    ///
+    /// Corresponds to `$position: n` in MongoDB, where n is a non-negative integer.
+    /// Position 0 means insert at the beginning of the array, position 1 means
+    /// insert after the first element, etc.
+    PushTakeFirst(usize),
+
+    /// Insert elements at the specified position from the end.
+    ///
+    /// Corresponds to `$position: -n` in MongoDB, where n is a positive integer.
+    /// Position -1 means insert before the last element, -2 means insert before
+    /// the second-to-last element, etc.
+    PushTakeLast(usize),
+}
+
+impl From<PushEachPosition> for bson::Bson {
+    fn from(position: PushEachPosition) -> Self {
+        match position {
+            PushEachPosition::PushTakeFirst(n) => bson::Bson::Int32(n as i32),
+            PushEachPosition::PushTakeLast(n) => bson::Bson::Int32(-(n as i32)),
+        }
+    }
+}
+
+/// Configuration for MongoDB's `$push` operation with `$each` and optional modifiers.
+///
+/// This struct represents a MongoDB `$push` operation with the `$each` modifier,
+/// along with optional `$slice`, `$sort`, and `$position` modifiers. It provides
+/// fine-grained control over how elements are added to arrays.
+///
+/// The operation sequence in MongoDB is:
+/// 1. Insert elements at the specified position (`$position`)
+/// 2. Sort the entire array (`$sort`)
+/// 3. Trim the array to the specified size (`$slice`)
+///
+/// # Type Parameters
+///
+/// * `Values` - An iterable type containing the values to push
+/// * `V` - The value type that can be converted to BSON
+///
+/// # Examples
+///
+/// ```rust
+/// use tnuctipun::updates::{PushEach, PushEachSlice, PushEachSort, PushEachPosition};
+///
+/// // Basic usage with just values
+/// let values = vec![1, 2, 3];
+/// let push_clause: PushEach<_, _> = values.into();
+///
+/// // Advanced usage with modifiers (this is conceptual - actual builder methods would be needed)
+/// // let advanced_push = PushEach::from(vec![1, 2, 3])
+/// //     .with_position(PushEachPosition::PushTakeFirst(0))  // Insert at beginning
+/// //     .with_sort(PushEachSort::PushSortAscending)         // Sort ascending
+/// //     .with_slice(PushEachSlice::PushFirstSlice(10));     // Keep first 10 elements
+/// ```
+///
+/// # MongoDB Equivalent
+///
+/// A `PushEach` with all modifiers set would generate MongoDB syntax like:
+/// ```javascript
+/// {
+///   "$push": {
+///     "field": {
+///       "$each": [1, 2, 3],
+///       "$position": 0,
+///       "$sort": 1,
+///       "$slice": 10
+///     }
+///   }
+/// }
+/// ```
+pub struct PushEach<Values: IntoIterator<Item = V>, V: Into<bson::Bson>> {
+    /// The values to be added to the array.
+    ///
+    /// This can be any type that implements `IntoIterator<Item = V>` where `V: Into<bson::Bson>`,
+    /// such as `Vec<String>`, `Vec<i32>`, or any collection of values that can be converted to BSON.
+    pub values: Values,
+
+    /// Optional slice modifier to limit the array size after the push operation.
+    ///
+    /// Controls how many elements to keep in the array after adding new values.
+    /// See [`PushEachSlice`] for available options.
+    pub slice: std::option::Option<PushEachSlice>,
+
+    /// Optional sort modifier to sort the array after the push operation.
+    ///
+    /// Defines how the array should be sorted after adding new values.
+    /// See [`PushEachSort`] for available options.
+    pub sort: std::option::Option<PushEachSort>,
+
+    /// Optional position modifier to specify where in the array to insert new values.
+    ///
+    /// Controls the insertion point for new values in the array.
+    /// See [`PushEachPosition`] for available options.
+    pub position: std::option::Option<PushEachPosition>,
+}
+
+/// Allows to create a `PushEach` instance from a simple iterable of values.
+impl<Values: IntoIterator> From<Values> for PushEach<Values, <Values as IntoIterator>::Item>
+where
+    <Values as IntoIterator>::Item: Into<bson::Bson>,
+{
+    fn from(values: Values) -> Self {
+        PushEach {
+            values,
+            slice: None,
+            sort: None,
+            position: None,
+        }
+    }
+}
+
+impl<Values: IntoIterator<Item = V>, V: Into<bson::Bson>> PushEach<Values, V> {
+    /// Creates a new `PushEach` instance from an iterable of values.
+    ///
+    /// This is equivalent to using the `From` trait implementation.
+    pub fn new(values: Values) -> Self {
+        Self {
+            values,
+            slice: None,
+            sort: None,
+            position: None,
+        }
+    }
+
+    /// Sets the slice modifier to control array length after the push operation.
+    ///
+    /// The slice operation happens after the push and sort operations, limiting
+    /// the array to the specified number of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::updates::{PushEach, PushEachSlice};
+    ///
+    /// let push_clause = PushEach::new(vec![1, 2, 3])
+    ///     .with_slice(PushEachSlice::PushFirstSlice(10)); // Keep first 10 elements
+    /// ```
+    pub fn with_slice(mut self, slice: PushEachSlice) -> Self {
+        self.slice = Some(slice);
+        self
+    }
+
+    /// Sets the sort modifier to control array ordering after the push operation.
+    ///
+    /// The sort operation happens after the push but before any slice operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::updates::{PushEach, PushEachSort};
+    /// use bson::doc;
+    ///
+    /// // Simple ascending sort
+    /// let push_clause = PushEach::new(vec![3, 1, 2])
+    ///     .with_sort(PushEachSort::PushSortAscending);
+    ///
+    /// // Complex sort for embedded documents
+    /// let sort_expr = doc! { "score": -1, "name": 1 };
+    /// let docs = vec![doc! { "score": 100, "name": "Alice" }];
+    /// let complex_push = PushEach::new(docs)
+    ///     .with_sort(PushEachSort::PushSortExpression(sort_expr));
+    /// ```
+    pub fn with_sort(mut self, sort: PushEachSort) -> Self {
+        self.sort = Some(sort);
+        self
+    }
+
+    /// Sets the position modifier to control where new elements are inserted.
+    ///
+    /// By default, elements are appended to the end of the array. This modifier
+    /// allows insertion at a specific position.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tnuctipun::updates::{PushEach, PushEachPosition};
+    ///
+    /// // Insert at the beginning of the array
+    /// let push_clause = PushEach::new(vec![1, 2, 3])
+    ///     .with_position(PushEachPosition::PushTakeFirst(0));
+    ///
+    /// // Insert at position 5
+    /// let push_clause = PushEach::new(vec![1, 2, 3])
+    ///     .with_position(PushEachPosition::PushTakeFirst(5));
+    /// ```
+    pub fn with_position(mut self, position: PushEachPosition) -> Self {
+        self.position = Some(position);
+        self
+    }
+}
+
+impl<Values: IntoIterator<Item = V>, V: Into<bson::Bson>> From<PushEach<Values, V>> for bson::Bson {
+    fn from(push_each: PushEach<Values, V>) -> Self {
+        let mut expr = bson::Document::new();
+
+        // Convert the values to BSON
+        let values: Vec<bson::Bson> = push_each.values.into_iter().map(|v| v.into()).collect();
+
+        expr.insert("$each", bson::Bson::Array(values));
+
+        // Add optional fields if they are set
+        if let Some(slice) = push_each.slice {
+            expr.insert("$slice", bson::Bson::from(slice));
+        }
+
+        if let Some(sort) = push_each.sort {
+            expr.insert("$sort", bson::Bson::from(sort));
+        }
+
+        if let Some(position) = push_each.position {
+            expr.insert("$position", bson::Bson::from(position));
+        }
+
+        expr.into()
     }
 }
 

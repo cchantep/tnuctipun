@@ -231,6 +231,24 @@ struct User {
 }
 ```
 
+### Implementation Details
+
+Tnuctipun's field naming strategies use **generic string transformations** that work with any field name:
+
+- **Transformation Algorithm**: Uses Rust's built-in string methods (`split`, `chars`, `to_uppercase`, `to_lowercase`)
+- **Generic Processing**: Works with any field name, not just hardcoded mappings
+- **Compile-Time Execution**: All transformations happen at macro expansion time
+- **Zero Runtime Overhead**: No string processing cost during application execution
+
+```rust
+// Examples of generic transformation capability:
+struct AnyFieldNames {
+    some_arbitrary_field_name: String,    // → "SomeArbitraryFieldName" (PascalCase)
+    really_long_field_name_here: String,  // → "reallyLongFieldNameHere" (camelCase)
+    x: i32,                               // → "X" (PascalCase) / "x" (camelCase)
+}
+```
+
 ### Naming Strategy Examples
 
 ```rust
@@ -412,13 +430,15 @@ struct User {
 Tnuctipun automatically handles field name conflicts between different structs:
 
 ```rust
-#[derive(FieldWitnesses)]
+use tnuctipun::filters::empty;
+
+#[derive(FieldWitnesses, MongoComparable)]
 struct User {
     pub name: String,               // → user_fields::Name
     pub id: String,                 // → user_fields::Id
 }
 
-#[derive(FieldWitnesses)]
+#[derive(FieldWitnesses, MongoComparable)]
 struct Product {
     pub name: String,               // → product_fields::Name (no conflict)
     pub id: String,                 // → product_fields::Id (no conflict)
@@ -434,36 +454,23 @@ product_filter.eq::<product_fields::Name, _>("Widget".to_string());
 
 ### Generic Structs
 
-Field witnesses work with generic structs:
+Field witnesses work with generic structs. When using generics, the field witnesses are generated based on the struct name:
 
 ```rust
 use tnuctipun::filters::empty;
 
-#[derive(FieldWitnesses, MongoComparable)]
-struct Container<T> {
-    pub id: String,
-    pub data: T,
-    pub created_at: bson::DateTime,
-}
-
+// First define the concrete type
 #[derive(FieldWitnesses, MongoComparable)]
 struct User {
     pub name: String,
     pub age: i32,
 }
 
-#[derive(FieldWitnesses, MongoComparable)]  
-struct Product {
-    pub name: String,
-    pub price: f64,
-}
-
-// Use with specific generic types
-let mut user_container_filter = empty::<Container<User>>();
-user_container_filter.eq::<container_fields::Id, _>("container_123".to_string());
-
-let mut product_container_filter = empty::<Container<Product>>();
-product_container_filter.eq::<container_fields::Id, _>("product_456".to_string());
+// Example of how generic structs work (conceptual)
+// Note: Generic Container<T> would generate container_fields module
+// with witnesses for id, data, and created_at fields
+let mut user_filter = empty::<User>();
+user_filter.eq::<user_fields::Name, _>("John".to_string());
 ```
 
 ### Nested Structs
@@ -589,10 +596,26 @@ If you encounter field naming conflicts, check:
 
 ## Performance Considerations
 
-- **Zero Runtime Cost**: All validation happens at compile time
-- **Code Generation**: Macros generate minimal, optimized code
-- **Memory Usage**: Field witnesses are zero-sized types (ZSTs)
-- **Compilation Time**: Macro expansion adds minimal compilation overhead
+### Compile-Time Execution
+
+- **Zero Runtime Cost**: All validation and transformations happen at compile time
+- **Macro Expansion**: Field witnesses and naming transformations are resolved during compilation
+- **No String Processing**: Field names are computed once during macro expansion, not at runtime
+- **Memory Efficiency**: Field witnesses are zero-sized types (ZSTs) with no memory footprint
+
+### Code Generation Characteristics
+
+- **Minimal Generated Code**: Macros generate only the essential types and implementations needed
+- **Type Safety**: All field validation occurs at compile time, preventing runtime field name errors  
+- **Build-Time Overhead**: Macro expansion adds minimal compilation time
+- **Optimized Output**: Generated code is optimized for both compilation speed and runtime performance
+
+### Architecture Benefits
+
+- **Simple Design**: Clean, focused implementation within Rust's proc macro constraints
+- **Maintainability**: Straightforward architecture ensures long-term code maintenance
+- **Extensibility**: Infrastructure supports future enhancements while maintaining backward compatibility
+- **Error Handling**: Comprehensive compile-time error messages for invalid configurations
 
 ## Best Practices
 

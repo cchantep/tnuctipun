@@ -6,6 +6,8 @@ nav_order: 1
 
 # Tnuctipun User Guide
 
+<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" />
+
 Welcome to the comprehensive user guide for **Tnuctipun**, a type-safe MongoDB query and update builder library for Rust.
 
 ## Quick Navigation

@@ -83,7 +83,16 @@ These witnesses provide compile-time field validation and are used in all query 
 Let's build a simple filter to find users:
 
 ```rust
-use tnuctipun::filters::empty;
+use serde::{Deserialize, Serialize};
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+}
 
 fn main() {
     // Build filter with method chaining
@@ -103,7 +112,16 @@ fn main() {
 Create a projection to select specific fields:
 
 ```rust
-use tnuctipun::projection;
+use serde::{Deserialize, Serialize};
+use tnuctipun::{FieldWitnesses, MongoComparable, projection};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+}
 
 fn main() {
     let projection_doc = projection::empty::<User>()
@@ -122,7 +140,16 @@ fn main() {
 Build an update document to modify existing records:
 
 ```rust
-use tnuctipun::updates;
+use serde::{Deserialize, Serialize};
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+}
 
 fn main() {
     let update_doc = updates::empty::<User>()
@@ -182,12 +209,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .projection(projection_doc)
         .build();
     
-    let mut cursor = collection.find(filter, find_options).await?;
+    let _cursor = collection.find(filter, find_options).await?;
     
-    // Process results
-    while let Some(user) = cursor.try_next().await? {
-        println!("Found user: {:?}", user);
-    }
+    // Process results (requires futures_util dependency)
+    // while let Some(user) = cursor.try_next().await? {
+    //     println!("Found user: {:?}", user);
+    // }
     
     // 4. Build and execute a type-safe update
     let update_filter = doc! { "name": "John" };
@@ -217,9 +244,24 @@ Before moving to more advanced topics, make sure you understand these core conce
 ### Conditional Query Building
 
 ```rust
+use serde::{Deserialize, Serialize};
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+}
+
+fn main() {
 let mut filter_builder = empty::<User>();
 
 // Add conditions based on runtime parameters
+let user_name: Option<String> = Some("John".to_string());
+let minimum_age: Option<i32> = Some(18);
+
 if let Some(name) = user_name {
     filter_builder.eq::<user_fields::Name, _>(name);
 }
@@ -229,16 +271,32 @@ if let Some(min_age) = minimum_age {
 }
 
 let filter_doc = filter_builder.and();
+}
 ```
 
 ### Error Handling
 
 ```rust
+use serde::{Deserialize, Serialize};
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+    pub is_active: bool,
+}
+
+fn main() {
+let mut filter_builder = empty::<User>();
+
 // Compile-time errors for invalid fields
-filter_builder.eq::<user_fields::InvalidField, _>("value");  // ❌ Compile error
+// filter_builder.eq::<user_fields::InvalidField, _>("value");  // ❌ Compile error
 
 // Compile-time errors for wrong types
-filter_builder.eq::<user_fields::Age, _>("not a number");    // ❌ Compile error
+// filter_builder.eq::<user_fields::Age, _>("not a number");    // ❌ Compile error
+}
 ```
 
 ## Next Steps

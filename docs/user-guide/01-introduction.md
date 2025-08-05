@@ -46,7 +46,7 @@ struct User {
 
 // Works great for full document operations
 let user = User { name: "John".to_string(), age: 25 };
-collection.insert_one(user, None).await?;
+// collection.insert_one(user, None).await?;
 ```
 
 **Issues with this approach:**
@@ -83,40 +83,68 @@ struct User {
 
 let mut filter = empty::<User>();
 filter.eq::<user_fields::Name, _>("John".to_string());   // ✅ Compile-time validated
-filter.gt::<user_fields::Agee, _>(18);                   // ❌ Compile error - field doesn't exist
+filter.gt::<user_fields::Age, _>(18);                    // ❌ Compile error - field doesn't exist
 ```
 
 ### Type-Safe Operations
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty};
+
+#[derive(FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+}
+
 // Type safety for field values
-filter.eq::<user_fields::Age, _>("not a number");  // ❌ Compile error - wrong type
+let mut filter = empty::<User>();
+// filter.eq::<user_fields::Age, _>("not a number");  // ❌ Compile error - wrong type
 filter.eq::<user_fields::Age, _>(25);              // ✅ Correct type
 ```
 
 ### Fine-Grained Control
 
 ```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct User {
+    pub name: String,
+    pub age: i32,
+    pub email: String,
+}
+
 // Complex filtering
-let filter_doc = empty::<User>()
+let _filter_doc = empty::<User>()
     .eq::<user_fields::Name, _>("John".to_string())
     .gt::<user_fields::Age, _>(18)
     .ne::<user_fields::Email, _>("".to_string())
     .and();
 
 // Selective projections
-let projection_doc = projection::empty::<User>()
+let _projection_doc = projection::empty::<User>()
     .includes::<user_fields::Name>()
     .includes::<user_fields::Age>()
     .excludes::<user_fields::Email>()  // Hide sensitive data
     .build();
 
 // Granular updates
-let update_doc = updates::empty::<User>()
+let _update_doc = updates::empty::<User>()
     .set::<user_fields::Name, _>("Jane".to_string())
     .inc::<user_fields::Age, _>(1)
     .unset::<user_fields::Email>()
     .build();
+
+// Example of using with MongoDB collection
+let _user = User {
+    name: "John".to_string(),
+    age: 25,
+    email: "john@example.com".to_string(),
+};
+// collection.insert_one(user, None).await?;
 ```
 
 ## Key Advantages

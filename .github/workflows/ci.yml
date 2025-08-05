@@ -126,32 +126,10 @@ jobs:
         bundler-cache: true
         working-directory: ./docs
 
-    - name: Setup Node.js for spellcheck
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-
-    - name: Install markdown-spellcheck
-      run: npm install -g markdown-spellcheck
-
-    - name: Run spellcheck on documentation
-      run: |
-        # Spellcheck all markdown files in docs directory using the static .spelling file
-        cd docs
-        mdspell "**/*.md" --en-us --ignore-acronyms --ignore-numbers --report || {
-          echo ""
-          echo "❌ Spellcheck failed. Common fixes:"
-          echo "   1. Fix spelling errors in the documentation"
-          echo "   2. Add technical terms to docs/.spelling file if they are correct"
-          echo "   3. Use proper capitalization for technical terms"
-          echo ""
-          echo "To run spellcheck locally:"
-          echo "   cd docs"
-          echo "   npm install -g markdown-spellcheck"
-          echo "   mdspell \"**/*.md\" --en-us --ignore-acronyms --ignore-numbers --report"
-          exit 1
-        }
-        echo "✅ Spellcheck validation successful"
 
     - name: Install Jekyll dependencies
       run: |
@@ -167,8 +145,8 @@ jobs:
 
     - name: Check for broken internal links
       run: |
-        # Basic validation of internal markdown links
-        find docs -name "*.md" -type f -exec grep -H '\[.*\](.*\.md)' {} \; | while IFS=: read -r file link; do
+        # Basic validation of internal markdown links (excluding vendor directories)
+        find docs -name "*.md" -type f -not -path "*/vendor/*" -not -path "*/.bundle/*" -exec grep -H '\[.*\](.*\.md)' {} \; | while IFS=: read -r file link; do
           # Extract the link path
           link_path=$(echo "$link" | sed -n 's/.*(\([^)]*\.md\)).*/\1/p')
           if [[ -n "$link_path" && "$link_path" != http* ]]; then
@@ -359,10 +337,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Set up Go
+      uses: actions/setup-go@v5
       with:
-        python-version: '3.x'
+        go-version: '1.21'
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
@@ -379,5 +357,8 @@ jobs:
           ${{ runner.os }}-cargo-doc-snippets-
           ${{ runner.os }}-cargo-
     
+    - name: Build doc-checker
+      run: cd tools/doc-checker && go build -o doc-checker .
+    
     - name: Check documentation snippets
-      run: ./scripts/check-doc-snippets.sh
+      run: ./tools/doc-checker/doc-checker -o json

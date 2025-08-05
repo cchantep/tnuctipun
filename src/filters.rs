@@ -380,6 +380,92 @@ impl<T> FilterBuilder<T> {
         self
     }
 
+    /// Creates an untyped filter for a field using a raw BSON document.
+    ///
+    /// This method allows you to partially bypass the type safety mechanisms for the sake of flexibility,
+    /// and directly insert a BSON document as the filter condition for a specific field. While this provides
+    /// maximum flexibility for complex queries, it should be used with caution as it
+    /// sacrifices the compile-time type checking that other methods provide.
+    ///
+    /// # Type parameters:
+    /// * `F` - The field name marker type (e.g., `product_fields::Price`)
+    ///
+    /// # Arguments
+    /// * `value` - A BSON document containing the MongoDB operators and values to apply to the field
+    ///
+    /// # Use Cases
+    ///
+    /// This method is particularly useful for:
+    ///
+    /// - Advanced MongoDB operators not yet covered by typed methods
+    /// - Complex nested conditions that require manual BSON construction
+    /// - Migration scenarios where you need to use existing raw query fragments
+    /// - Testing and experimentation with MongoDB features
+    ///
+    /// # Safety Considerations
+    ///
+    /// - No compile-time validation of field types or operator compatibility
+    /// - Potential runtime errors if the BSON structure is invalid
+    /// - Field existence is still verified at compile time through `HasField<F>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
+    /// use serde::{Serialize, Deserialize};
+    /// use bson::{doc, Document};
+    ///
+    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    /// struct Product {
+    ///     pub name: String,
+    ///     pub price: f64,
+    ///     pub tags: Vec<String>,
+    /// }
+    ///
+    /// // Using advanced text search operators
+    /// let text_search = doc! {
+    ///     "$regex": "laptop",
+    ///     "$options": "i"
+    /// };
+    /// empty::<Product>().untyped::<product_fields::Name>(text_search);
+    /// // Resulting BSON: { "name": { "$regex": "laptop", "$options": "i" } }
+    ///
+    /// // Using complex array operators
+    /// let array_condition = doc! {
+    ///     "$elemMatch": {
+    ///         "$regex": "electronics",
+    ///         "$options": "i"
+    ///     }
+    /// };
+    /// empty::<Product>().untyped::<product_fields::Tags>(array_condition);
+    /// // Resulting BSON: { "tags": { "$elemMatch": { "$regex": "electronics", "$options": "i" } } }
+    ///
+    /// // Combining with typed methods
+    /// empty::<Product>()
+    ///     .gt::<product_fields::Price, _>(100.0)  // Type-safe
+    ///     .untyped::<product_fields::Name>(doc! { "$exists": true });  // Untyped
+    /// ```
+    ///
+    /// # MongoDB Expression Support
+    ///
+    /// This method can be used with any MongoDB query operator, including:
+    /// - Text search: `$regex`, `$text`
+    /// - Array operations: `$elemMatch`, `$size`, `$all`
+    /// - Geospatial: `$near`, `$geoWithin`, `$geoIntersects`
+    /// - Advanced comparison: `$mod`, `$type`
+    /// - Custom aggregation expressions in `$expr`
+    pub fn untyped<F: FieldName>(&mut self, value: bson::Document) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        let path = self.field_path::<F>();
+
+        self.clauses.push(bson::doc! { path: value });
+
+        self
+    }
+
     /// Creates filters for nested fields within documents using a path-based lookup approach.
     /// This method provides explicit control over field path construction,
     /// allowing you to specify exactly which nested field to target through a lookup function.
