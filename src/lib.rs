@@ -33,7 +33,7 @@
 //! filter_builder.gt::<user_fields::Age, _>(18);
 //!
 //! // Convert to MongoDB document
-//! let filter_doc = filter_builder.build();
+//! let filter_doc = filter_builder.and();
 //! ```
 
 // Modules

@@ -92,8 +92,8 @@ jobs:
     - name: Check workspace
       run: cargo check --workspace --all-targets --all-features
 
-  docs_validation:
-    name: Docs Validation
+  doc_validation:
+    name: Documentation Validation
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -252,7 +252,10 @@ jobs:
   deploy-docs:
     name: Deploy Docs
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    needs: docs
+    needs:
+      - doc_validation
+      - doc_snippets
+      - docs
     runs-on: ubuntu-latest
     environment:
       name: github-pages
