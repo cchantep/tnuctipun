@@ -3,8 +3,20 @@ name: CI
 on:
   push:
     branches: [ master ]
+    paths:
+      - '**/*.rs'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'rustfmt.toml'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [ master ]
+    paths:
+      - '**/*.rs'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - 'rustfmt.toml'
+      - '.github/workflows/ci.yml'
 
 # Sets permissions of the GITHUB_TOKEN
 permissions:
