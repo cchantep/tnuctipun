@@ -8,6 +8,7 @@
 //! - `logical_operations`: Logical operations (and, or, not) and combinations
 //! - `nested_operations`: Nested field filtering using with_lookup
 //! - `operation_builder`: FilterBuilder patterns and method chaining
+//! - `regex_operations`: Regular expression pattern matching filters
 //! - `integration`: Comprehensive tests combining multiple features
 
 mod filters {
@@ -16,5 +17,6 @@ mod filters {
     pub mod logical_operations;
     pub mod nested_operations;
     pub mod operation_builder;
+    pub mod regex_operations;
     pub mod test_fixtures;
 }

@@ -185,7 +185,7 @@ func (dc *DocChecker) processFile(filePath string) error {
 		return err
 	}
 
-	snippets, err := dc.extractRustSnippetsWithIDs(string(content))
+	snippets, err := dc.extractRustSnippets(string(content))
 	if err != nil {
 		fileResult.Errors = append(fileResult.Errors, fmt.Sprintf("Failed to extract snippets: %v", err))
 		dc.results.Files[filePath] = fileResult
@@ -203,17 +203,15 @@ func (dc *DocChecker) processFile(filePath string) error {
 
 	dc.logInfo(fmt.Sprintf("  Found %d Rust snippet(s)", len(snippets)))
 
-	// Process each snippet individually with unique IDs
-	for idx, snippetWithID := range snippets {
-		code := snippetWithID.Content
-		snippetID := snippetWithID.ID
-
-		// If no ID is provided, use a default one
-		if snippetID == "" {
-			snippetID = fmt.Sprintf("auto_%d", idx+1)
+	// Process each snippet individually
+	for idx, snippet := range snippets {
+		// Skip ignored snippets
+		if snippet.Ignore {
+			dc.logInfo(fmt.Sprintf("  Skipping ignored snippet %d", idx+1))
+			continue
 		}
 
-		_ = snippetID // Mark as used for now (not needed in current implementation)
+		code := snippet.Content
 
 		// Determine start line of snippet in markdown file, or use index as fallback
 		startLine := dc.findSnippetStartLine(filePath, code, idx)
@@ -314,18 +312,18 @@ func (dc *DocChecker) findSnippetStartLine(filePath, snippet string, snippetInde
 	return snippetIndex + 1
 }
 
-type SnippetWithID struct {
+type Snippet struct {
 	Content string
-	ID      string
+	Ignore  bool // If true, this snippet should be ignored during compilation
 }
 
-func (dc *DocChecker) extractRustSnippetsWithIDs(content string) ([]SnippetWithID, error) {
-	var snippets []SnippetWithID
+func (dc *DocChecker) extractRustSnippets(content string) ([]Snippet, error) {
+	var snippets []Snippet
 
 	lines := strings.Split(content, "\n")
 	inCodeBlock := false
 	isRustBlock := false
-	snippetID := ""
+	shouldIgnore := false
 	currentSnippet := []string{}
 
 	for _, line := range lines {
@@ -336,31 +334,15 @@ func (dc *DocChecker) extractRustSnippetsWithIDs(content string) ([]SnippetWithI
 				codeBlockHeader := strings.TrimPrefix(line, "```")
 				codeBlockHeader = strings.TrimSpace(codeBlockHeader)
 
-				// TODO: There is no longer need to try to parse ID from the fense
-				// Parse language and ID: "rust:snippet1" or "rust" or "rs"
+				// Parse language and attributes: "rust", "rust:ignore", "rs", "rs:ignore"
 				isRustBlock = false
-				snippetID = ""
+				shouldIgnore = false
 
 				if codeBlockHeader == "rust" || codeBlockHeader == "rs" {
 					isRustBlock = true
-					// No ID specified, generate one
-					snippetID = fmt.Sprintf("auto_%d", len(snippets)+1)
-				} else if strings.HasPrefix(codeBlockHeader, "rust:") {
+				} else if codeBlockHeader == "rust:ignore" || codeBlockHeader == "rs:ignore" {
 					isRustBlock = true
-					snippetID = strings.TrimPrefix(codeBlockHeader, "rust:")
-					snippetID = strings.TrimSpace(snippetID)
-
-					if snippetID == "" {
-						snippetID = fmt.Sprintf("auto_%d", len(snippets)+1)
-					}
-				} else if strings.HasPrefix(codeBlockHeader, "rs:") {
-					isRustBlock = true
-					snippetID = strings.TrimPrefix(codeBlockHeader, "rs:")
-					snippetID = strings.TrimSpace(snippetID)
-
-					if snippetID == "" {
-						snippetID = fmt.Sprintf("auto_%d", len(snippets)+1)
-					}
+					shouldIgnore = true
 				}
 
 				currentSnippet = []string{}
@@ -373,16 +355,16 @@ func (dc *DocChecker) extractRustSnippetsWithIDs(content string) ([]SnippetWithI
 					filteredSnippet := dc.filterSnippetContent(currentSnippet)
 
 					if len(filteredSnippet) > 0 {
-						snippets = append(snippets, SnippetWithID{
+						snippets = append(snippets, Snippet{
 							Content: strings.Join(filteredSnippet, "\n"),
-							ID:      snippetID,
+							Ignore:  shouldIgnore,
 						})
 					}
 				}
 
 				currentSnippet = []string{}
 				isRustBlock = false
-				snippetID = ""
+				shouldIgnore = false
 			}
 		} else if inCodeBlock && isRustBlock {
 			currentSnippet = append(currentSnippet, line)
@@ -394,9 +376,9 @@ func (dc *DocChecker) extractRustSnippetsWithIDs(content string) ([]SnippetWithI
 		filteredSnippet := dc.filterSnippetContent(currentSnippet)
 
 		if len(filteredSnippet) > 0 {
-			snippets = append(snippets, SnippetWithID{
+			snippets = append(snippets, Snippet{
 				Content: strings.Join(filteredSnippet, "\n"),
-				ID:      snippetID,
+				Ignore:  shouldIgnore,
 			})
 		}
 	}

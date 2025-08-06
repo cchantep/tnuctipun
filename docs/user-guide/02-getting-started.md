@@ -12,7 +12,7 @@ Add Tnuctipun to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tnuctipun = "0.1.0"
+tnuctipun = "0.1.1"
 ```
 
 Tnuctipun is a MongoDB query builder library that generates BSON documents. It doesn't include MongoDB connectivity - you'll need to add the MongoDB driver separately if you want to connect to a database.
@@ -24,7 +24,7 @@ Tnuctipun works with the official MongoDB Rust driver. Here are the dependencies
 ```toml
 [dependencies]
 # Core dependencies
-tnuctipun = "0.1.0"
+tnuctipun = "0.1.1"
 serde = { version = "1.0", features = ["derive"] }
 bson = "2.0"
 
@@ -253,21 +253,21 @@ struct User {
 }
 
 fn main() {
-let mut filter_builder = empty::<User>();
+    let mut filter_builder = empty::<User>();
 
-// Add conditions based on runtime parameters
-let user_name: Option<String> = Some("John".to_string());
-let minimum_age: Option<i32> = Some(18);
+    // Add conditions based on runtime parameters
+    let user_name: Option<String> = Some("John".to_string());
+    let minimum_age: Option<i32> = Some(18);
 
-if let Some(name) = user_name {
-    filter_builder.eq::<user_fields::Name, _>(name);
-}
+    if let Some(name) = user_name {
+        filter_builder.eq::<user_fields::Name, _>(name);
+    }
 
-if let Some(min_age) = minimum_age {
-    filter_builder.gte::<user_fields::Age, _>(min_age);
-}
+    if let Some(min_age) = minimum_age {
+        filter_builder.gte::<user_fields::Age, _>(min_age);
+    }
 
-let filter_doc = filter_builder.and();
+    let filter_doc = filter_builder.and();
 }
 ```
 
@@ -286,13 +286,13 @@ struct User {
 }
 
 fn main() {
-let mut filter_builder = empty::<User>();
+    let mut filter_builder = empty::<User>();
 
-// Compile-time errors for invalid fields
-// filter_builder.eq::<user_fields::InvalidField, _>("value");  // ❌ Compile error
+    // Compile-time errors for invalid fields
+    // filter_builder.eq::<user_fields::InvalidField, _>("value");  // ❌ Compile error
 
-// Compile-time errors for wrong types
-// filter_builder.eq::<user_fields::Age, _>("not a number");    // ❌ Compile error
+    // Compile-time errors for wrong types
+    // filter_builder.eq::<user_fields::Age, _>("not a number");    // ❌ Compile error
 }
 ```
 

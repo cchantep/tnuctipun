@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/cchantep/tnuctipun/workflows/CI/badge.svg)](https://github.com/cchantep/tnuctipun/actions)
 [![Crates.io](https://img.shields.io/crates/v/tnuctipun.svg)](https://crates.io/crates/tnuctipun)
-[![Documentation](https://docs.rs/tnuctipun/badge.svg)](https://docs.rs/tnuctipun)
-[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://cchantep.github.io/tnuctipun/tnuctipun/)
-[![codecov](https://codecov.io/gh/cchantep/tnuctipun/branch/master/graph/badge.svg)](https://codecov.io/gh/cchantep/tnuctipun)
+[![API](https://docs.rs/tnuctipun/badge.svg)](https://docs.rs/tnuctipun)
+[![Documentation](https://img.shields.io/badge/docs-User%20Guide-blue)](https://cchantep.github.io/tnuctipun/)
+[![Codecov](https://codecov.io/gh/cchantep/tnuctipun/branch/master/graph/badge.svg)](https://codecov.io/gh/cchantep/tnuctipun)
 
 The Tnuctipun of Ringworld — ancient, subversive, ingenious — or a type-safe MongoDB builder library.
 
@@ -23,7 +23,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tnuctipun = "0.1.0"
+tnuctipun = "0.1.1"
 ```
 
 The library only requires the `bson` crate for MongoDB document types and provides type-safe query building capabilities.
@@ -75,7 +75,7 @@ let update_doc = updates::empty::<User>()
 ## Documentation
 
 - **[User Guide](https://cchantep.github.io/tnuctipun/)** - Comprehensive documentation with examples and tutorials
-- **[API Documentation](https://cchantep.github.io/tnuctipun/api/tnuctipun/)** - Complete API reference (auto-generated)
+- **[API Documentation](https://docs.rs/tnuctipun/latest/tnuctipun/)** - Complete API reference
 - **[Crates.io Documentation](https://docs.rs/tnuctipun)** - Released version docs
 
 ## Development

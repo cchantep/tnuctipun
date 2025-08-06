@@ -5,7 +5,7 @@ description: "Tnuctipun - Type-safe MongoDB query and update builder for Rust"
 permalink: /
 ---
 
-<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" />
+<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" style="border: 1px solid #ddd; border-radius: 8px;" />
 
 **Type-safe MongoDB query and update builder for Rust**
 
@@ -24,7 +24,7 @@ Welcome to the comprehensive user guide for **Tnunctipun**, a type-safe MongoDB 
 
 ### 🔧 API Documentation
 
-- [**API Reference**](/tnuctipun/api/tnuctipun/) - Complete API documentation
+- [**API Reference**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API documentation
 
 ### 📖 Examples
 
@@ -82,5 +82,5 @@ let update = updates::empty::<User>()
 ## Community & Support
 
 - **GitHub Repository**: [cchantep/tnuctipun](https://github.com/cchantep/tnunctipun)
-- **Documentation**: This user guide and [API documentation](api/tnuctipun/)
+- **Documentation**: This user guide and [API documentation](https://docs.rs/tnuctipun/latest/tnuctipun/)
 - **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/cchantep/tnunctipun/issues)

@@ -5,10 +5,10 @@ permalink: /api/
 ---
 
 <script>
-  // Redirect to the API documentation
-  window.location.href = "{{ site.baseurl }}/api/tnuctipun/";
+  // Redirect to the API documentation on docs.rs
+  window.location.href = "https://docs.rs/tnuctipun/latest/tnuctipun/";
 </script>
 
-You are being redirected to the [API documentation]({{ site.baseurl }}/api/tnuctipun/).
+You are being redirected to the [API documentation](https://docs.rs/tnuctipun/latest/tnuctipun/).
 
-If you're not redirected automatically, [click here]({{ site.baseurl }}/api/tnuctipun/).
+If you're not redirected automatically, [click here](https://docs.rs/tnuctipun/latest/tnuctipun/).

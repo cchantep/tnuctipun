@@ -185,6 +185,8 @@ filter.r#in::<user_fields::Name, _>(vec!["John".to_string(), "Jane".to_string()]
 filter.nin::<user_fields::Email, _>(vec!["spam@example.com".to_string()]);
 ```
 
+For practical examples of how these comparison operations are used in building queries, see the [Array Operations](03-finding-documents.md#array-operations) section in the Finding Documents guide.
+
 ## Field Naming Strategies
 
 Tnuctipun supports different field naming strategies to match your MongoDB schema conventions.
@@ -319,6 +321,7 @@ struct User {
 
 // Usage: internal_id and temp_data are not available in queries
 let mut filter = empty::<User>();
+
 filter.eq::<user_fields::Name, _>("John".to_string());      // ✅ Available
 // filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error - skipped field
 ```
@@ -365,6 +368,7 @@ struct User {
 
 // Only public fields are available
 let mut filter = empty::<User>();
+
 filter.eq::<user_fields::Name, _>("John".to_string());      // ✅ Works
 // filter.eq::<user_fields::InternalId, _>("123".to_string()); // ❌ Compile error
 ```
@@ -387,6 +391,7 @@ struct User {
 
 // All fields are available
 let mut filter = empty::<User>();
+
 filter.eq::<user_fields::Name, _>("John".to_string());      // ✅ Works
 filter.eq::<user_fields::InternalId, _>("123".to_string()); // ✅ Works now
 ```
@@ -443,9 +448,11 @@ struct Product {
 
 // No naming conflicts - each struct gets its own module
 let mut user_filter = empty::<User>();
+
 user_filter.eq::<user_fields::Name, _>("John".to_string());
 
 let mut product_filter = empty::<Product>();
+
 product_filter.eq::<product_fields::Name, _>("Widget".to_string());
 ```
 
@@ -467,6 +474,7 @@ struct User {
 // Note: Generic Container<T> would generate container_fields module
 // with witnesses for id, data, and created_at fields
 let mut user_filter = empty::<User>();
+
 user_filter.eq::<user_fields::Name, _>("John".to_string());
 ```
 
@@ -492,9 +500,11 @@ struct User {
 
 // Both structs get their own field witnesses
 let mut user_filter = empty::<User>();
+
 user_filter.eq::<user_fields::Name, _>("John".to_string());
 
 let mut address_filter = empty::<Address>();
+
 address_filter.eq::<address_fields::City, _>("New York".to_string());
 ```
 
@@ -626,4 +636,4 @@ If you encounter field naming conflicts, check:
 
 - [**Advanced Topics**](06-advanced-topics.md) - Explore complex scenarios and best practices
 - [**Getting Started**](02-getting-started.md) - Return to basics if needed
-- [**API Documentation**](/tnuctipun/api/tnuctipun/) - Complete API reference
+- [**API Documentation**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API reference

@@ -964,6 +964,145 @@ impl<T> UpdateBuilder<T> {
         self
     }
 
+    /// Conditionally applies update operations based on an optional value.
+    ///
+    /// This method provides a convenient way to conditionally add update operations
+    /// to the builder when dealing with optional values. If the provided `Option<A>`
+    /// contains a value (`Some(A)`), the closure is executed with the unwrapped value
+    /// and the current builder. If the option is `None`, the operation is skipped
+    /// and the builder remains unchanged.
+    ///
+    /// This is particularly useful when building update documents dynamically where
+    /// some fields should only be updated if certain values are provided, avoiding
+    /// the need for explicit `if let Some(value) = option { ... }` patterns.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `A` - The type of the value contained in the `Option`
+    /// * `F` - The closure type that takes a mutable reference to the builder and the unwrapped value
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - An `Option<A>` that may contain a value to use in the update operation
+    /// * `f` - A closure that takes `&mut Self` and `A` and returns `&mut Self`, defining the update operations to apply
+    ///
+    /// # Returns
+    ///
+    /// Returns `&mut Self` to allow method chaining, regardless of whether the option contained a value.
+    ///
+    /// # Examples
+    ///
+    /// ## Basic Usage
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct User {
+    ///     pub name: String,
+    ///     pub age: i32,
+    ///     pub email: Option<String>,
+    /// }
+    ///
+    /// let maybe_email = Some("user@example.com".to_string());
+    /// let no_email: Option<String> = None;
+    ///
+    /// // When the option contains a value, the update is applied
+    /// let update_with_email = empty::<User>()
+    ///     .set::<user_fields::Name, _>("John Doe".to_string())
+    ///     .if_some(maybe_email, |builder, email| {
+    ///         builder.set::<user_fields::Email, _>(email)
+    ///     })
+    ///     .build();
+    /// // Results in: { "$set": { "name": "John Doe", "email": "user@example.com" } }
+    ///
+    /// // When the option is None, the update is skipped
+    /// let update_without_email = empty::<User>()
+    ///     .set::<user_fields::Name, _>("Jane Doe".to_string())
+    ///     .if_some(no_email, |builder, email| {
+    ///         builder.set::<user_fields::Email, _>(email)
+    ///     })
+    ///     .build();
+    /// // Results in: { "$set": { "name": "Jane Doe" } }
+    /// ```
+    ///
+    /// ## Multiple Conditional Operations
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Profile {
+    ///     pub name: String,
+    ///     pub bio: Option<String>,
+    ///     pub website: Option<String>,
+    ///     pub score: i32,
+    /// }
+    ///
+    /// let maybe_bio = Some("Software developer".to_string());
+    /// let maybe_website: Option<String> = None;
+    /// let maybe_score_increase = Some(10);
+    ///
+    /// let update_doc = empty::<Profile>()
+    ///     .set::<profile_fields::Name, _>("Alice".to_string())
+    ///     .if_some(maybe_bio, |builder, bio| {
+    ///         builder.set::<profile_fields::Bio, _>(bio)
+    ///     })
+    ///     .if_some(maybe_website, |builder, website| {
+    ///         builder.set::<profile_fields::Website, _>(website)
+    ///     })
+    ///     .if_some(maybe_score_increase, |builder, increase| {
+    ///         builder.inc::<profile_fields::Score, _>(increase)
+    ///     })
+    ///     .build();
+    /// // Results in: {
+    /// //   "$set": { "name": "Alice", "bio": "Software developer" },
+    /// //   "$inc": { "score": 10 }
+    /// // }
+    /// ```
+    ///
+    /// ## Complex Update Operations
+    ///
+    /// ```rust
+    /// use tnuctipun::{FieldWitnesses, updates::empty};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(FieldWitnesses, Serialize, Deserialize)]
+    /// struct Product {
+    ///     pub name: String,
+    ///     pub tags: Vec<String>,
+    ///     pub discount: Option<f64>,
+    /// }
+    ///
+    /// let maybe_discount = Some(0.15); // 15% discount
+    ///
+    /// let update_doc = empty::<Product>()
+    ///     .set::<product_fields::Name, _>("Special Item".to_string())
+    ///     .push::<product_fields::Tags, _>("on-sale".to_string())
+    ///     .if_some(maybe_discount, |builder, discount| {
+    ///         builder
+    ///             .set::<product_fields::Discount, _>(discount)
+    ///             .push::<product_fields::Tags, _>("discounted".to_string())
+    ///     })
+    ///     .build();
+    /// // Results in: {
+    /// //   "$set": { "name": "Special Item", "discount": 0.15 },
+    /// //   "$push": { "tags": { "$each": ["on-sale", "discounted"] } }
+    /// // }
+    /// ```
+    pub fn if_some<A, F>(&mut self, value: Option<A>, f: F) -> &mut Self
+    where
+        F: FnOnce(&mut Self, A) -> &mut Self,
+    {
+        if let Some(v) = value {
+            f(self, v);
+        }
+
+        self
+    }
+
     /// Performs a raw update operation with a custom BSON expression.
     ///
     /// This method provides an escape hatch for advanced MongoDB update operations

@@ -17,6 +17,7 @@ This guide covers how to use Tnuctipun to build type-safe update operations for 
   - [Batch Array Operations](#batch-array-operations)
 - [Complex Updates](#complex-updates)
 - [Conditional Updates](#conditional-updates)
+- [Handling Optional Fields](#handling-optional-fields)
 
 ## Basic Update Operations
 
@@ -210,8 +211,8 @@ struct GameStats {
 fn min_max_operations() {
     // Update high score only if new score is higher
     let update_doc = updates::empty::<GameStats>()
-        .max::<gamestats_fields::HighScore, _>(1500)     // Only update if 1500 > current high_score
-        .min::<gamestats_fields::LowScore, _>(100)       // Only update if 100 < current low_score
+        .max::<gamestats_fields::HighScore, _>(1500) // Only update if 1500 > current high_score
+        .min::<gamestats_fields::LowScore, _>(100)   // Only update if 100 < current low_score
         .build();
     // Result: {
     //   "$max": { "high_score": 1500 },
@@ -220,14 +221,15 @@ fn min_max_operations() {
     
     // Performance tracking with time bounds
     let update_doc = updates::empty::<GameStats>()
-        .min::<gamestats_fields::BestTime, _>(45.5)      // Update best time if faster
-        .max::<gamestats_fields::WorstTime, _>(120.0)    // Update worst time if slower
+        .min::<gamestats_fields::BestTime, _>(45.5)   // Update best time if faster
+        .max::<gamestats_fields::WorstTime, _>(120.0) // Update worst time if slower
         .build();
     // Result: {
     //   "$min": { "best_time": 45.5 },
     //   "$max": { "worst_time": 120.0 }
     // }
 }
+```
 
 ## Array Operations
 
@@ -567,6 +569,397 @@ struct UserProfileUpdate {
     name: Option<String>,
     email: Option<String>,
     age: Option<i32>,
+}
+```
+
+## Handling Optional Fields
+
+When building update documents dynamically, you often need to handle optional values where some fields should only be updated if certain values are provided. Tnuctipun provides the `if_some` method to elegantly handle `Option<T>` values without explicit conditional logic.
+
+### Basic Optional Field Updates
+
+Tnuctipun supports two approaches for handling optional fields:
+
+1. **Direct assignment**: You can directly set `Option<T>` values using the regular `set` method
+2. **Conditional updates**: Use the `if_some` method to conditionally apply operations based on whether an `Option<T>` contains a value
+
+#### Direct Option Assignment
+
+You can directly set `Option` fields using the standard `set` method, regardless of whether the value is `Some` or `None`:
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserProfile {
+    pub name: String,
+    pub email: Option<String>,
+    pub bio: Option<String>,
+    pub website: Option<String>,
+}
+
+fn direct_option_assignment() -> bson::Document {
+    updates::empty::<UserProfile>()
+        .set::<userprofile_fields::Name, _>("John Doe".to_string())
+        .set::<userprofile_fields::Email, _>(Some("john@example.com".to_string())) // Set Some value
+        .set::<userprofile_fields::Bio, _>(Some("Software developer".to_string()))  // Set Some value
+        .set::<userprofile_fields::Website, _>(None::<String>)                       // Set None value
+        .build()
+    // Result: {
+    //   "$set": {
+    //     "name": "John Doe",
+    //     "email": "john@example.com",
+    //     "bio": "Software developer",
+    //     "website": null
+    //   }
+    // }
+}
+
+// Working with variables containing Option values
+fn direct_option_from_variables(
+    maybe_email: Option<String>,
+    maybe_bio: Option<String>,
+) -> bson::Document {
+    updates::empty::<UserProfile>()
+        .set::<userprofile_fields::Name, _>("Jane Smith".to_string())
+        .set::<userprofile_fields::Email, _>(maybe_email)    // Directly pass Option value
+        .set::<userprofile_fields::Bio, _>(maybe_bio)        // Directly pass Option value
+        .build()
+    // Result depends on the Option values:
+    // - If maybe_email is Some("jane@example.com"), email field will be set to "jane@example.com"
+    // - If maybe_email is None, email field will be set to null
+}
+```
+
+#### Conditional Updates with if_some
+
+The `if_some` method allows you to conditionally apply update operations based on whether an `Option<T>` contains a value:
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserProfile {
+    pub name: String,
+    pub email: Option<String>,
+    pub bio: Option<String>,
+    pub website: Option<String>,
+    pub age: i32,
+    pub score: i32,
+}
+
+fn update_user_with_optional_fields(
+    name: String,
+    maybe_email: Option<String>,
+    maybe_bio: Option<String>,
+    maybe_website: Option<String>,
+    maybe_score_bonus: Option<i32>,
+) -> bson::Document {
+    updates::empty::<UserProfile>()
+        .set::<userprofile_fields::Name, _>(name)
+        .if_some(maybe_email, |builder, email| {
+            builder.set::<userprofile_fields::Email, _>(email)
+        })
+        .if_some(maybe_bio, |builder, bio| {
+            builder.set::<userprofile_fields::Bio, _>(bio)
+        })
+        .if_some(maybe_website, |builder, website| {
+            builder.set::<userprofile_fields::Website, _>(website)
+        })
+        .if_some(maybe_score_bonus, |builder, bonus| {
+            builder.inc::<userprofile_fields::Score, _>(bonus)
+        })
+        .build()
+}
+
+// Usage examples:
+fn examples() {
+    // Update with all optional fields present
+    let update_all = update_user_with_optional_fields(
+        "John Doe".to_string(),
+        Some("john@example.com".to_string()),
+        Some("Software developer".to_string()),
+        Some("https://johndoe.dev".to_string()),
+        Some(100),
+    );
+    // Result: {
+    //   "$set": {
+    //     "name": "John Doe",
+    //     "email": "john@example.com",
+    //     "bio": "Software developer",
+    //     "website": "https://johndoe.dev"
+    //   },
+    //   "$inc": { "score": 100 }
+    // }
+
+    // Update with some optional fields missing
+    let update_partial = update_user_with_optional_fields(
+        "Jane Smith".to_string(),
+        Some("jane@example.com".to_string()),
+        None, // No bio update
+        None, // No website update
+        Some(50),
+    );
+    // Result: {
+    //   "$set": {
+    //     "name": "Jane Smith",
+    //     "email": "jane@example.com"
+    //   },
+    //   "$inc": { "score": 50 }
+    // }
+
+    // Update with no optional fields
+    let update_minimal = update_user_with_optional_fields(
+        "Bob Wilson".to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+    // Result: {
+    //   "$set": { "name": "Bob Wilson" }
+    // }
+}
+```
+
+#### Choosing Between Direct Assignment and if_some
+
+Both approaches have their use cases:
+
+**Use direct assignment when:**
+- You want to explicitly set a field to `null` (None) in the database
+- You have an `Option<T>` value and want to set the field regardless of whether it's `Some` or `None`
+- You're building simple updates where the field should always be updated
+
+**Use `if_some` when:**
+- You only want to update the field if a value is present
+- You want to skip the update operation entirely when the value is `None`
+- You need to perform multiple related operations when a value is present
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct UserSettings {
+    pub theme: Option<String>,
+    pub notifications: Option<bool>,
+    pub last_updated: String,
+}
+
+// Example showing the difference
+fn compare_approaches(
+    maybe_theme: Option<String>,
+    maybe_notifications: Option<bool>,
+) {
+    // Direct assignment - always updates the fields (even to null)
+    let direct_update = updates::empty::<UserSettings>()
+        .set::<usersettings_fields::Theme, _>(maybe_theme.clone())
+        .set::<usersettings_fields::Notifications, _>(maybe_notifications)
+        .set::<usersettings_fields::LastUpdated, _>("2025-08-06".to_string())
+        .build();
+    // Result: {
+    //   "$set": {
+    //     "theme": null,           // Set to null if maybe_theme was None
+    //     "notifications": null,   // Set to null if maybe_notifications was None
+    //     "last_updated": "2025-08-06"
+    //   }
+    // }
+
+    // Conditional assignment - only updates fields that have values
+    let conditional_update = updates::empty::<UserSettings>()
+        .if_some(maybe_theme, |builder, theme| {
+            builder.set::<usersettings_fields::Theme, _>(theme)
+        })
+        .if_some(maybe_notifications, |builder, notifications| {
+            builder.set::<usersettings_fields::Notifications, _>(notifications)
+        })
+        .set::<usersettings_fields::LastUpdated, _>("2025-08-06".to_string())
+        .build();
+    // Result: {
+    //   "$set": {
+    //     "last_updated": "2025-08-06"
+    //     // theme and notifications fields are only included if the Options contained values
+    //   }
+    // }
+}
+```
+
+### Complex Operations with Optional Values
+
+The `if_some` method supports complex update operations within the closure, allowing you to perform multiple updates when a value is present:
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct Product {
+    pub name: String,
+    pub tags: Vec<String>,
+    pub discount: Option<f64>,
+    pub sale_count: i32,
+    pub featured: bool,
+}
+
+fn apply_discount_campaign(
+    product_name: String,
+    maybe_discount: Option<f64>,
+) -> bson::Document {
+    updates::empty::<Product>()
+        .set::<product_fields::Name, _>(product_name)
+        .if_some(maybe_discount, |builder, discount| {
+            builder
+                .set::<product_fields::Discount, _>(discount)
+                .push::<product_fields::Tags, _>("on-sale".to_string())
+                .set::<product_fields::Featured, _>(true)
+                .inc::<product_fields::SaleCount, _>(1)
+        })
+        .build()
+}
+
+// Alternative: Multiple if_some calls for different optional operations
+fn flexible_product_update(
+    maybe_discount: Option<f64>,
+    maybe_new_tags: Option<Vec<String>>,
+    maybe_feature: Option<bool>,
+) -> bson::Document {
+    updates::empty::<Product>()
+        .if_some(maybe_discount, |builder, discount| {
+            builder.set::<product_fields::Discount, _>(discount)
+        })
+        .if_some(maybe_new_tags, |builder, tags| {
+            let mut updated_builder = builder;
+            for tag in tags {
+                updated_builder = updated_builder.push::<product_fields::Tags, _>(tag);
+            }
+            updated_builder
+        })
+        .if_some(maybe_feature, |builder, featured| {
+            builder.set::<product_fields::Featured, _>(featured)
+        })
+        .build()
+}
+```
+
+### Comparison with Traditional Conditional Logic
+
+The `if_some` method provides a more fluent alternative to traditional `if let Some(...)` patterns:
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct Settings {
+    pub theme: Option<String>,
+    pub notifications: Option<bool>,
+    pub language: Option<String>,
+}
+
+// Traditional approach with explicit conditionals
+fn update_settings_traditional(
+    maybe_theme: Option<String>,
+    maybe_notifications: Option<bool>,
+    maybe_language: Option<String>,
+) -> bson::Document {
+    let mut builder = updates::empty::<Settings>();
+    
+    if let Some(theme) = maybe_theme {
+        builder.set::<settings_fields::Theme, _>(theme);
+    }
+    
+    if let Some(notifications) = maybe_notifications {
+        builder.set::<settings_fields::Notifications, _>(notifications);
+    }
+    
+    if let Some(language) = maybe_language {
+        builder.set::<settings_fields::Language, _>(language);
+    }
+    
+    builder.build()
+}
+
+// Fluent approach using if_some
+fn update_settings_fluent(
+    maybe_theme: Option<String>,
+    maybe_notifications: Option<bool>,
+    maybe_language: Option<String>,
+) -> bson::Document {
+    updates::empty::<Settings>()
+        .if_some(maybe_theme, |builder, theme| {
+            builder.set::<settings_fields::Theme, _>(theme)
+        })
+        .if_some(maybe_notifications, |builder, notifications| {
+            builder.set::<settings_fields::Notifications, _>(notifications)
+        })
+        .if_some(maybe_language, |builder, language| {
+            builder.set::<settings_fields::Language, _>(language)
+        })
+        .build()
+}
+```
+
+### Nested Optional Operations
+
+You can also chain `if_some` calls for handling nested optional values:
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct AdvancedSettings {
+    pub basic_setting: String,
+    pub optional_setting: Option<String>,
+    pub nested_config: Option<String>,
+}
+
+fn handle_nested_optionals(
+    outer_option: Option<Option<String>>,
+) -> bson::Document {
+    updates::empty::<AdvancedSettings>()
+        .set::<advancedsettings_fields::BasicSetting, _>("always_set".to_string())
+        .if_some(outer_option, |builder, inner_option| {
+            builder.if_some(inner_option, |inner_builder, value| {
+                inner_builder.set::<advancedsettings_fields::NestedConfig, _>(value)
+            })
+        })
+        .build()
+}
+```
+
+### Working with Results and Option Conversion
+
+The `if_some` method works well with functions that return `Option<T>`, including converted `Result<T, E>` types:
+
+```rust
+use tnuctipun::{FieldWitnesses, MongoComparable, updates};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct ProcessedData {
+    pub input: String,
+    pub processed_value: Option<i32>,
+    pub status: String,
+}
+
+fn parse_and_update(input_data: &str) -> bson::Document {
+    // Function that might fail to parse
+    fn try_parse_number(s: &str) -> Result<i32, std::num::ParseIntError> {
+        s.parse()
+    }
+    
+    updates::empty::<ProcessedData>()
+        .set::<processeddata_fields::Input, _>(input_data.to_string())
+        .if_some(try_parse_number(input_data).ok(), |builder, parsed_value| {
+            builder
+                .set::<processeddata_fields::ProcessedValue, _>(parsed_value)
+                .set::<processeddata_fields::Status, _>("success".to_string())
+        })
+        .build()
 }
 ```
 
