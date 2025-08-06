@@ -60,7 +60,7 @@ let user = User { name: "John".to_string(), age: 25 };
 2. **Partial Projections**: Selecting only specific fields, hiding sensitive data
 3. **Granular Updates**: Setting specific fields, incrementing counters, array operations
 4. **Dynamic Queries**: Building queries conditionally based on runtime parameters
-5. **Aggregation Pipelines**: Using filters and projections in `$match` and `$project` stages
+5. **Aggregation Pipelines**: Using filters, projections or updates (e.g. in `$match`, `$project` or `$set` stages)
 
 ## The Tnuctipun Solution
 
@@ -79,6 +79,7 @@ struct User {
 }
 
 let mut filter = empty::<User>();
+
 filter.eq::<user_fields::Name, _>("John".to_string());   // ✅ Compile-time validated
 filter.gt::<user_fields::Age, _>(18);                    // ❌ Compile error - field doesn't exist
 ```
@@ -97,6 +98,7 @@ struct User {
 
 // Type safety for field values
 let mut filter = empty::<User>();
+
 // filter.eq::<user_fields::Age, _>("not a number");  // ❌ Compile error - wrong type
 filter.eq::<user_fields::Age, _>(25);              // ✅ Correct type
 ```
@@ -178,7 +180,7 @@ Tnuctipun excels in scenarios requiring:
 2. **Dynamic Filtering**: Building queries based on runtime conditions
 3. **Data Privacy**: Selective field projection to hide sensitive information
 4. **Partial Updates**: Updating only specific fields while preserving others
-5. **Aggregation Pipelines**: Type-safe `$match` and `$project` stage construction
+5. **Aggregation Pipelines**: Type-safe stage construction
 6. **API Development**: Building flexible query endpoints with compile-time safety
 
 ## Next Steps

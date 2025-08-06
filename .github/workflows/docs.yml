@@ -1,0 +1,151 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  doc_validation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-docs-validation-${{ hashFiles('Cargo.lock', 'tnuctipun-derive/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-docs-validation-
+          ${{ runner.os }}-cargo-
+    
+    - name: Setup Ruby for Jekyll
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+        working-directory: ./docs
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Jekyll dependencies
+      run: |
+        cd docs
+        gem install bundler
+        bundle install
+
+    - name: Validate Jekyll build
+      run: |
+        cd docs
+        bundle exec jekyll build --destination ../_site_validation
+        echo "✅ Jekyll build validation successful"
+
+  doc_build:
+    name: Documentation Preparation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Pages (for deployment)
+      uses: actions/configure-pages@v5
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Setup Ruby for Jekyll
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+        working-directory: ./docs
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Install Jekyll dependencies
+      run: |
+        cd docs
+        gem install bundler
+        bundle install
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Build user guide with Jekyll
+      run: |
+        cd docs
+        bundle exec jekyll build --destination ../_site
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+      with:
+        path: ./_site
+
+  doc_snippets:
+    name: Documentation Snippets
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-doc-snippets-${{ hashFiles('Cargo.lock', 'tnuctipun-derive/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-doc-snippets-
+          ${{ runner.os }}-cargo-
+    
+    - name: Build doc-checker
+      run: |
+        cd tools/doc-checker
+        go build -o doc-checker .
+        test -f go.sum || touch go.sum
+    
+    - name: Check documentation snippets
+      run: ./tools/doc-checker/doc-checker -o json
+
+  doc_deploy:
+    name: Documentation Deploy
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs:
+      - doc_validation
+      - doc_snippets
+      - doc_build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

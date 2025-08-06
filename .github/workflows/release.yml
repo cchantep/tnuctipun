@@ -47,18 +47,6 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
     
-    - name: Generate cache key
-      id: cache_key
-      run: |
-        # Generate a hash from Cargo.lock files manually
-        if [ -f "Cargo.lock" ] && [ -f "tnuctipun-derive/Cargo.lock" ]; then
-          HASH=$(cat Cargo.lock tnuctipun-derive/Cargo.lock | sha256sum | cut -d' ' -f1 | head -c 16)
-          echo "key_suffix=$HASH" >> $GITHUB_OUTPUT
-        else
-          # Fallback to date-based key if files don't exist
-          echo "key_suffix=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
-        fi
-    
     - name: Cache cargo registry
       uses: actions/cache@v4
       with:
@@ -66,7 +54,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-release-${{ steps.cache_key.outputs.key_suffix }}
+        key: ${{ runner.os }}-cargo-release-${{ hashFiles('Cargo.lock', 'tnuctipun-derive/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-release-
           ${{ runner.os }}-cargo-

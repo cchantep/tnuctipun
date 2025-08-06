@@ -23,7 +23,7 @@ Welcome to the comprehensive user guide for **Tnuctipun**, a type-safe MongoDB q
 
 ### 🔗 Additional Resources
 
-- [**API Documentation**](api/tnuctipun/) - Complete API reference (auto-generated)
+- [**API Documentation**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API reference
 - [**Crates.io**](https://crates.io/crates/tnuctipun) - Released versions
 - [**GitHub Repository**](https://github.com/cchantep/tnuctipun) - Source code and issues
 

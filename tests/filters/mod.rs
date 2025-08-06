@@ -16,4 +16,7 @@ pub mod nested_operations;
 pub mod operation_builder;
 
 #[cfg(test)]
+pub mod regex_operations;
+
+#[cfg(test)]
 pub mod integration;

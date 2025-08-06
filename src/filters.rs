@@ -88,6 +88,116 @@ impl<T> FilterBuilder<T> {
         self
     }
 
+    /// Creates a type-safe version of MongoDB's regular expression (`$regex`) filter.
+    ///
+    /// This method allows you to filter documents based on pattern matching using regular expressions.
+    /// It's particularly useful for text searches, partial matches, and complex string pattern filtering.
+    ///
+    /// # Type parameters:
+    /// * `F` - The field name marker type (e.g., `user_fields::Name`)
+    ///
+    /// # Arguments
+    /// * `expr` - The regular expression pattern as a string
+    /// * `options` - Optional regex options (None for no options, Some("i") for case-insensitive, etc.)
+    ///
+    /// # MongoDB Regex Behavior
+    ///
+    /// The `$regex` operator provides regular expression capabilities for pattern matching strings in queries.
+    /// MongoDB uses Perl Compatible Regular Expressions (PCRE) version 8.42 with UTF-8 support.
+    ///
+    /// # Common Use Cases
+    ///
+    /// - **Case-insensitive search**: Use regex options like `Some("i")`
+    /// - **Partial matches**: Search for substrings within field values
+    /// - **Pattern validation**: Match specific formats (emails, phone numbers, etc.)
+    /// - **Wildcard searches**: Use `.*` for flexible matching
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use tnuctipun::filters::empty;
+    /// use tnuctipun::{FieldWitnesses, MongoComparable};
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    /// struct User {
+    ///     pub name: String,
+    ///     pub email: String,
+    /// }
+    ///
+    /// // Case-insensitive search for names containing "john"
+    /// empty::<User>().regex::<user_fields::Name>("john", Some("i"));
+    /// // Resulting BSON: { "name": { "$regex": "john", "$options": "i" } }
+    ///
+    /// // Email validation pattern (no options)
+    /// empty::<User>().regex::<user_fields::Email>(r"^[\w\.-]+@[\w\.-]+\.\w+$", None);
+    /// // Resulting BSON: { "email": { "$regex": "^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$" } }
+    ///
+    /// // Partial match for product names starting with "Laptop"
+    /// empty::<User>().regex::<user_fields::Name>("^Laptop.*", None);
+    /// // Resulting BSON: { "name": { "$regex": "^Laptop.*" } }
+    /// ```
+    ///
+    /// # Advanced Regex Options
+    ///
+    /// For more complex regex queries with options, use the `Some()` wrapper:
+    ///
+    /// ```rust
+    /// use tnuctipun::filters::empty;
+    /// # use tnuctipun::{FieldWitnesses, MongoComparable};
+    /// # use serde::{Serialize, Deserialize};
+    /// # #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+    /// # struct User { pub name: String }
+    ///
+    /// // Case-insensitive and multiline options
+    /// empty::<User>().regex::<user_fields::Name>("pattern", Some("im"));
+    /// // Resulting BSON: { "name": { "$regex": "pattern", "$options": "im" } }
+    /// ```
+    ///
+    /// # Common Regex Patterns
+    ///
+    /// | Pattern | Description | Example |
+    /// |---------|-------------|---------|
+    /// | `^text` | Starts with "text" | `^Hello` matches "Hello World" |
+    /// | `text$` | Ends with "text" | `World$` matches "Hello World" |
+    /// | `.*text.*` | Contains "text" | `.*cat.*` matches "concatenate" |
+    /// | `(?i)text` | Case-insensitive (inline) | `(?i)hello` matches "HELLO" |
+    /// | `\d+` | One or more digits | `\d+` matches "123" |
+    /// | `[a-zA-Z]+` | Letters only | Matches alphabetic strings |
+    ///
+    /// # Regex Options
+    ///
+    /// MongoDB supports these regex options (passed as Some("options")):
+    /// - `i` - Case insensitive matching
+    /// - `m` - Multiline mode (^ and $ match line boundaries)
+    /// - `x` - Extended mode (ignore whitespace and allow comments)
+    /// - `s` - Dotall mode (. matches newlines)
+    ///
+    /// Options can be combined: `Some("im")` for case-insensitive multiline.
+    ///
+    /// # Type Safety
+    ///
+    /// This method ensures compile-time verification that:
+    /// - The field `F` exists in the struct `T`
+    /// - The field is compatible with regex operations (typically String fields)
+    pub fn regex<F: FieldName>(&mut self, expr: &str, options: Option<&str>) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        let path = self.field_path::<F>();
+
+        let mut regex_doc = bson::doc! { "$regex": expr };
+        if let Some(opts) = options {
+            if !opts.is_empty() {
+                regex_doc.insert("$options", opts);
+            }
+        }
+
+        self.clauses.push(bson::doc! { path: regex_doc });
+
+        self
+    }
+
     /// Returns the current filter clauses as a vector of BSON documents.
     pub fn clauses(&self) -> &Vec<bson::Document> {
         &self.clauses

@@ -47,6 +47,82 @@ validate_version() {
     return 0
 }
 
+# Function to find all markdown files in the repository
+find_markdown_files() {
+    find . -name "*.md" -type f | grep -v "./target/" | sort
+}
+
+# Function to update markdown files with new version
+update_markdown_files() {
+    local new_version=$1
+    local current_version=$2
+    
+    print_status "Updating version references in markdown files..."
+    
+    # Find all markdown files
+    local markdown_files
+    mapfile -t markdown_files < <(find_markdown_files)
+    
+    local files_updated=0
+    
+    for file in "${markdown_files[@]}"; do
+        local updated=false
+        
+        # Create backup
+        cp "$file" "$file.bak"
+        
+        # Update TOML dependencies in markdown code blocks
+        # Pattern 1: tnuctipun = "version"
+        if sed -i'' -e "s/tnuctipun = \"$current_version\"/tnuctipun = \"$new_version\"/g" "$file" 2>/dev/null; then
+            if ! cmp -s "$file" "$file.bak"; then
+                updated=true
+            fi
+        fi
+        
+        # Pattern 2: tnuctipun = { version = "version" }
+        if sed -i'' -e "s/tnuctipun = { version = \"$current_version\"/tnuctipun = { version = \"$new_version\"/g" "$file" 2>/dev/null; then
+            if ! cmp -s "$file" "$file.bak"; then
+                updated=true
+            fi
+        fi
+        
+        # Pattern 3: tnuctipun-derive = "version"
+        if sed -i'' -e "s/tnuctipun-derive = \"$current_version\"/tnuctipun-derive = \"$new_version\"/g" "$file" 2>/dev/null; then
+            if ! cmp -s "$file" "$file.bak"; then
+                updated=true
+            fi
+        fi
+        
+        # Pattern 4: tnuctipun-derive = { version = "version" }
+        if sed -i'' -e "s/tnuctipun-derive = { version = \"$current_version\"/tnuctipun-derive = { version = \"$new_version\"/g" "$file" 2>/dev/null; then
+            if ! cmp -s "$file" "$file.bak"; then
+                updated=true
+            fi
+        fi
+        
+        # Pattern 5: HTML microformat spans
+        if sed -i'' -e "s/<span class=\"project-version\">$current_version<\/span>/<span class=\"project-version\">$new_version<\/span>/g" "$file" 2>/dev/null; then
+            if ! cmp -s "$file" "$file.bak"; then
+                updated=true
+            fi
+        fi
+        
+        if [ "$updated" = true ]; then
+            print_status "Updated version references in $file"
+            files_updated=$((files_updated + 1))
+        fi
+        
+        # Clean up backup
+        rm -f "$file.bak"
+    done
+    
+    if [ $files_updated -gt 0 ]; then
+        print_success "Updated version references in $files_updated markdown file(s)"
+    else
+        print_status "No version references found in markdown files to update"
+    fi
+}
+
 # Function to check git status
 check_git_status() {
     if ! git diff-index --quiet HEAD --; then
@@ -78,6 +154,7 @@ run_tests() {
 # Function to update version
 update_version() {
     local new_version=$1
+    local current_version=$(get_current_version)
     
     print_status "Updating version to $new_version..."
     
@@ -90,6 +167,9 @@ update_version() {
     
     # Update dependency reference in main Cargo.toml
     sed -i.bak "s/tnuctipun-derive = { version = \".*\", path/tnuctipun-derive = { version = \"$new_version\", path/" Cargo.toml
+    
+    # Update markdown files with new version
+    update_markdown_files "$new_version" "$current_version"
     
     # Clean up backup files
     rm -f Cargo.toml.bak tnuctipun-derive/Cargo.toml.bak

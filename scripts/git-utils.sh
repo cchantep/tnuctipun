@@ -11,10 +11,10 @@ check_files_changed() {
     
     # Check if stdin has data (when run as git hook) or if running manually
     if [ -t 0 ]; then
-        # Running manually - check against origin/main or just uncommitted changes
-        if git rev-parse --verify origin/main >/dev/null 2>&1; then
-            # Check changes between current branch and origin/main
-            if git diff --name-only origin/main...HEAD | grep -q "\.$extension$"; then
+        # Running manually - check against origin/master or just uncommitted changes
+        if git rev-parse --verify origin/master >/dev/null 2>&1; then
+            # Check changes between current branch and origin/master
+            if git diff --name-only origin/master...HEAD | grep -q "\.$extension$"; then
                 files_changed=true
             fi
         else

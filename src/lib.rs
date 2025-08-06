@@ -34,23 +34,19 @@
 //! }
 //!
 //! // Type-safe filter building with compile-time field validation
-//! let mut filter_builder = empty::<User>();
-//!
-//! filter_builder.eq::<user_fields::Name, _>("John".to_string());
-//! filter_builder.gt::<user_fields::Age, _>(18);
-//!
-//! // Convert to MongoDB document
-//! let filter_doc = filter_builder.and();
+//! let filter_doc = empty::<User>()
+//!   .eq::<user_fields::Name, _>("John".to_string())
+//!   .gt::<user_fields::Age, _>(18)
+//!   .and(); // Convert to MongoDB document
 //! ```
 //!
 //! For comprehensive documentation, see the [User Guide](https://cchantep.github.io/tnuctipun/).
 //!
-//! ## Modules
+//! ## Builder modules
 //!
 //! - [`filters`] - Query filter building
 //! - [`projection`] - Field projection building  
 //! - [`updates`] - Update document building
-//! - [`field_witnesses`] - Field witness types and traits
 
 // Modules
 pub mod field_filters;
