@@ -18,5 +18,5 @@ fn main() {
         .gt::<user_fields::Age, _>(18);
 
     // This should fail to compile due to ownership issues
-    let filter_doc = filter_builder.and(); // Error: value used after move
+    let _filter_doc = filter_builder.and(); // Error: value used after move
 }

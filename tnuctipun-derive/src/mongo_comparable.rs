@@ -87,115 +87,113 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
         }
 
         // Generate MongoComparable implementations based on hardcoded type compatibility rules
-        if let Type::Path(type_path) = field_type {
-            if let Some(segment) = type_path.path.segments.last() {
-                let type_name = segment.ident.to_string();
+        if let Type::Path(type_path) = field_type
+            && let Some(segment) = type_path.path.segments.last()
+        {
+            let type_name = segment.ident.to_string();
 
-                // Generate the compatible types based on hardcoded rules
-                let compatible_types = get_compatible_types_for(&type_name);
+            // Generate the compatible types based on hardcoded rules
+            let compatible_types = get_compatible_types_for(&type_name);
 
-                for compatible_type_str in compatible_types {
-                    let impl_key = format!("{type_name}_{compatible_type_str}");
+            for compatible_type_str in compatible_types {
+                let impl_key = format!("{type_name}_{compatible_type_str}");
 
-                    if !implemented_types.contains(&impl_key) {
-                        implemented_types.insert(impl_key.clone());
+                if !implemented_types.contains(&impl_key) {
+                    implemented_types.insert(impl_key.clone());
 
-                        // For most types, we can directly use the string as an identifier
-                        // Only handle special cases explicitly
-                        let compatible_type = if compatible_type_str == "DateTime" {
-                            quote! { chrono::DateTime<chrono::Utc> }
-                        } else {
-                            // Parse the string into an identifier and use it directly
-                            let ident = syn::Ident::new(
-                                &compatible_type_str,
-                                proc_macro2::Span::call_site(),
-                            );
-                            quote! { #ident }
-                        };
+                    // For most types, we can directly use the string as an identifier
+                    // Only handle special cases explicitly
+                    let compatible_type = if compatible_type_str == "DateTime" {
+                        quote! { chrono::DateTime<chrono::Utc> }
+                    } else {
+                        // Parse the string into an identifier and use it directly
+                        let ident =
+                            syn::Ident::new(&compatible_type_str, proc_macro2::Span::call_site());
+                        quote! { #ident }
+                    };
 
-                        impls.push(quote! {
+                    impls.push(quote! {
                             impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #compatible_type> for #name {}
                         });
-                    }
                 }
             }
         }
 
         // Now handle special cases for additional type compatibility
-        if let Type::Path(type_path) = field_type {
-            if let Some(segment) = type_path.path.segments.last() {
-                let type_name = segment.ident.to_string();
+        if let Type::Path(type_path) = field_type
+            && let Some(segment) = type_path.path.segments.last()
+        {
+            let type_name = segment.ident.to_string();
 
-                // Case 1: Option<T> field
-                if type_name == "Option" {
-                    if let Some(inner_type) = extract_generic_arg(field_type) {
-                        // Implement MongoComparable<Option<T>, T>
-                        let impl_key = format!(
-                            "Option_{}_{}",
-                            type_to_string(field_type),
-                            type_to_string(&inner_type)
-                        );
+            // Case 1: Option<T> field
+            if type_name == "Option" {
+                if let Some(inner_type) = extract_generic_arg(field_type) {
+                    // Implement MongoComparable<Option<T>, T>
+                    let impl_key = format!(
+                        "Option_{}_{}",
+                        type_to_string(field_type),
+                        type_to_string(&inner_type)
+                    );
 
-                        if !implemented_types.contains(&impl_key) {
-                            implemented_types.insert(impl_key);
-                            impls.push(quote! {
+                    if !implemented_types.contains(&impl_key) {
+                        implemented_types.insert(impl_key);
+                        impls.push(quote! {
                                 impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #inner_type> for #name {}
                             });
-                        }
+                    }
 
-                        // Additionally implement MongoComparable<Option<T>, Option<U>> for all U compatible with T
-                        if let Type::Path(inner_type_path) = &inner_type {
-                            if let Some(inner_segment) = inner_type_path.path.segments.last() {
-                                let inner_type_name = inner_segment.ident.to_string();
-                                let compatible_types = get_compatible_types_for(&inner_type_name);
+                    // Additionally implement MongoComparable<Option<T>, Option<U>> for all U compatible with T
+                    if let Type::Path(inner_type_path) = &inner_type
+                        && let Some(inner_segment) = inner_type_path.path.segments.last()
+                    {
+                        let inner_type_name = inner_segment.ident.to_string();
+                        let compatible_types = get_compatible_types_for(&inner_type_name);
 
-                                for compatible_type_str in compatible_types {
-                                    let impl_key = format!(
-                                        "Option<{inner_type_name}>_Option<{compatible_type_str}>"
+                        for compatible_type_str in compatible_types {
+                            let impl_key =
+                                format!("Option<{inner_type_name}>_Option<{compatible_type_str}>");
+
+                            if !implemented_types.contains(&impl_key) {
+                                implemented_types.insert(impl_key.clone());
+
+                                // For most types, we can directly use the string as an identifier
+                                // Only handle special cases explicitly
+                                let compatible_type = if compatible_type_str == "DateTime" {
+                                    quote! { chrono::DateTime<chrono::Utc> }
+                                } else {
+                                    // Parse the string into an identifier and use it directly
+                                    let ident = syn::Ident::new(
+                                        &compatible_type_str,
+                                        proc_macro2::Span::call_site(),
                                     );
 
-                                    if !implemented_types.contains(&impl_key) {
-                                        implemented_types.insert(impl_key.clone());
+                                    quote! { #ident }
+                                };
 
-                                        // For most types, we can directly use the string as an identifier
-                                        // Only handle special cases explicitly
-                                        let compatible_type = if compatible_type_str == "DateTime" {
-                                            quote! { chrono::DateTime<chrono::Utc> }
-                                        } else {
-                                            // Parse the string into an identifier and use it directly
-                                            let ident = syn::Ident::new(
-                                                &compatible_type_str,
-                                                proc_macro2::Span::call_site(),
-                                            );
-                                            quote! { #ident }
-                                        };
-
-                                        impls.push(quote! {
+                                impls.push(quote! {
                                             impl tnuctipun::mongo_comparable::MongoComparable<#field_type, Option<#compatible_type>> for #name {}
                                         });
-                                    }
-                                }
                             }
                         }
                     }
                 }
-                // Case 2: IntoIterator<Item=I> field
-                else if is_into_iterator_type(&type_name) {
-                    if let Some(item_type) = extract_generic_arg(field_type) {
-                        // Implement MongoComparable<C, I> where C: IntoIterator<Item=I>
-                        let impl_key = format!(
-                            "{}_{}",
-                            type_to_string(field_type),
-                            type_to_string(&item_type)
-                        );
+            }
+            // Case 2: IntoIterator<Item=I> field
+            else if is_into_iterator_type(&type_name)
+                && let Some(item_type) = extract_generic_arg(field_type)
+            {
+                // Implement MongoComparable<C, I> where C: IntoIterator<Item=I>
+                let impl_key = format!(
+                    "{}_{}",
+                    type_to_string(field_type),
+                    type_to_string(&item_type)
+                );
 
-                        if !implemented_types.contains(&impl_key) {
-                            implemented_types.insert(impl_key);
-                            impls.push(quote! {
+                if !implemented_types.contains(&impl_key) {
+                    implemented_types.insert(impl_key);
+                    impls.push(quote! {
                                 impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #item_type> for #name {}
                             });
-                        }
-                    }
                 }
             }
         }
@@ -244,15 +242,14 @@ fn is_into_iterator_type(type_name: &str) -> bool {
 
 // Helper function to extract the generic argument from a type (Option<T> or Collection<T>)
 fn extract_generic_arg(ty: &Type) -> Option<Type> {
-    if let Type::Path(type_path) = ty {
-        if let Some(segment) = type_path.path.segments.last() {
-            if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
-                if let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
-                    return Some(inner_type.clone());
-                }
-            }
-        }
+    if let Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+        && let syn::PathArguments::AngleBracketed(args) = &segment.arguments
+        && let Some(syn::GenericArgument::Type(inner_type)) = args.args.first()
+    {
+        return Some(inner_type.clone());
     }
+
     None
 }
 

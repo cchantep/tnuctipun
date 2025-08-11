@@ -5,7 +5,7 @@ description: "Tnuctipun - Type-safe MongoDB query and update builder for Rust"
 permalink: /
 ---
 
-<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" style="border: 1px solid #ddd; border-radius: 8px;" />
+<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" style="padding: 5px; border: 1px solid #ddd; border-radius: 8px;" />
 
 **Type-safe MongoDB query and update builder for Rust**
 
@@ -22,9 +22,10 @@ Welcome to the comprehensive user guide for **Tnunctipun**, a type-safe MongoDB 
 - [**Derive Macros**](user-guide/05-derive-macros.md) - Automatic trait implementations
 - [**Advanced Topics**](user-guide/06-advanced-topics.md) - Performance tuning and edge cases
 
-### 🔧 API Documentation
+### 🔧 Reference Documentation
 
-- [**API Reference**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API documentation
+- [**API Docs.rs**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API documentation
+- [**Crates.io**](https://crates.io/crates/tnuctipun) - Released versions
 
 ### 📖 Examples
 
