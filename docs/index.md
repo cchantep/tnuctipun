@@ -5,7 +5,7 @@ description: "Tnuctipun - Type-safe MongoDB query and update builder for Rust"
 permalink: /
 ---
 
-<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" style="border: 1px solid #ddd; border-radius: 8px;" />
+<img src="https://repository-images.githubusercontent.com/1030517113/b428d5ff-e9b3-4ae4-a3e7-77979debc7b0" alt="Tnuctipun Logo" width="600" style="padding: 5px; border: 1px solid #ddd; border-radius: 8px;" />
 
 **Type-safe MongoDB query and update builder for Rust**
 
