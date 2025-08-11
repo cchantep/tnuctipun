@@ -81,6 +81,6 @@ let update = updates::empty::<User>()
 
 ## Community & Support
 
-- **GitHub Repository**: [cchantep/tnuctipun](https://github.com/cchantep/tnunctipun)
+- **GitHub Repository**: [cchantep/tnuctipun](https://github.com/cchantep/tnuctipun)
 - **Documentation**: This user guide and [API documentation](https://docs.rs/tnuctipun/latest/tnuctipun/)
 - **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/cchantep/tnunctipun/issues)
