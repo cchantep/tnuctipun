@@ -185,12 +185,12 @@ impl<T> FilterBuilder<T> {
         T: HasField<F>,
     {
         let path = self.field_path::<F>();
-
         let mut regex_doc = bson::doc! { "$regex": expr };
-        if let Some(opts) = options {
-            if !opts.is_empty() {
-                regex_doc.insert("$options", opts);
-            }
+
+        if let Some(opts) = options
+            && !opts.is_empty()
+        {
+            regex_doc.insert("$options", opts);
         }
 
         self.clauses.push(bson::doc! { path: regex_doc });
