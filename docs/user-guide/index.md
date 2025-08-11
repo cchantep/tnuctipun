@@ -26,4 +26,4 @@ This guide assumes basic familiarity with:
 - MongoDB concepts (documents, collections, queries)
 - Serde for serialization (helpful but not required)
 
-Let's get started with understanding [why Tnunctipun exists](01-introduction.md) and how it can improve your MongoDB applications.
+Let's get started with understanding [why Tnuctipun exists](01-introduction.md) and how it can improve your MongoDB applications.
