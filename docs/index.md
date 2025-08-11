@@ -22,9 +22,10 @@ Welcome to the comprehensive user guide for **Tnunctipun**, a type-safe MongoDB 
 - [**Derive Macros**](user-guide/05-derive-macros.md) - Automatic trait implementations
 - [**Advanced Topics**](user-guide/06-advanced-topics.md) - Performance tuning and edge cases
 
-### 🔧 API Documentation
+### 🔧 Reference Documentation
 
-- [**API Reference**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API documentation
+- [**API Docs.rs**](https://docs.rs/tnuctipun/latest/tnuctipun/) - Complete API documentation
+- [**Crates.io**](https://crates.io/crates/tnuctipun) - Released versions
 
 ### 📖 Examples
 
