@@ -2,8 +2,8 @@
 
 use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
 use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
-use tnuctipun::HasField;
 use serde::{Serialize, Deserialize};
+
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 struct Product {
     Name: String,
@@ -12,6 +12,7 @@ struct Product {
 }
 
 // Custom collection type that doesn't implement IntoIterator correctly
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct CustomCollection;
 
 fn main() {

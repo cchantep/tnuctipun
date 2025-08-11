@@ -1,11 +1,3 @@
-warning: unused variable: `filter_doc`
-  --> tests/compile_fail/filter_builder_ownership.rs:21:9
-   |
-21 |     let filter_doc = filter_builder.and(); // Error: value used after move
-   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_filter_doc`
-   |
-   = note: `#[warn(unused_variables)]` on by default
-
 error[E0716]: temporary value dropped while borrowed
   --> tests/compile_fail/filter_builder_ownership.rs:16:26
    |
@@ -15,11 +7,11 @@ error[E0716]: temporary value dropped while borrowed
 18 |         .gt::<user_fields::Age, _>(18);
    |                                       - temporary value is freed at the end of this statement
 ...
-21 |     let filter_doc = filter_builder.and(); // Error: value used after move
-   |                      -------------- borrow later used here
+21 |     let _filter_doc = filter_builder.and(); // Error: value used after move
+   |                       -------------- borrow later used here
    |
 help: consider using a `let` binding to create a longer lived value
    |
-16 ~     let binding = empty::<User>();
+16 ~     let mut binding = empty::<User>();
 17 ~     let filter_builder = binding
    |
