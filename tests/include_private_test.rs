@@ -22,6 +22,7 @@ struct UserWithoutPrivate {
 // Test struct with all private fields and include_private = true
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
 #[tnuctipun(include_private = true)]
+#[allow(dead_code)]
 struct AllPrivateIncluded {
     name: String,
     age: i32,
@@ -30,6 +31,7 @@ struct AllPrivateIncluded {
 
 // Test struct with all private fields and include_private = false (default)
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+#[allow(dead_code)]
 struct AllPrivateSkipped {
     name: String,
     age: i32,

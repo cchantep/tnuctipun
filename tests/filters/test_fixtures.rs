@@ -40,12 +40,14 @@ pub struct User {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+#[allow(dead_code)]
 pub struct Company {
     pub name: String,
     pub address: Address,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+#[allow(dead_code)]
 pub struct Employee {
     pub id: String,
     pub name: String,

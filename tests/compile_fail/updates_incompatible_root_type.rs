@@ -1,5 +1,6 @@
 // This test verifies that UpdateBuilder::with_lookup rejects paths with incompatible Root type parameters
 
+use tnuctipun::path:Path;
 use tnuctipun::updates::empty;
 use tnuctipun::{FieldWitnesses};
 use serde::{Serialize, Deserialize};

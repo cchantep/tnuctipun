@@ -1,14 +1,8 @@
-error[E0433]: failed to resolve: use of undeclared type `Path`
-  --> tests/compile_fail/projection_incompatible_root_type.rs:29:24
+error[E0308]: mismatched types
+  --> tests/compile_fail/projection_incompatible_root_type.rs:36:17
    |
-29 |     let company_path = Path::<company_fields::Headquarters, Company, Company>::new();
-   |                        ^^^^ use of undeclared type `Path`
+36 |         |_path| address_city_path, // This path has Root=Company, but builder expects Root=User
+   |                 ^^^^^^^^^^^^^^^^^ expected `Path<_, _, User>`, found `Path<City, Address, Company>`
    |
-help: consider importing one of these structs
-   |
-3  + use std::path::Path;
-   |
-3  + use frunk::path::Path;
-   |
-3  + use tnuctipun::Path;
-   |
+   = note: expected struct `tnuctipun::Path<_, _, User>`
+              found struct `tnuctipun::Path<City, Address, Company>`

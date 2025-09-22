@@ -1,6 +1,7 @@
 // This test verifies that BasicProjectionBuilder::with_lookup rejects paths with incompatible Root type parameters
 
 use tnuctipun::projection::empty;
+use tnuctipun::path::Path;
 use tnuctipun::{FieldWitnesses};
 use serde::{Serialize, Deserialize};
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]

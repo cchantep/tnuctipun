@@ -1,5 +1,6 @@
 // This test verifies that FilterBuilder::with_lookup rejects paths with incompatible Root type parameters
 
+use tnuctipun::path:Path;
 use tnuctipun::filters::empty;
 use tnuctipun::{FieldWitnesses, MongoComparable};
 use serde::{Serialize, Deserialize};
