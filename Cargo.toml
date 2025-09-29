@@ -22,7 +22,7 @@ path = "src/lib.rs"
 chrono = "0.4"
 frunk = "0.4.4"
 bson = { version = "3.0.0", features = ["serde"] }
-serde = { version = "1.0.226", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 tnuctipun-derive = { version = "0.1.1", path = "./tnuctipun-derive" }
 num-traits = "0.2.19"
 
