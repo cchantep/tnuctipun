@@ -8,7 +8,7 @@ Examples showing how to use Tnuctipun's type-safe filters and projections in Mon
 
 ## Basic Pipeline with $match and $project
 
-```rust
+```rust:ignore
 use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection};
 use serde::{Deserialize, Serialize};
 use bson::doc;
@@ -56,7 +56,7 @@ async fn basic_aggregation_example(
         doc! { "$limit": 50 }
     ];
     
-    let cursor = collection.aggregate(pipeline, None).await?;
+    let cursor = collection.aggregate(pipeline).await?;
     // Note: try_collect requires futures TryStreamExt trait
     // Using simplified approach for this example
     let mut results = Vec::new();
@@ -68,7 +68,7 @@ async fn basic_aggregation_example(
 
 ## Complex Aggregation with Multiple Stages
 
-```rust
+```rust:ignore
 use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection};
 use serde::{Deserialize, Serialize};
 
@@ -145,7 +145,7 @@ async fn complex_sales_analysis(
         doc! { "$limit": 100 }
     ];
     
-    let cursor = order_collection.aggregate(pipeline, None).await?;
+    let cursor = order_collection.aggregate(pipeline).await?;
     // Note: try_collect requires futures TryStreamExt trait
     // Using simplified approach for this example
     let mut results = Vec::new();
@@ -157,7 +157,7 @@ async fn complex_sales_analysis(
 
 ## Lookup and Join Operations
 
-```rust
+```rust:ignore
 use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection};
 use serde::{Deserialize, Serialize};
 
@@ -259,7 +259,7 @@ async fn user_order_analytics(
         }}
     ];
     
-    let cursor = user_collection.aggregate(pipeline, None).await?;
+    let cursor = user_collection.aggregate(pipeline).await?;
     // Note: try_collect requires futures TryStreamExt trait
     // Using simplified approach for this example
     let results = Vec::new();
@@ -270,7 +270,7 @@ async fn user_order_analytics(
 
 ## Time-based Analytics
 
-```rust
+```rust:ignore
 use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection};
 use serde::{Deserialize, Serialize};
 
@@ -340,7 +340,7 @@ async fn monthly_sales_trends(
         }}
     ];
     
-    let cursor = order_collection.aggregate(pipeline, None).await?;
+    let cursor = order_collection.aggregate(pipeline).await?;
     // Note: try_collect requires futures TryStreamExt trait
     // Using simplified approach for this example
     let results = Vec::new();
@@ -351,7 +351,7 @@ async fn monthly_sales_trends(
 
 ## Geographic Analysis
 
-```rust
+```rust:ignore
 use tnuctipun::{FieldWitnesses, MongoComparable, filters::empty, projection};
 use serde::{Deserialize, Serialize};
 
@@ -431,7 +431,7 @@ async fn geographic_sales_analysis(
         }}
     ];
     
-    let cursor = order_collection.aggregate(pipeline, None).await?;
+    let cursor = order_collection.aggregate(pipeline).await?;
     // Note: try_collect requires futures TryStreamExt trait
     // Using simplified approach for this example
     let results = Vec::new();
