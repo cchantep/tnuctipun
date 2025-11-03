@@ -30,4 +30,4 @@ num-traits = "0.2.19"
 default = []
 
 [dev-dependencies]
-trybuild = "1.0.112"
+trybuild = "1.0.113"
