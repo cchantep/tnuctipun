@@ -4,14 +4,19 @@ warning: unused imports: `FieldName` and `HasField`
 3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
   |                                                  ^^^^^^^^  ^^^^^^^^^
   |
-  = note: `#[warn(unused_imports)]` on by default
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
 
 error[E0277]: the trait bound `CustomProduct: MongoComparable<CustomCollection, std::string::String>` is not satisfied
   --> tests/compile_fail/mongo_collection_type.rs:33:42
    |
 33 |     assert_implements_mongo_comparable::<CustomProduct,
-   |                                          ^^^^^^^^^^^^^ the trait `MongoComparable<CustomCollection, std::string::String>` is not implemented for `CustomProduct`
+   |                                          ^^^^^^^^^^^^^ unsatisfied trait bound
    |
+help: the trait `MongoComparable<CustomCollection, std::string::String>` is not implemented for `CustomProduct`
+  --> tests/compile_fail/mongo_collection_type.rs:27:5
+   |
+27 |     struct CustomProduct {
+   |     ^^^^^^^^^^^^^^^^^^^^
    = help: the following other types implement trait `MongoComparable<A, B>`:
              `CustomProduct` implements `MongoComparable<CustomCollection, CustomCollection>`
              `CustomProduct` implements `MongoComparable<std::string::String, std::string::String>`

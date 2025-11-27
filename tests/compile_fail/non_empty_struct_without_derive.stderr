@@ -1,52 +1,24 @@
-error[E0252]: the name `NonEmptyStruct` is defined multiple times
- --> tests/compile_fail/non_empty_struct_without_derive.rs:4:5
-  |
-3 | use tnuctipun::{FieldWitnesses, NonEmptyStruct};
-  |                                 -------------- previous import of the trait `NonEmptyStruct` here
-4 | use tnuctipun::NonEmptyStruct;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ `NonEmptyStruct` reimported here
-  |
-  = note: `NonEmptyStruct` must be defined only once in the type namespace of this module
-
-error[E0252]: the name `FieldWitnesses` is defined multiple times
- --> tests/compile_fail/non_empty_struct_without_derive.rs:6:5
-  |
-3 | use tnuctipun::{FieldWitnesses, NonEmptyStruct};
-  |                 -------------- previous import of the macro `FieldWitnesses` here
-...
-6 | use tnuctipun::FieldWitnesses;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ `FieldWitnesses` reimported here
-  |
-  = note: `FieldWitnesses` must be defined only once in the macro namespace of this module
-
 warning: unused import: `FieldWitnesses`
  --> tests/compile_fail/non_empty_struct_without_derive.rs:3:17
   |
 3 | use tnuctipun::{FieldWitnesses, NonEmptyStruct};
   |                 ^^^^^^^^^^^^^^
   |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `tnuctipun::NonEmptyStruct`
- --> tests/compile_fail/non_empty_struct_without_derive.rs:4:5
-  |
-4 | use tnuctipun::NonEmptyStruct;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `tnuctipun::FieldWitnesses`
- --> tests/compile_fail/non_empty_struct_without_derive.rs:6:5
-  |
-6 | use tnuctipun::FieldWitnesses;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
 
 error[E0277]: the trait bound `RegularStruct: NonEmptyStruct` is not satisfied
-  --> tests/compile_fail/non_empty_struct_without_derive.rs:19:43
+  --> tests/compile_fail/non_empty_struct_without_derive.rs:18:43
    |
-19 |     _assert_implements_non_empty_struct::<RegularStruct>();
-   |                                           ^^^^^^^^^^^^^ the trait `NonEmptyStruct` is not implemented for `RegularStruct`
+18 |     _assert_implements_non_empty_struct::<RegularStruct>();
+   |                                           ^^^^^^^^^^^^^ unsatisfied trait bound
    |
+help: the trait `NonEmptyStruct` is not implemented for `RegularStruct`
+  --> tests/compile_fail/non_empty_struct_without_derive.rs:9:1
+   |
+ 9 | struct RegularStruct {
+   | ^^^^^^^^^^^^^^^^^^^^
 note: required by a bound in `_assert_implements_non_empty_struct`
-  --> tests/compile_fail/non_empty_struct_without_derive.rs:18:47
+  --> tests/compile_fail/non_empty_struct_without_derive.rs:17:47
    |
-18 |     fn _assert_implements_non_empty_struct<T: NonEmptyStruct>() {}
+17 |     fn _assert_implements_non_empty_struct<T: NonEmptyStruct>() {}
    |                                               ^^^^^^^^^^^^^^ required by this bound in `_assert_implements_non_empty_struct`

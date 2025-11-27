@@ -1,34 +1,22 @@
-error[E0252]: the name `HasField` is defined multiple times
- --> tests/compile_fail/mongo_incompatible_type.rs:5:5
-  |
-3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
-  |                                                  -------- previous import of the trait `HasField` here
-4 | use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
-5 | use tnuctipun::HasField;
-  |     ^^^^^^^^^^^^^^^^^^^ `HasField` reimported here
-  |
-  = note: `HasField` must be defined only once in the type namespace of this module
-
 warning: unused imports: `FieldName` and `HasField`
  --> tests/compile_fail/mongo_incompatible_type.rs:3:50
   |
 3 | use tnuctipun::{FieldWitnesses, MongoComparable, HasField, FieldName};
   |                                                  ^^^^^^^^  ^^^^^^^^^
   |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `tnuctipun::HasField`
- --> tests/compile_fail/mongo_incompatible_type.rs:5:5
-  |
-5 | use tnuctipun::HasField;
-  |     ^^^^^^^^^^^^^^^^^^^
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
 
 error[E0277]: the trait bound `Product: MongoComparable<std::string::String, CustomType>` is not satisfied
   --> tests/compile_fail/mongo_incompatible_type.rs:24:42
    |
 24 |     assert_implements_mongo_comparable::<Product,
-   |                                          ^^^^^^^ the trait `MongoComparable<std::string::String, CustomType>` is not implemented for `Product`
+   |                                          ^^^^^^^ unsatisfied trait bound
    |
+help: the trait `MongoComparable<std::string::String, CustomType>` is not implemented for `Product`
+  --> tests/compile_fail/mongo_incompatible_type.rs:8:1
+   |
+ 8 | struct Product {
+   | ^^^^^^^^^^^^^^
    = help: the following other types implement trait `MongoComparable<A, B>`:
              `Product` implements `MongoComparable<f64, f32>`
              `Product` implements `MongoComparable<f64, f64>`
@@ -42,5 +30,5 @@ note: required by a bound in `assert_implements_mongo_comparable`
 18 |     fn assert_implements_mongo_comparable<T, A, B>()
    |        ---------------------------------- required by a bound in this function
 19 |     where
-20 |         T: MongoComparableTrait<A, B>
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `assert_implements_mongo_comparable`
+20 |         T: MongoComparable<A, B>
+   |            ^^^^^^^^^^^^^^^^^^^^^ required by this bound in `assert_implements_mongo_comparable`
