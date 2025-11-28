@@ -558,7 +558,7 @@ func (dc *DocChecker) extractDependencyVersions() (string, error) {
 	neededDeps := map[string]string{
 		"bson":        `"2.15.0"`, // fallback version
 		"serde":       `"1.0"`,    // fallback version (will be overridden with features)
-		"mongodb":     `"2.8.2"`,  // testing-specific, reasonable version
+		"mongodb":     `"3.0.0"`,  // testing-specific, reasonable version
 		"tokio":       `"1.47.1"`, // testing-specific, reasonable version
 		"chrono":      `"0.4"`,    // fallback version
 		"async-trait": `"0.1"`,    // testing-specific, reasonable version
