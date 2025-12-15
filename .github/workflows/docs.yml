@@ -29,7 +29,7 @@ jobs:
     name: Documentation Validation
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
@@ -74,7 +74,7 @@ jobs:
     name: Documentation Preparation
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Setup Pages (for deployment)
       uses: actions/configure-pages@v5
@@ -111,7 +111,7 @@ jobs:
     name: Documentation Snippets
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Set up Go
       uses: actions/setup-go@v6
