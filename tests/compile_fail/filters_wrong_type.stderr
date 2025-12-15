@@ -2,8 +2,13 @@ error[E0277]: the trait bound `Product: MongoComparable<f64, std::string::String
   --> tests/compile_fail/filters_wrong_type.rs:14:13
    |
 14 |     builder.eq::<product_fields::Price, _>("wrong type".to_string());
-   |             ^^ the trait `MongoComparable<f64, std::string::String>` is not implemented for `Product`
+   |             ^^ unsatisfied trait bound
    |
+help: the trait `MongoComparable<f64, std::string::String>` is not implemented for `Product`
+  --> tests/compile_fail/filters_wrong_type.rs:7:1
+   |
+ 7 | struct Product {
+   | ^^^^^^^^^^^^^^
    = help: the following other types implement trait `MongoComparable<A, B>`:
              `Product` implements `MongoComparable<f64, f32>`
              `Product` implements `MongoComparable<f64, f64>`

@@ -2,8 +2,13 @@ error[E0277]: the trait bound `Product: HasField<Weight>` is not satisfied
   --> tests/compile_fail/filters_nonexistent_field.rs:24:13
    |
 24 |     builder.eq::<Weight, _>(10.5);
-   |             ^^ the trait `HasField<Weight>` is not implemented for `Product`
+   |             ^^ unsatisfied trait bound
    |
+help: the trait `HasField<Weight>` is not implemented for `Product`
+  --> tests/compile_fail/filters_nonexistent_field.rs:8:1
+   |
+ 8 | struct Product {
+   | ^^^^^^^^^^^^^^
    = help: the following other types implement trait `HasField<F>`:
              `Product` implements `HasField<Name>`
              `Product` implements `HasField<Price>`
