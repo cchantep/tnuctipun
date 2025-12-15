@@ -1,9 +1,7 @@
 // This test verifies that using a nonexistent field will cause a compile error
 
 use tnuctipun::{FieldWitnesses, HasField, FieldName};
-use tnuctipun::field_witnesses::{FieldName, HasField};
-use tnuctipun::HasField;
-use tnuctipun::FieldWitnesses;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]

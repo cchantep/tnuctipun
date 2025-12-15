@@ -1,82 +1,22 @@
-error[E0252]: the name `FieldName` is defined multiple times
- --> tests/compile_fail/nonexistent_field.rs:4:34
-  |
-3 | use tnuctipun::{FieldWitnesses, HasField, FieldName};
-  |                                           --------- previous import of the trait `FieldName` here
-4 | use tnuctipun::field_witnesses::{FieldName, HasField};
-  |                                  ^^^^^^^^^--
-  |                                  |
-  |                                  `FieldName` reimported here
-  |                                  help: remove unnecessary import
-  |
-  = note: `FieldName` must be defined only once in the type namespace of this module
-
-error[E0252]: the name `HasField` is defined multiple times
- --> tests/compile_fail/nonexistent_field.rs:4:45
-  |
-3 | use tnuctipun::{FieldWitnesses, HasField, FieldName};
-  |                                 -------- previous import of the trait `HasField` here
-4 | use tnuctipun::field_witnesses::{FieldName, HasField};
-  |                                             ^^^^^^^^ `HasField` reimported here
-  |
-  = note: `HasField` must be defined only once in the type namespace of this module
-
-error[E0252]: the name `HasField` is defined multiple times
- --> tests/compile_fail/nonexistent_field.rs:5:5
-  |
-3 | use tnuctipun::{FieldWitnesses, HasField, FieldName};
-  |                                 -------- previous import of the trait `HasField` here
-4 | use tnuctipun::field_witnesses::{FieldName, HasField};
-5 | use tnuctipun::HasField;
-  |     ^^^^^^^^^^^^^^^^^^^ `HasField` reimported here
-  |
-  = note: `HasField` must be defined only once in the type namespace of this module
-
-error[E0252]: the name `FieldWitnesses` is defined multiple times
- --> tests/compile_fail/nonexistent_field.rs:6:5
-  |
-3 | use tnuctipun::{FieldWitnesses, HasField, FieldName};
-  |                 -------------- previous import of the macro `FieldWitnesses` here
-...
-6 | use tnuctipun::FieldWitnesses;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ `FieldWitnesses` reimported here
-  |
-  = note: `FieldWitnesses` must be defined only once in the macro namespace of this module
-
-warning: unused imports: `FieldName` and `HasField`
- --> tests/compile_fail/nonexistent_field.rs:4:34
-  |
-4 | use tnuctipun::field_witnesses::{FieldName, HasField};
-  |                                  ^^^^^^^^^  ^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `tnuctipun::HasField`
- --> tests/compile_fail/nonexistent_field.rs:5:5
-  |
-5 | use tnuctipun::HasField;
-  |     ^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `tnuctipun::FieldWitnesses`
- --> tests/compile_fail/nonexistent_field.rs:6:5
-  |
-6 | use tnuctipun::FieldWitnesses;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-
 error[E0277]: the trait bound `Product: HasField<Weight>` is not satisfied
-  --> tests/compile_fail/nonexistent_field.rs:34:52
+  --> tests/compile_fail/nonexistent_field.rs:32:52
    |
-34 |     let weight_filter = test_nonexistent::<Weight, Product, _>(10.5);
-   |                                                    ^^^^^^^ the trait `HasField<Weight>` is not implemented for `Product`
+32 |     let weight_filter = test_nonexistent::<Weight, Product, _>(10.5);
+   |                                                    ^^^^^^^ unsatisfied trait bound
    |
+help: the trait `HasField<Weight>` is not implemented for `Product`
+  --> tests/compile_fail/nonexistent_field.rs:8:1
+   |
+ 8 | struct Product {
+   | ^^^^^^^^^^^^^^
    = help: the following other types implement trait `HasField<F>`:
              `Product` implements `HasField<Name>`
              `Product` implements `HasField<Price>`
 note: required by a bound in `test_nonexistent`
-  --> tests/compile_fail/nonexistent_field.rs:26:8
+  --> tests/compile_fail/nonexistent_field.rs:24:8
    |
-23 | pub fn test_nonexistent<F, T, V>(value: V) -> (&'static str, String)
+21 | pub fn test_nonexistent<F, T, V>(value: V) -> (&'static str, String)
    |        ---------------- required by a bound in this function
 ...
-26 |     T: HasField<F, Value = V>,
+24 |     T: HasField<F, Value = V>,
    |        ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `test_nonexistent`
