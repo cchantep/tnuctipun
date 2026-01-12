@@ -23,7 +23,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tnuctipun = "0.1.1"
+tnuctipun = "0.1.2"
 ```
 
 The library only requires the `bson` crate for MongoDB document types and provides type-safe query building capabilities.

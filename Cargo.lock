@@ -557,7 +557,7 @@ dependencies = [
 
 [[package]]
 name = "tnuctipun"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bson",
  "chrono",
@@ -570,7 +570,7 @@ dependencies = [
 
 [[package]]
 name = "tnuctipun-derive"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proc-macro2",
  "quote",
