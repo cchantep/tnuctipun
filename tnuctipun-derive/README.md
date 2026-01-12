@@ -10,7 +10,7 @@ This crate is typically used as a dependency of the main `tnuctipun` crate. You 
 
 ```toml
 [dependencies]
-tnuctipun = "0.1.1"
+tnuctipun = "0.1.2"
 ```
 
 The derive macros are re-exported through the main `tnuctipun` crate for convenience.
