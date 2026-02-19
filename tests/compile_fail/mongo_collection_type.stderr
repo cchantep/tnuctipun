@@ -17,9 +17,14 @@ help: the trait `MongoComparable<CustomCollection, std::string::String>` is not 
    |
 27 |     struct CustomProduct {
    |     ^^^^^^^^^^^^^^^^^^^^
-   = help: the following other types implement trait `MongoComparable<A, B>`:
-             `CustomProduct` implements `MongoComparable<CustomCollection, CustomCollection>`
-             `CustomProduct` implements `MongoComparable<std::string::String, std::string::String>`
+help: the following other types implement trait `MongoComparable<A, B>`
+  --> tests/compile_fail/mongo_collection_type.rs:26:68
+   |
+26 |     #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+   |                                                                    ^^^^^^^^^^^^^^^
+   |                                                                    |
+   |                                                                    `CustomProduct` implements `MongoComparable<CustomCollection, CustomCollection>`
+   |                                                                    `CustomProduct` implements `MongoComparable<std::string::String, std::string::String>`
 note: required by a bound in `assert_implements_mongo_comparable`
   --> tests/compile_fail/mongo_collection_type.rs:22:12
    |
@@ -28,3 +33,4 @@ note: required by a bound in `assert_implements_mongo_comparable`
 21 |     where
 22 |         T: MongoComparableTrait<A, B>
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `assert_implements_mongo_comparable`
+   = note: this error originates in the derive macro `MongoComparable` (in Nightly builds, run with -Z macro-backtrace for more info)
