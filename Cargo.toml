@@ -18,6 +18,9 @@ readme = "README.md"
 [lib]
 path = "src/lib.rs"
 
+[workspace.dependencies]
+time = "=0.3.47"
+
 [dependencies]
 chrono = "0.4"
 frunk = "0.4.4"
@@ -25,6 +28,7 @@ bson = { version = "3.1.0", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
 tnuctipun-derive = { version = "0.1.2", path = "./tnuctipun-derive" }
 num-traits = "0.2.19"
+cargo-audit = "0.22.1"
 
 [features]
 default = []
