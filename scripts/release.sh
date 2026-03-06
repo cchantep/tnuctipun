@@ -59,9 +59,11 @@ update_markdown_files() {
     
     print_status "Updating version references in markdown files..."
     
-    # Find all markdown files
-    local markdown_files
-    mapfile -t markdown_files < <(find_markdown_files)
+    # Find all markdown files (compatible with macOS default Bash 3.x)
+    local markdown_files=()
+    while IFS= read -r file; do
+        markdown_files+=("$file")
+    done < <(find_markdown_files)
     
     local files_updated=0
     

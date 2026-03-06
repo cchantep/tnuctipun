@@ -188,6 +188,7 @@ The GitHub Actions workflow performs these steps:
 ### Release Script Issues
 
 #### "Working directory is not clean" Error
+
 ```bash
 git status  # See what's uncommitted
 git add .   # Stage changes
@@ -195,12 +196,16 @@ git commit -m "your message"  # Or stash: git stash
 ```
 
 #### "You are not on the main/master branch" Warning
+
 The script warns if you're not on the main branch. You can:
+
 - Switch to main: `git checkout main`  
 - Continue anyway when prompted (not recommended)
 
 #### Version Format Validation Error
+
 Ensure version follows SemVer format:
+
 - ✅ Valid: `1.0.0`, `0.2.1`, `1.0.0-beta.1`
 - ❌ Invalid: `v1.0.0`, `1.0`, `latest`
 

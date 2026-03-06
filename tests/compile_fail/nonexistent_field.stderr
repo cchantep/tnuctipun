@@ -9,14 +9,9 @@ help: the trait `HasField<Weight>` is not implemented for `Product`
    |
  8 | struct Product {
    | ^^^^^^^^^^^^^^
-help: the following other types implement trait `HasField<F>`
-  --> tests/compile_fail/nonexistent_field.rs:7:48
-   |
- 7 | #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
-   |                                                ^^^^^^^^^^^^^^
-   |                                                |
-   |                                                `Product` implements `HasField<Name>`
-   |                                                `Product` implements `HasField<Price>`
+   = help: the following other types implement trait `HasField<F>`:
+             `Product` implements `HasField<Name>`
+             `Product` implements `HasField<Price>`
 note: required by a bound in `test_nonexistent`
   --> tests/compile_fail/nonexistent_field.rs:24:8
    |
@@ -25,4 +20,3 @@ note: required by a bound in `test_nonexistent`
 ...
 24 |     T: HasField<F, Value = V>,
    |        ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `test_nonexistent`
-   = note: this error originates in the derive macro `FieldWitnesses` (in Nightly builds, run with -Z macro-backtrace for more info)
