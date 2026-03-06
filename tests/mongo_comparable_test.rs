@@ -1,6 +1,9 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashSet};
-use tnuctipun::mongo_comparable::MongoComparable as MongoComparableTrait;
+use tnuctipun::mongo_comparable::{
+    MongoComparable as MongoComparableTrait, MongoOrdered as MongoOrderedTrait,
+};
 use tnuctipun::{FieldWitnesses, MongoComparable};
 
 // Macro to statically assert that a type implements MongoComparable
@@ -15,6 +18,21 @@ macro_rules! static_assert_implements_mongo_comparable {
             }
 
             assert_implements_mongo_comparable::<$struct_type, $field_type, $value_type>();
+        };
+    };
+}
+
+// Macro to statically assert that a type implements MongoOrdered
+macro_rules! static_assert_implements_mongo_ordered {
+    ($struct_type:ty, $field_type:ty, $value_type:ty) => {
+        const _: fn() = || {
+            fn assert_implements_mongo_ordered<T, A, B>()
+            where
+                T: MongoOrderedTrait<A, B>,
+            {
+            }
+
+            assert_implements_mongo_ordered::<$struct_type, $field_type, $value_type>();
         };
     };
 }
@@ -73,6 +91,11 @@ pub struct PrimitiveTypes {
     f64_field: f64,
     char_field: char,
     option_field: Option<String>,
+}
+
+#[derive(Debug, Clone, FieldWitnesses, MongoComparable)]
+pub struct TemporalTypes {
+    pub timestamp: DateTime<Utc>,
 }
 
 #[test]
@@ -136,5 +159,29 @@ fn test_primitive_types() {
             primitivetypes_fields::OptionField,
         >>::Value,
         String
+    );
+}
+
+#[test]
+fn test_mongo_ordered_numeric_and_temporal_types() {
+    // f64 field is ordered with numeric compatible types such as i32.
+    static_assert_implements_mongo_ordered!(
+        PrimitiveTypes,
+        <PrimitiveTypes as tnuctipun::field_witnesses::HasField<primitivetypes_fields::F64Field>>::Value,
+        i32
+    );
+
+    // Same-type numeric ordering must be supported.
+    static_assert_implements_mongo_ordered!(
+        PrimitiveTypes,
+        <PrimitiveTypes as tnuctipun::field_witnesses::HasField<primitivetypes_fields::I32Field>>::Value,
+        i32
+    );
+
+    // DateTime field is ordered and comparable with i64 timestamps.
+    static_assert_implements_mongo_ordered!(
+        TemporalTypes,
+        <TemporalTypes as tnuctipun::field_witnesses::HasField<temporaltypes_fields::Timestamp>>::Value,
+        i64
     );
 }

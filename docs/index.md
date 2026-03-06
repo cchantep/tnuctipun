@@ -31,6 +31,7 @@ Welcome to the comprehensive user guide for **Tnunctipun**, a type-safe MongoDB 
 
 - [**Basic Usage**](examples/basic-usage.md) - Simple queries and updates
 - [**Complex Filters**](examples/complex-filters.md) - Advanced filtering patterns
+- [**Expression Builder**](examples/expression-builder.md) - Typed aggregation expressions and integrations
 - [**Aggregation Pipelines**](examples/aggregation-pipelines.md) - Complex data processing
 - [**Real-World Scenarios**](examples/real-world-scenarios.md) - Production use cases
 

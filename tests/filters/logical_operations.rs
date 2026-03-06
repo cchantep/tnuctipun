@@ -76,7 +76,7 @@ fn test_not_filter_basic() {
     let expected = bson::doc! {
         "name": {
             "$not": {
-                "name": { "$eq": "Smartphone" }
+                "$eq": "Smartphone"
             }
         }
     };
@@ -96,7 +96,7 @@ fn test_not_filter_with_and_combination() {
             {
                 "name": {
                     "$not": {
-                        "name": { "$eq": "Smartphone" }
+                        "$eq": "Smartphone"
                     }
                 }
             },

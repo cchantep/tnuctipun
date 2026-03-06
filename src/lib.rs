@@ -49,6 +49,7 @@
 //! - [`updates`] - Update document building
 
 // Modules
+pub mod expr;
 pub mod field_filters;
 pub mod field_witnesses;
 pub mod filters;
@@ -62,7 +63,8 @@ pub use tnuctipun_derive::FieldWitnesses;
 pub use tnuctipun_derive::MongoComparable;
 
 // Export the traits
+pub use crate::expr::{Expr, ExprBuilder};
 pub use crate::field_filters::FieldFilterBuilder;
 pub use crate::field_witnesses::{FieldName, HasField, NonEmptyStruct};
-pub use crate::mongo_comparable::MongoComparable;
+pub use crate::mongo_comparable::{MongoComparable, MongoOrdered};
 pub use crate::path::Path;

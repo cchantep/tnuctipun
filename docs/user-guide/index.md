@@ -15,6 +15,10 @@ This comprehensive guide will walk you through all aspects of using Tnunctipun f
 5. [**Derive Macros**](05-derive-macros.md) - Automatic trait implementations and customization
 6. [**Advanced Topics**](06-advanced-topics.md) - Performance optimization and advanced patterns
 
+### Related Examples
+
+- [Expression Builder](../examples/expression-builder.md) - Typed expressions and integration with filter/projection/update builders
+
 ## Quick Start
 
 If you're already familiar with MongoDB and Rust, you can jump straight to the [Getting Started](02-getting-started.md) guide to start building type-safe queries immediately.

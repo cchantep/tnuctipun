@@ -713,7 +713,7 @@ async fn calculate_account_balance(
         empty::<Transaction>()
             .eq::<transaction_fields::AccountId, _>(account_id.to_string())
             .eq::<transaction_fields::Status, _>("completed".to_string())
-            .lte::<transaction_fields::ProcessedAt, _>(Some(date))
+            .lte::<transaction_fields::CreatedAt, _>(date)
             .and()
     } else {
         empty::<Transaction>()
