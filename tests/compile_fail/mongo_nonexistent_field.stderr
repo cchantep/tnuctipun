@@ -17,6 +17,12 @@ help: the trait `HasField<Weight>` is not implemented for `Product`
    |
  8 | struct Product {
    | ^^^^^^^^^^^^^^
-   = help: the following other types implement trait `HasField<F>`:
-             `Product` implements `HasField<Name>`
-             `Product` implements `HasField<Price>`
+help: the following other types implement trait `HasField<F>`
+  --> tests/compile_fail/mongo_nonexistent_field.rs:7:48
+   |
+ 7 | #[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+   |                                                ^^^^^^^^^^^^^^
+   |                                                |
+   |                                                `Product` implements `HasField<Name>`
+   |                                                `Product` implements `HasField<Price>`
+   = note: this error originates in the derive macro `FieldWitnesses` (in Nightly builds, run with -Z macro-backtrace for more info)
