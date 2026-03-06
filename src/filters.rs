@@ -1,6 +1,7 @@
+use crate::expr::Expr;
 use crate::field_filters::FieldFilterBuilder;
 use crate::field_witnesses::{FieldName, HasField};
-use crate::mongo_comparable::MongoComparable;
+use crate::mongo_comparable::{MongoComparable, MongoOrdered};
 use crate::path::Path;
 use bson;
 
@@ -209,6 +210,9 @@ impl<T> FilterBuilder<T> {
     /// * `F` - The field name marker type (e.g., `product_fields::Price`)
     /// * `V` - The type of the field value or a compatible type
     ///
+    /// The comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
+    ///
     /// # Example
     ///
     /// ```rust
@@ -226,7 +230,7 @@ impl<T> FilterBuilder<T> {
     pub fn gt<F, V>(&mut self, value: V) -> &mut Self
     where
         F: FieldName,
-        T: HasField<F> + MongoComparable<T::Value, V>,
+        T: HasField<F> + MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         let path = self.field_path::<F>();
@@ -242,6 +246,9 @@ impl<T> FilterBuilder<T> {
     /// # Type parameters:
     /// * `F` - The field name marker type (e.g., `product_fields::Stock`)
     /// * `V` - The type of the field value or a compatible type
+    ///
+    /// The comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
     ///
     /// # Example
     ///
@@ -260,7 +267,7 @@ impl<T> FilterBuilder<T> {
     pub fn lt<F, V>(&mut self, value: V) -> &mut Self
     where
         F: FieldName,
-        T: HasField<F> + MongoComparable<T::Value, V>,
+        T: HasField<F> + MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         let path = self.field_path::<F>();
@@ -348,6 +355,9 @@ impl<T> FilterBuilder<T> {
     /// * `F` - The field name marker type (e.g., `product_fields::Rating`)
     /// * `V` - The type of the field value or a compatible type
     ///
+    /// The comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
+    ///
     /// # Example
     ///
     /// ```rust
@@ -365,7 +375,7 @@ impl<T> FilterBuilder<T> {
     pub fn gte<F, V>(&mut self, value: V) -> &mut Self
     where
         F: FieldName,
-        T: HasField<F> + MongoComparable<T::Value, V>,
+        T: HasField<F> + MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         let path = self.field_path::<F>();
@@ -381,6 +391,9 @@ impl<T> FilterBuilder<T> {
     /// # Type parameters:
     /// * `F` - The field name marker type (e.g., `product_fields::Price`)
     /// * `V` - The type of the field value or a compatible type
+    ///
+    /// The comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
     ///
     /// # Example
     ///
@@ -399,7 +412,7 @@ impl<T> FilterBuilder<T> {
     pub fn lte<F, V>(&mut self, value: V) -> &mut Self
     where
         F: FieldName,
-        T: HasField<F> + MongoComparable<T::Value, V>,
+        T: HasField<F> + MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         let path = self.field_path::<F>();
@@ -572,6 +585,13 @@ impl<T> FilterBuilder<T> {
         let path = self.field_path::<F>();
 
         self.clauses.push(bson::doc! { path: value });
+
+        self
+    }
+
+    /// Adds a MongoDB `$expr` clause built from a typed expression.
+    pub fn expr(&mut self, expr: Expr<T, bool>) -> &mut Self {
+        self.clauses.push(bson::doc! { "$expr": expr.into_bson() });
 
         self
     }
@@ -839,13 +859,13 @@ impl<T> FilterBuilder<T> {
     /// empty::<Product>().not::<product_fields::Name, _>(|op| {
     ///     op.eq("Smartphone".to_string())
     /// });
-    /// // Resulting BSON: { "name": { "$not": { "name": "Smartphone" } } }
+    /// // Resulting BSON: { "name": { "$not": { "$eq": "Smartphone" } } }
     ///
     /// // Filter for products where the price is NOT equal to 500.0
     /// empty::<Product>().not::<product_fields::Price, _>(|op| {
     ///     op.eq(500.0)
     /// });
-    /// // Resulting BSON: { "price": { "$not": { "price": 500.0 } } }
+    /// // Resulting BSON: { "price": { "$not": { "$eq": 500.0 } } }
     /// ```
     ///
     /// # MongoDB Behavior
@@ -866,12 +886,13 @@ impl<T> FilterBuilder<T> {
         T: HasField<F>,
         B: FnOnce(FieldFilterBuilder<F, T>) -> FieldFilterBuilder<F, T>,
     {
-        let op_builder = FieldFilterBuilder::new();
-        let prepared_ops = f(op_builder).build();
+        let prepared_ops = f(FieldFilterBuilder::new()).build();
         let bson_path = self.field_path::<F>();
 
-        self.clauses
-            .push(bson::doc! { bson_path: bson::doc! { "$not": prepared_ops } });
+        if let Ok(ops) = prepared_ops.get_document(F::field_name()) {
+            self.clauses
+                .push(bson::doc! { bson_path: bson::doc! { "$not": ops.clone() } });
+        }
 
         self
     }
@@ -948,7 +969,7 @@ impl<T> Default for FilterBuilder<T> {
 ///
 /// // Self-contained example with manual trait implementations
 /// # use tnuctipun::field_witnesses::{FieldName, HasField};
-/// # use tnuctipun::mongo_comparable::MongoComparable;
+/// # use tnuctipun::mongo_comparable::{MongoComparable, MongoOrdered};
 /// # struct Name;
 /// # impl FieldName for Name {
 /// #     fn field_name() -> &'static str { "name" }
@@ -968,6 +989,7 @@ impl<T> Default for FilterBuilder<T> {
 /// # }
 /// # impl MongoComparable<String, String> for User {}
 /// # impl MongoComparable<i32, i32> for User {}
+/// # impl MongoOrdered<i32, i32> for User {}
 ///
 /// // The builder can be automatically converted to bson::Document
 /// let mut builder = empty::<User>();

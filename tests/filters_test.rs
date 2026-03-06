@@ -13,6 +13,7 @@
 
 mod filters {
     pub mod basic_operations;
+    pub mod field_filter_builder;
     pub mod integration;
     pub mod logical_operations;
     pub mod nested_operations;

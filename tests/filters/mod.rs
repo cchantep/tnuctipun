@@ -5,6 +5,8 @@ pub mod test_fixtures;
 
 #[cfg(test)]
 pub mod basic_operations;
+#[cfg(test)]
+pub mod field_filter_builder;
 
 #[cfg(test)]
 pub mod logical_operations;

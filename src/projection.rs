@@ -1,3 +1,4 @@
+use crate::expr::Expr;
 use crate::field_witnesses::{FieldName, HasField};
 use crate::path::Path;
 use bson;
@@ -138,6 +139,21 @@ impl<T> BasicProjectionBuilder<T> {
         let flag = if includes { 1 } else { 0 };
 
         self.clauses.push((path, flag.into()));
+
+        self
+    }
+
+    /// Projects a field using a typed expression.
+    ///
+    /// This is the typed counterpart of `ProjectionBuilder::project`, keeping compile-time
+    /// validation of the target output field.
+    pub fn project_expr<F: FieldName, V>(&mut self, expr: Expr<T, V>) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        let path = self.field_path::<F>();
+
+        self.clauses.push((path, expr.into_bson()));
 
         self
     }

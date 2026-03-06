@@ -32,12 +32,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
         include:
+          - rust: stable
+            toolchain: 1.94.0
+          - rust: beta
+            toolchain: beta
           - rust: nightly
+            toolchain: nightly
             allow_failure: true
     continue-on-error: ${{ matrix.allow_failure || false }}
     
@@ -47,7 +48,7 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: ${{ matrix.rust }}
+        toolchain: ${{ matrix.toolchain }}
         components: rustfmt, clippy
     
     - name: Cache cargo registry

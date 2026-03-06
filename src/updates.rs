@@ -2,6 +2,7 @@ use bson;
 use num_traits::Num;
 use std::collections::HashMap;
 
+use crate::expr::Expr;
 use crate::field_witnesses::{FieldName, HasField};
 use crate::path::Path;
 
@@ -137,6 +138,19 @@ impl<T> UpdateBuilder<T> {
         self.push_clause(UpdateOperation::Set, path, value.into());
 
         self
+    }
+
+    /// Sets the value of a field using a typed MongoDB expression.
+    ///
+    /// While [`set`](Self::set) can also accept an expression (because `Expr<T, V>`
+    /// converts into `bson::Bson`), this method is often safer and clearer at call sites:
+    /// it explicitly requires `Expr<T, V>`, ensuring the expression root type matches
+    /// this `UpdateBuilder<T>`.
+    pub fn set_expr<F: FieldName, V>(&mut self, expr: Expr<T, V>) -> &mut Self
+    where
+        T: HasField<F>,
+    {
+        self.set::<F, _>(expr)
     }
 
     /// Removes a field from the document.

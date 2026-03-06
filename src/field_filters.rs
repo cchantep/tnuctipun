@@ -1,5 +1,5 @@
 use crate::field_witnesses::{FieldName, HasField};
-use crate::mongo_comparable::MongoComparable;
+use crate::mongo_comparable::{MongoComparable, MongoOrdered};
 use bson;
 
 /// A builder for operation-specific filters.
@@ -90,6 +90,9 @@ where
     /// # Type parameters:
     /// * `V` - The type of the field value or a compatible type
     ///
+    /// This comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
+    ///
     /// # Arguments
     /// * `value` - The value to compare the field against for greater than comparison
     ///
@@ -114,7 +117,7 @@ where
     /// ```
     pub fn gt<V>(mut self, value: V) -> Self
     where
-        T: MongoComparable<T::Value, V>,
+        T: MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         self.ops.push(("$gt", value.into()));
@@ -129,6 +132,9 @@ where
     ///
     /// # Type parameters:
     /// * `V` - The type of the field value or a compatible type
+    ///
+    /// This comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
     ///
     /// # Arguments
     /// * `value` - The value to compare the field against for greater than or equal comparison
@@ -154,7 +160,7 @@ where
     /// ```
     pub fn gte<V>(mut self, value: V) -> Self
     where
-        T: MongoComparable<T::Value, V>,
+        T: MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         self.ops.push(("$gte", value.into()));
@@ -169,6 +175,9 @@ where
     ///
     /// # Type parameters:
     /// * `V` - The type of the field value or a compatible type
+    ///
+    /// This comparison requires both `MongoComparable` and `MongoOrdered`
+    /// evidence for the field/value type pair.
     ///
     /// # Arguments
     /// * `value` - The value to compare the field against for less than comparison
@@ -194,7 +203,7 @@ where
     /// ```
     pub fn lt<V>(mut self, value: V) -> Self
     where
-        T: MongoComparable<T::Value, V>,
+        T: MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         self.ops.push(("$lt", value.into()));
@@ -234,7 +243,7 @@ where
     /// ```
     pub fn lte<V>(mut self, value: V) -> Self
     where
-        T: MongoComparable<T::Value, V>,
+        T: MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
         V: Into<bson::Bson> + Clone,
     {
         self.ops.push(("$lte", value.into()));

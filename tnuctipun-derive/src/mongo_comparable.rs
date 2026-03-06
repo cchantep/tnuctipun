@@ -62,6 +62,7 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
     // Create a vector to store all our implementations
     let mut impls = Vec::new();
     let mut implemented_types = HashSet::new();
+    let mut implemented_ordered_types = HashSet::new();
 
     // Process each field and generate appropriate implementations
     for field in fields {
@@ -77,12 +78,21 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
         let self_impl_key = format!("{field_tname}_{field_tname}");
 
         if !implemented_types.contains(&self_impl_key) {
-            implemented_types.insert(self_impl_key);
+            implemented_types.insert(self_impl_key.clone());
 
             // DEBUG: println!("{} ==> {:?}: {}", name, &field.ident, field_tname);
 
             impls.push(quote! {
                 impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #field_type> for #name {}
+            });
+        }
+
+        if is_ordered_type_name(&field_tname) && !implemented_ordered_types.contains(&self_impl_key)
+        {
+            implemented_ordered_types.insert(self_impl_key);
+
+            impls.push(quote! {
+                impl tnuctipun::mongo_comparable::MongoOrdered<#field_type, #field_type> for #name {}
             });
         }
 
@@ -114,6 +124,28 @@ pub fn derive_mongo_comparable(input: TokenStream) -> TokenStream {
 
                     impls.push(quote! {
                             impl tnuctipun::mongo_comparable::MongoComparable<#field_type, #compatible_type> for #name {}
+                        });
+                }
+            }
+
+            let ordered_compatible_types = get_ordered_compatible_types_for(&type_name);
+
+            for compatible_type_str in ordered_compatible_types {
+                let impl_key = format!("{type_name}_{compatible_type_str}");
+
+                if !implemented_ordered_types.contains(&impl_key) {
+                    implemented_ordered_types.insert(impl_key);
+
+                    let compatible_type = if compatible_type_str == "DateTime" {
+                        quote! { chrono::DateTime<chrono::Utc> }
+                    } else {
+                        let ident =
+                            syn::Ident::new(&compatible_type_str, proc_macro2::Span::call_site());
+                        quote! { #ident }
+                    };
+
+                    impls.push(quote! {
+                            impl tnuctipun::mongo_comparable::MongoOrdered<#field_type, #compatible_type> for #name {}
                         });
                 }
             }
@@ -223,6 +255,39 @@ fn get_compatible_types_for(type_name: &str) -> Vec<String> {
         "DateTime" => vec!["i64".to_string()],
         _ => vec![],
     }
+}
+
+fn get_ordered_compatible_types_for(type_name: &str) -> Vec<String> {
+    if !is_ordered_type_name(type_name) {
+        return Vec::new();
+    }
+
+    get_compatible_types_for(type_name)
+        .into_iter()
+        .filter(|name| is_ordered_type_name(name))
+        .collect()
+}
+
+fn is_ordered_type_name(type_name: &str) -> bool {
+    matches!(
+        type_name,
+        "i8" | "i16"
+            | "i32"
+            | "i64"
+            | "i128"
+            | "isize"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "u128"
+            | "usize"
+            | "f32"
+            | "f64"
+            | "DateTime"
+            | "NaiveDateTime"
+            | "NaiveDate"
+    )
 }
 
 // Helper function to check if a type is a collection that implements IntoIterator
@@ -417,6 +482,26 @@ mod tests {
         let extracted = extract_generic_arg(&bool_type);
 
         assert!(extracted.is_none());
+    }
+
+    #[test]
+    fn test_ordered_compatible_types() {
+        assert_eq!(get_ordered_compatible_types_for("i32"), vec!["i16"]);
+        assert_eq!(
+            get_ordered_compatible_types_for("f64"),
+            vec!["i16", "i32", "i64", "f32"]
+        );
+        assert_eq!(get_ordered_compatible_types_for("DateTime"), vec!["i64"]);
+        assert!(get_ordered_compatible_types_for("char").is_empty());
+    }
+
+    #[test]
+    fn test_is_ordered_type_name() {
+        assert!(is_ordered_type_name("i32"));
+        assert!(is_ordered_type_name("f64"));
+        assert!(is_ordered_type_name("DateTime"));
+        assert!(!is_ordered_type_name("String"));
+        assert!(!is_ordered_type_name("char"));
     }
 
     #[test]

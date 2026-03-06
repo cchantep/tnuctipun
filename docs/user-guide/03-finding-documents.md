@@ -14,6 +14,7 @@ This guide covers how to use Tnuctipun to build type-safe queries and projection
 - [Logical Operations](#logical-operations)
 - [Complex Nested Queries](#complex-nested-queries)
 - [Projections](#projections)
+- [Expression Builder (`$expr`)](#expression-builder-expr)
 - [Integration with MongoDB Find](#integration-with-mongodb-find)
 - [Aggregation Pipeline Usage](#aggregation-pipeline-usage)
 
@@ -357,6 +358,74 @@ fn explicit_and() {
 ```
 
 ### OR Operations
+
+## Expression Builder (`$expr`)
+
+Use `ExprBuilder` when filter logic is based on computed values or field-to-field comparisons.
+
+```rust
+use tnuctipun::{expr, filters, FieldWitnesses, MongoComparable};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct Product {
+    pub stock: i32,
+    pub reserved: i32,
+    pub min_stock: i32,
+}
+
+fn expression_filter() {
+    let eb = expr::empty::<Product>();
+
+    // available = stock - reserved
+    let available = eb.subtract(
+        eb.select::<product_fields::Stock>(),
+        eb.select::<product_fields::Reserved>(),
+    );
+
+    // available < min_stock
+    let low_stock = eb.lt(available, eb.select::<product_fields::MinStock>());
+
+    let filter_doc = filters::empty::<Product>()
+        .expr(low_stock)
+        .and();
+
+    // Result: { "$expr": { "$lt": [ { "$subtract": ["$stock", "$reserved"] }, "$min_stock" ] } }
+    println!("{}", filter_doc);
+}
+```
+
+You can also combine regular typed field filters with `$expr`:
+
+```rust
+use tnuctipun::{expr, filters, FieldWitnesses, MongoComparable};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct Product {
+    pub name: String,
+    pub stock: i32,
+    pub reserved: i32,
+}
+
+fn combined_typed_and_expr_filter() {
+    let eb = expr::empty::<Product>();
+    let has_inventory = eb.gt(
+        eb.subtract(
+            eb.select::<product_fields::Stock>(),
+            eb.select::<product_fields::Reserved>(),
+        ),
+        eb.from(0),
+    );
+
+    let filter_doc = filters::empty::<Product>()
+        .eq::<product_fields::Name, _>("Widget".to_string())
+        .expr(has_inventory)
+        .and();
+
+    println!("{}", filter_doc);
+}
+```
 
 Use `or()` to combine conditions with logical OR:
 

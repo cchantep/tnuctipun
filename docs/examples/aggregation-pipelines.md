@@ -6,6 +6,48 @@ nav_exclude: true
 
 Examples showing how to use Tnuctipun's type-safe filters and projections in MongoDB aggregation pipelines.
 
+## Typed Expressions Across Builders
+
+`ExprBuilder` can be reused to define expression trees and embed them in multiple builders.
+
+```rust:ignore
+use tnuctipun::{expr, filters, projection, updates, FieldWitnesses, MongoComparable};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct Inventory {
+    pub stock: i32,
+    pub reserved: i32,
+    pub available: i32,
+}
+
+fn expression_integration_examples() {
+    let eb = expr::empty::<Inventory>();
+
+    let available_expr = eb.subtract(
+        eb.select::<inventory_fields::Stock>(),
+        eb.select::<inventory_fields::Reserved>(),
+    );
+
+    // 1) Filter integration: { "$expr": ... }
+    let filter_doc = filters::empty::<Inventory>()
+        .expr(eb.gt(available_expr.clone(), eb.from(0)))
+        .and();
+
+    // 2) Projection integration: project computed value to a field
+    let projection_doc = projection::empty::<Inventory>()
+        .project_expr::<inventory_fields::Available, _>(available_expr.clone())
+        .build();
+
+    // 3) Update integration: compute and set a field atomically
+    let update_doc = updates::empty::<Inventory>()
+        .set_expr::<inventory_fields::Available, _>(available_expr)
+        .build();
+
+    let _ = (filter_doc, projection_doc, update_doc);
+}
+```
+
 ## Basic Pipeline with $match and $project
 
 ```rust:ignore

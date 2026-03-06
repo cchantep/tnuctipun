@@ -1,0 +1,19 @@
+error[E0277]: the trait bound `Product: MongoOrdered<std::string::String, &'static str>` is not satisfied
+  --> tests/compile_fail/filters_unordered_str_type.rs:19:13
+   |
+19 |     builder.gt::<product_fields::Name, _>("abc");
+   |             ^^ unsatisfied trait bound
+   |
+help: the trait `MongoOrdered<std::string::String, &'static str>` is not implemented for `Product`
+  --> tests/compile_fail/filters_unordered_str_type.rs:10:1
+   |
+10 | struct Product {
+   | ^^^^^^^^^^^^^^
+note: required by a bound in `FilterBuilder::<T>::gt`
+  --> src/filters.rs
+   |
+   |     pub fn gt<F, V>(&mut self, value: V) -> &mut Self
+   |            -- required by a bound in this associated function
+...
+   |         T: HasField<F> + MongoComparable<T::Value, V> + MongoOrdered<T::Value, V>,
+   |                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `FilterBuilder::<T>::gt`

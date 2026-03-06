@@ -18,6 +18,7 @@ This guide covers how to use Tnuctipun to build type-safe update operations for 
 - [Complex Updates](#complex-updates)
 - [Conditional Updates](#conditional-updates)
 - [Handling Optional Fields](#handling-optional-fields)
+- [Expression-Based Updates](#expression-based-updates)
 
 ## Basic Update Operations
 
@@ -230,6 +231,43 @@ fn min_max_operations() {
     // }
 }
 ```
+
+## Expression-Based Updates
+
+Use `ExprBuilder` with `set_expr` when the new value is computed from other fields.
+
+```rust
+use tnuctipun::{expr, updates, FieldWitnesses, MongoComparable};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, FieldWitnesses, MongoComparable)]
+struct ScoreCard {
+    pub score: i32,
+    pub bonus: i32,
+    pub multiplier: i32,
+}
+
+fn computed_update() {
+    let eb = expr::empty::<ScoreCard>();
+
+    // score = (score + bonus) * multiplier
+    let new_score = eb.multiply(
+        eb.add(
+            eb.select::<scorecard_fields::Score>(),
+            vec![eb.select::<scorecard_fields::Bonus>()],
+        ),
+        vec![eb.select::<scorecard_fields::Multiplier>()],
+    );
+
+    let update_doc = updates::empty::<ScoreCard>()
+        .set_expr::<scorecard_fields::Score, _>(new_score)
+        .build();
+
+    println!("{}", update_doc);
+}
+```
+
+This pattern is useful for server-side updates where you want MongoDB to compute values atomically.
 
 ## Array Operations
 
