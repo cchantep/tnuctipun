@@ -28,7 +28,6 @@ bson = { version = "3.1.0", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
 tnuctipun-derive = { version = "0.2.0", path = "./tnuctipun-derive" }
 num-traits = "0.2.19"
-cargo-audit = "0.22.1"
 aws-lc-sys = "0.39.0"
 
 [features]

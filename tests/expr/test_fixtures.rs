@@ -7,3 +7,14 @@ pub struct ExprUser {
     pub age: i32,
     pub score: i32,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
+pub struct ExprAddress {
+    pub city: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FieldWitnesses)]
+pub struct ExprUserWithAddress {
+    pub name: String,
+    pub address: ExprAddress,
+}
