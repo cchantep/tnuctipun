@@ -24,3 +24,9 @@ pub struct Profile {
     pub location: String,
     pub avatar_url: String,
 }
+
+#[derive(Deserialize, Serialize, FieldWitnesses)]
+pub struct UserWithProfile {
+    pub id: String,
+    pub profile: Profile,
+}
