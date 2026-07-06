@@ -19,7 +19,7 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [workspace.dependencies]
-time = "=0.3.51"
+time = "=0.3.53"
 
 [dependencies]
 chrono = "0.4"
