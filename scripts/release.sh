@@ -186,7 +186,7 @@ create_tag() {
     
     print_status "Creating tag $tag..."
     
-    git add .
+    git add . Cargo.lock
     git commit -m "chore: bump version to $tag"
     git tag "$tag"
     

@@ -694,7 +694,7 @@ dependencies = [
 
 [[package]]
 name = "tnuctipun"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "aws-lc-sys",
  "bson",
@@ -708,7 +708,7 @@ dependencies = [
 
 [[package]]
 name = "tnuctipun-derive"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "proc-macro2",
  "quote",
