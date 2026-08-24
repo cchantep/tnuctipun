@@ -129,7 +129,7 @@ Ensure `tnuctipun-derive` dependency version is updated in the main `Cargo.toml`
 
 ```toml
 [dependencies]
-tnuctipun-derive = { version = "0.2.1", path = "./tnuctipun-derive" }  # Update version here
+tnuctipun-derive = { version = "0.2.2", path = "./tnuctipun-derive" }  # Update version here
 ```
 
 ### Step 4: Update Changelog
