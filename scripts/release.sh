@@ -262,6 +262,9 @@ main() {
         print_status "Release cancelled."
         exit 0
     fi
+
+    # Dry run
+    cargo publish -p tnuctipun --dry-run
     
     # Run tests
     run_tests
