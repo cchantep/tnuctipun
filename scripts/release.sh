@@ -172,6 +172,14 @@ update_version() {
     
     # Update markdown files with new version
     update_markdown_files "$new_version" "$current_version"
+
+    # Refresh the workspace lockfile after changing both package versions.
+    print_status "Updating workspace lockfile..."
+    cargo check --workspace
+
+    # Validate the versions that are about to be tagged and published.
+    cargo publish -p tnuctipun-derive --dry-run
+    cargo publish -p tnuctipun --dry-run
     
     # Clean up backup files
     rm -f Cargo.toml.bak tnuctipun-derive/Cargo.toml.bak
@@ -271,7 +279,7 @@ main() {
     
     # Update version
     update_version "$new_version"
-    
+
     # Create and push tag
     create_tag "$new_version"
     

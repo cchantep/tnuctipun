@@ -90,11 +90,16 @@ jobs:
     
     - name: Login to crates.io
       run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+
+    - name: Run dry-run check
+      run: |
+        echo "Running dry-run publication ..."
+        cargo publish -p tnuctipun-derive --dry-run
+        cargo publish -p tnuctipun --dry-run
     
     - name: Publish tnuctipun-derive
       run: |
         echo "Publishing tnuctipun-derive v${{ steps.get_version.outputs.VERSION }}"
-        cargo publish -p tnuctipun-derive --dry-run
         cargo publish -p tnuctipun-derive
     
     - name: Wait for tnuctipun-derive to be available
@@ -115,5 +120,4 @@ jobs:
     - name: Publish tnuctipun
       run: |
         echo "Publishing tnuctipun v${{ steps.get_version.outputs.VERSION }}"
-        cargo publish -p tnuctipun --dry-run
         cargo publish -p tnuctipun
