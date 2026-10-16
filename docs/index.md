@@ -51,7 +51,7 @@ Add Tnunctipun to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tnuctipun = "0.2.2"
+tnuctipun = "0.2.3"
 ```
 
 Then start building type-safe MongoDB queries:
