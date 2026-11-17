@@ -178,22 +178,13 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "frunk"
-version = "0.4.4"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28aef0f9aa070bce60767c12ba9cb41efeaf1a2bc6427f87b7d83f11239a16d7"
+checksum = "6eb8c34bdcab8c1ebc7fee7af3d99913932a9f29acf9017250fb02604cda9507"
 dependencies = [
- "frunk_core 0.4.4",
+ "frunk_core",
  "frunk_derives",
  "frunk_proc_macros",
- "serde",
-]
-
-[[package]]
-name = "frunk_core"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476eeaa382e3462b84da5d6ba3da97b5786823c2d0d3a0d04ef088d073da225c"
-dependencies = [
  "serde",
 ]
 
@@ -202,12 +193,15 @@ name = "frunk_core"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bd3c9ba2e323e8b19e77f15873f60974a7d82f89b80e50c53be44b8b92927c1"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "frunk_derives"
-version = "0.4.4"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0b4095fc99e1d858e5b8c7125d2638372ec85aa0fe6c807105cf10b0265ca6c"
+checksum = "d91a723c961c87aa962bc3a8b6d1534064974c0e05e42306e219d5b0a7409bed"
 dependencies = [
  "frunk_proc_macro_helpers",
  "quote",
@@ -220,7 +214,7 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b70229a1347a20d4af9c06116cc452acef34f798668c6b69e97dd5c8a88052bd"
 dependencies = [
- "frunk_core 0.5.0",
+ "frunk_core",
  "proc-macro2",
  "quote",
  "syn 2.0.119",
@@ -232,7 +226,7 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c63fe4306e13ece9d1ac23ce02f121ffefd42ae876ad03ec2caf07232bde3023"
 dependencies = [
- "frunk_core 0.5.0",
+ "frunk_core",
  "frunk_proc_macro_helpers",
  "quote",
  "syn 2.0.119",
