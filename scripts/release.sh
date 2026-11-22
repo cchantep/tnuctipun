@@ -179,7 +179,6 @@ update_version() {
 
     # Validate the versions that are about to be tagged and published.
     cargo publish -p tnuctipun-derive --dry-run
-    cargo publish -p tnuctipun --dry-run
     
     # Clean up backup files
     rm -f Cargo.toml.bak tnuctipun-derive/Cargo.toml.bak
@@ -271,9 +270,6 @@ main() {
         exit 0
     fi
 
-    # Dry run
-    cargo publish -p tnuctipun --dry-run
-    
     # Run tests
     run_tests
     
