@@ -95,8 +95,7 @@ jobs:
       run: |
         echo "Running dry-run publication ..."
         cargo publish -p tnuctipun-derive --dry-run
-        cargo publish -p tnuctipun --dry-run
-    
+
     - name: Publish tnuctipun-derive
       run: |
         echo "Publishing tnuctipun-derive v${{ steps.get_version.outputs.VERSION }}"
@@ -116,6 +115,9 @@ jobs:
           echo "Attempt $i: Package not yet available, waiting..."
           sleep 30
         done
+
+    - name: Dry-run tnuctipun
+      run: cargo publish -p tnuctipun --dry-run
     
     - name: Publish tnuctipun
       run: |
